@@ -52,7 +52,7 @@ class MojoParametersTest {
             val mojo = Regex("<goal>$goal</goal>.*?</mojo>", RegexOption.DOT_MATCHES_ALL).find(descriptor)!!.value
             return Regex("<name>([^<]+)</name>").findAll(mojo).map { it.groupValues[1] }.toSet() - "project"
         }
-        val runtime = setOf("skip", "engine")
+        val runtime = setOf("skip")
         val configured = runtime + setOf("configFile", "maxProblems")
         val api = configured + setOf("apis", "lintConfig")
 

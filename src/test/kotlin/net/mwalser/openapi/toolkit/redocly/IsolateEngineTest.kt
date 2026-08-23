@@ -13,7 +13,7 @@ class IsolateEngineTest {
     @OptIn(kotlin.io.path.ExperimentalPathApi::class)
     @Test
     fun `lints in a polyglot isolate`(@TempDir dir: Path) {
-        assumeTrue(RedoclyRuntime.isIsolateAvailable(), "no js-isolate-*-community artifact on the classpath")
+        assumeTrue(RedoclyRuntime.isIsolatePresent(), "no js-isolate-*-community artifact on the classpath")
         Path.of("src/test/resources/fixtures/petstore").copyToRecursively(dir, followLinks = false, overwrite = true)
 
         RedoclyRuntime.create(EngineMode.ISOLATE).use { runtime ->
@@ -28,9 +28,15 @@ class IsolateEngineTest {
 
     @Test
     fun `auto mode falls back to the interpreter without an isolate`() {
-        assumeTrue(!RedoclyRuntime.isIsolateAvailable() && !org.graalvm.polyglot.Engine.supportsCompilation())
+        assumeTrue(!RedoclyRuntime.isIsolatePresent() && !org.graalvm.polyglot.Engine.supportsCompilation())
         RedoclyRuntime.create(EngineMode.AUTO).use { runtime ->
             assertEquals(RedoclyRuntime.EffectiveEngine.INTERPRETER, runtime.effectiveEngine)
         }
+    }
+
+    @Test
+    fun `reports the isolate platform of this jvm`() {
+        val platform = RedoclyRuntime.isolatePlatform()
+        kotlin.test.assertTrue(Regex("(linux|darwin|windows)-(amd64|aarch64)").matches(platform), platform)
     }
 }

@@ -130,7 +130,9 @@ class RedoclyRuntime private constructor(
             try {
                 context.getBindings("js").putMember("__jvm", bridge.asProxy())
                 val module = context.eval(loadBundle())
-                return RedoclyRuntime(effective, engine, context, bridge, module)
+                val runtime = RedoclyRuntime(effective, engine, context, bridge, module)
+                diagnostics.info("Redocly ${runtime.redoclyVersion} - JavaScript engine: ${describe(effective)}")
+                return runtime
             } catch (e: PolyglotException) {
                 context.close(true)
                 engine.close(true)
@@ -138,12 +140,34 @@ class RedoclyRuntime private constructor(
             }
         }
 
-        /** Whether a polyglot isolate for JavaScript is available on the classpath. */
-        fun isIsolateAvailable(): Boolean = try {
-            newEngineBuilder(isolate = true).build().close()
-            true
-        } catch (e: Exception) {
-            false
+        /**
+         * Whether a polyglot isolate for JavaScript (`org.graalvm.polyglot:js-isolate-<os>-<arch>-community`) is on
+         * the classpath. Detected by its Truffle resource provider registration, without starting it.
+         */
+        fun isIsolatePresent(): Boolean {
+            val loader = RedoclyRuntime::class.java.classLoader ?: ClassLoader.getSystemClassLoader()
+            val services = loader.getResources("META-INF/services/com.oracle.truffle.api.provider.InternalResourceProvider")
+            for (url in services) {
+                val providers = url.openStream().bufferedReader(StandardCharsets.UTF_8).use { it.readText() }
+                if (providers.lineSequence().any { it.contains("isolate") && it.contains(".js.") }) return true
+            }
+            return false
+        }
+
+        /** The platform suffix of the isolate artifact matching this JVM, e.g. `linux-amd64`. */
+        fun isolatePlatform(): String {
+            val osName = System.getProperty("os.name", "").lowercase()
+            val os = when {
+                osName.contains("win") -> "windows"
+                osName.contains("mac") || osName.contains("darwin") -> "darwin"
+                else -> "linux"
+            }
+            val arch = when (System.getProperty("os.arch", "").lowercase()) {
+                "amd64", "x86_64" -> "amd64"
+                "aarch64", "arm64" -> "aarch64"
+                else -> System.getProperty("os.arch", "unknown")
+            }
+            return "$os-$arch"
         }
 
         private fun createEngine(mode: EngineMode, diagnostics: JsLog): Pair<EffectiveEngine, Engine> {
@@ -152,7 +176,7 @@ class RedoclyRuntime private constructor(
                 EngineMode.ISOLATE -> EffectiveEngine.ISOLATE
                 EngineMode.AUTO -> when {
                     Engine.supportsCompilation() -> EffectiveEngine.JIT
-                    isIsolateAvailable() -> EffectiveEngine.ISOLATE
+                    isIsolatePresent() -> EffectiveEngine.ISOLATE
                     else -> EffectiveEngine.INTERPRETER
                 }
             }
@@ -161,15 +185,25 @@ class RedoclyRuntime private constructor(
                 newEngineBuilder(isolate = effective == EffectiveEngine.ISOLATE).build()
             } catch (e: Exception) {
                 if (effective == EffectiveEngine.ISOLATE) {
-                    throw RedoclyException(
-                        "The JavaScript polyglot isolate is not available. Add org.graalvm.polyglot:js-isolate-<os>-<arch>-community " +
-                            "as a dependency of the plugin or use engine mode INTERPRETER. Cause: ${e.message}",
-                        cause = e,
-                    )
+                    val hint = if (isIsolatePresent()) {
+                        "A JavaScript polyglot isolate is on the classpath but could not be started. Check that the artifact matches " +
+                            "this platform (expected org.graalvm.polyglot:js-isolate-${isolatePlatform()}-community) or remove it to fall back to the interpreter."
+                    } else {
+                        "No JavaScript polyglot isolate is on the classpath. Add org.graalvm.polyglot:js-isolate-${isolatePlatform()}-community " +
+                            "as a dependency of the plugin."
+                    }
+                    throw RedoclyException("$hint Cause: ${e.message}", cause = e)
                 }
                 throw RedoclyException("Failed to create the JavaScript engine: ${e.message}", cause = e)
             }
             return effective to engine
+        }
+
+        private fun describe(engine: EffectiveEngine): String = when (engine) {
+            EffectiveEngine.JIT -> "GraalJS with runtime compilation"
+            EffectiveEngine.ISOLATE -> "GraalJS native isolate"
+            EffectiveEngine.INTERPRETER ->
+                "GraalJS interpreter (add org.graalvm.polyglot:js-isolate-${isolatePlatform()}-community to the plugin dependencies for faster runs)"
         }
 
         private fun newEngineBuilder(isolate: Boolean): Engine.Builder {

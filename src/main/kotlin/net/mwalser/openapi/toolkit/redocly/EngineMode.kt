@@ -1,10 +1,14 @@
 package net.mwalser.openapi.toolkit.redocly
 
-/** How the embedded JavaScript engine executes the Redocly code. */
+/**
+ * How the embedded JavaScript engine executes the Redocly code. The Maven goals always use [AUTO]; the
+ * explicit modes exist for tests and embedders of [RedoclyRuntime].
+ */
 enum class EngineMode {
     /**
      * Pick the fastest available option: in-process JIT when the host JVM supports it (GraalVM JDK),
-     * otherwise a polyglot isolate if one is on the plugin classpath, otherwise the interpreter.
+     * otherwise a polyglot isolate if one is on the classpath (failing loudly if it cannot start),
+     * otherwise the interpreter.
      */
     AUTO,
 

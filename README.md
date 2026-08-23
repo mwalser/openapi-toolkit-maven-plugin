@@ -65,7 +65,6 @@ shows exactly what a goal accepts):
 | Parameter | Property | Default | Description | Goals |
 |---|---|---|---|---|
 | `skip` | `openapi.skip` | `false` | Skip execution. | all |
-| `engine` | `openapi.engine` | `AUTO` | JavaScript engine mode, see [Performance](#performance). | all |
 | `configFile` | `openapi.configFile` | `redocly.yaml` if it exists | Redocly configuration file. | all except `split` |
 | `maxProblems` | `openapi.maxProblems` | `100` | Maximum number of problems printed per API and for the configuration file. | all except `split` |
 | `apis` | `openapi.apis` | all APIs of the config | Aliases from `apis:` or paths/URLs to process. | `lint`, `bundle`, `stats`, `score`, `join` |
@@ -187,8 +186,8 @@ path filenames. This goal does not read `redocly.yaml`.
 
 ## Performance
 
-GraalJS is not V8. The default **interpreter** mode (plain `js-community` dependency, ~30 MB, works on every
-JDK 21+) is fine for typical API descriptions but noticeably slower than Node on very large ones:
+GraalJS is not V8. By default the plugin runs the GraalJS **interpreter** (plain `js-community` dependency, ~30 MB,
+works on every JDK 21+), which is fine for typical API descriptions but noticeably slower than Node on very large ones:
 
 | Description | Size | Node | interpreter | isolate |
 |---|---|---|---|---|
@@ -198,11 +197,13 @@ JDK 21+) is fine for typical API descriptions but noticeably slower than Node on
 
 (lint, cold, 4 cores; plus a one-time ~4 s / ~1.4 s to load the bundle per Maven build. Problem counts are identical.)
 
-`engine` = `AUTO` picks the best available option:
+The engine is chosen from what is available — there is nothing to configure, and the build log states which one is
+used (`Redocly 2.47.0 - JavaScript engine: …`):
 
-1. **JIT in-process** — when Maven itself runs on a GraalVM JDK (`Engine.supportsCompilation()`).
-2. **Isolate** — GraalJS as a pre-compiled native image inside the JVM (Community licence since GraalVM 25.1).
-   Opt in by adding the artifact for your platform to the *plugin's* dependencies (~60 MB download):
+1. **Runtime compilation in-process** when Maven itself runs on a GraalVM JDK.
+2. **Native isolate** — GraalJS as a pre-compiled native image inside the JVM (Community licence since GraalVM 25.1).
+   Opt in by adding the artifact for your platform to the *plugin's* dependencies (~60 MB download); if it is present
+   but cannot start (e.g. wrong platform), the build fails with a clear message instead of silently running slower:
    ```xml
    <plugin>
      <groupId>net.mwalser</groupId>
@@ -218,10 +219,9 @@ JDK 21+) is fine for typical API descriptions but noticeably slower than Node on
      </dependencies>
    </plugin>
    ```
-3. **Interpreter** — otherwise.
+3. **Interpreter** otherwise.
 
-`engine` = `INTERPRETER` or `ISOLATE` forces a mode (`ISOLATE` fails when the artifact is missing). The JavaScript
-runtime is created once per JVM and reused by every goal and module of the build.
+The JavaScript runtime is created once per JVM and reused by every goal and module of the build.
 
 ## Limitations
 

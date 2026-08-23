@@ -21,7 +21,7 @@ import java.nio.file.Path
  *
  * Parameters are declared at the level of the hierarchy where they actually take effect, so the generated
  * goal descriptors (`mvn help:describe`) only advertise parameters a goal honours:
- * - [AbstractRedoclyMojo]: `skip`, `engine` — every goal
+ * - [AbstractRedoclyMojo]: `skip` — every goal
  * - [AbstractConfiguredMojo]: `configFile`, `maxProblems` — goals that read `redocly.yaml`
  * - [AbstractApiMojo]: `apis`, `lintConfig` — goals that process API descriptions
  * - `extends` only on `lint` and `bundle`, the goals that evaluate rules
@@ -34,13 +34,6 @@ abstract class AbstractRedoclyMojo : AbstractMojo() {
     /** Skip execution of this goal. */
     @Parameter(property = "openapi.skip", defaultValue = "false")
     var skip: Boolean = false
-
-    /**
-     * How the embedded JavaScript engine runs: `AUTO` (default), `INTERPRETER` or `ISOLATE`.
-     * See the plugin documentation for the performance trade-offs.
-     */
-    @Parameter(property = "openapi.engine", defaultValue = "AUTO")
-    var engine: EngineMode = EngineMode.AUTO
 
     protected val basedir: Path get() = project.basedir.toPath().toAbsolutePath().normalize()
 
@@ -105,8 +98,8 @@ abstract class AbstractRedoclyMojo : AbstractMojo() {
     // ---- Redocly runtime and reporting ----------------------------------------------------------
 
     protected fun redocly(): Redocly {
-        val runtime = RedoclyRuntime.shared(engine, MavenJsLog(log))
-        log.debug("Redocly ${runtime.redoclyVersion} (engine: ${runtime.effectiveEngine})")
+        // one runtime per JVM; the engine (interpreter, isolate, JIT) is chosen from what is on the classpath
+        val runtime = RedoclyRuntime.shared(EngineMode.AUTO, MavenJsLog(log))
         return Redocly(runtime, MavenJsLog(log))
     }
 
