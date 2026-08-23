@@ -20,7 +20,7 @@ import java.nio.file.Path
  * Base of all goals: the runtime parameters every goal has, plus shared helpers.
  *
  * Parameters are declared at the level of the hierarchy where they actually take effect, so the generated
- * goal descriptors (`mvn help:describe`) only advertise parameters a goal honours:
+ * goal descriptors (`mvn help:describe`) only advertise parameters a goal honors:
  * - [AbstractRedoclyMojo]: `skip` — every goal
  * - [AbstractConfiguredMojo]: `configFile`, `maxProblems` — goals that read `redocly.yaml`
  * - [AbstractApiMojo]: `apis`, `lintConfig` — goals that process API descriptions
@@ -28,7 +28,7 @@ import java.nio.file.Path
  */
 abstract class AbstractRedoclyMojo : AbstractMojo() {
 
-    @Parameter(defaultValue = "\${project}", readonly = true, required = true)
+    @Parameter(defaultValue = $$"${project}", readonly = true, required = true)
     lateinit var project: MavenProject
 
     /** Skip execution of this goal. */
@@ -79,9 +79,6 @@ abstract class AbstractRedoclyMojo : AbstractMojo() {
 
     /** Resolves a possibly relative file against the base directory. */
     protected fun resolve(file: File): File = if (file.isAbsolute) file else File(project.basedir, file.path)
-
-    /** Resolves a possibly relative file against the base directory and converts it to a JS path. */
-    protected fun jsPath(file: File): String = JsPaths.toJs(resolve(file))
 
     protected fun jsPath(path: Path): String = JsPaths.toJs(path)
 
@@ -144,7 +141,7 @@ abstract class AbstractRedoclyMojo : AbstractMojo() {
 
     /**
      * Prints formatted problems. Human-readable formats go through the Maven log; `github-actions` is written
-     * to stdout unprefixed because GitHub only recognises workflow commands at the start of a line.
+     * to stdout unprefixed because GitHub only recognizes workflow commands at the start of a line.
      */
     protected fun printProblems(output: String, format: String, level: MavenJsLog.Level) {
         if (format == GITHUB_ACTIONS_FORMAT) {

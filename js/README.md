@@ -15,7 +15,7 @@ or from the project root: `mvn generate-resources -Pbuild-js`.
 - `src/shims/` – replacements for Node built-ins (`fs`, `process`, `perf_hooks`) and `colorette`.
 - `src/api/` – the command layer (`lint`, `bundle`, `check-config`, `stats`, `join`, `split`, `score`)
   mirroring `packages/cli/src/commands` of redocly-cli; every command takes plain options and returns
-  JSON-serialisable data.
+  JSON-serializable data.
 - `vendor/redocly-cli/` – unmodified command sources of `@redocly/cli` (MIT) for stats/join/split/score,
   compiled by esbuild from TypeScript. Update them together with the `@redocly/openapi-core` version.
 

@@ -47,7 +47,7 @@ class MojoParametersTest {
     }
 
     @Test
-    fun `goals advertise exactly the parameters they honour`() {
+    fun `goals advertise exactly the parameters they honor`() {
         val descriptorFile = Path.of("target/classes/META-INF/maven/plugin.xml")
         assumeTrue(Files.exists(descriptorFile), "plugin descriptor not generated (run via Maven)")
         val descriptor = descriptorFile.readText()

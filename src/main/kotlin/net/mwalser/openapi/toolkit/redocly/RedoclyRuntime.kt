@@ -18,7 +18,7 @@ import kotlin.concurrent.withLock
  * Hosts the embedded Redocly JavaScript bundle in a GraalJS context and runs commands against it.
  *
  * A runtime is expensive to create (the bundle has to be evaluated), so [shared] keeps one instance per
- * [EngineMode] for the lifetime of the JVM. Instances are thread-safe; calls are serialised because a
+ * [EngineMode] for the lifetime of the JVM. Instances are thread-safe; calls are serialized because a
  * JavaScript context is single-threaded.
  */
 class RedoclyRuntime private constructor(
@@ -27,7 +27,7 @@ class RedoclyRuntime private constructor(
     private val engine: Engine,
     private val context: Context,
     private val bridge: HostBridge,
-    private val module: Value,
+    module: Value,
 ) : AutoCloseable {
 
     enum class EffectiveEngine { JIT, ISOLATE, INTERPRETER }
@@ -40,8 +40,8 @@ class RedoclyRuntime private constructor(
     val redoclyVersion: String = module.getMember("version").execute().asString()
 
     /**
-     * Runs a command of the JavaScript API layer. [options] is serialised to JSON, the result is
-     * deserialised into [resultType]. Logging produced while the command runs goes to [log].
+     * Runs a command of the JavaScript API layer. [options] is serialized to JSON, the result is
+     * deserialized into [resultType]. Logging produced while the command runs goes to [log].
      */
     fun <T> run(command: String, options: Any, resultType: Class<T>, workingDirectory: Path, log: JsLog): T = lock.withLock {
         bridge.log = log
@@ -136,7 +136,7 @@ class RedoclyRuntime private constructor(
             } catch (e: PolyglotException) {
                 context.close(true)
                 engine.close(true)
-                throw RedoclyException("Failed to initialise the embedded Redocly bundle: ${e.message}", cause = e)
+                throw RedoclyException("Failed to initialize the embedded Redocly bundle: ${e.message}", cause = e)
             }
         }
 
@@ -213,7 +213,7 @@ class RedoclyRuntime private constructor(
                 builder.spawnIsolate(true)
             }
             if (isolate || Engine.supportsCompilation()) {
-                // one-shot workloads: favour fast warm-up over peak performance
+                // one-shot workloads: favor fast warm-up over peak performance
                 builder.option("engine.Mode", "latency")
             }
             return builder

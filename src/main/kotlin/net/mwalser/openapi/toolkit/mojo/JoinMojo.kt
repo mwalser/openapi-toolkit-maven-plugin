@@ -16,7 +16,7 @@ import java.io.File
 class JoinMojo : AbstractApiMojo() {
 
     /** The joined description. The extension (`yaml`, `yml` or `json`) determines the output format. */
-    @Parameter(property = "openapi.join.outputFile", defaultValue = "\${project.build.directory}/generated-resources/openapi/joined.yaml")
+    @Parameter(property = "openapi.join.outputFile", defaultValue = $$"${project.build.directory}/generated-resources/openapi/joined.yaml")
     lateinit var outputFile: File
 
     /** Prefix tags with the value of this `info` property (e.g. `title`) to avoid conflicts. */

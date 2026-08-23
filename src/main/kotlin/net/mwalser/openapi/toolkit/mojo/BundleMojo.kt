@@ -26,7 +26,7 @@ class BundleMojo : AbstractApiMojo() {
     var extends: List<String>? = null
 
     /** Directory the bundled files are written to. File names are `<alias>.<ext>` or `<basename>.<ext>`. */
-    @Parameter(property = "openapi.bundle.outputDirectory", defaultValue = "\${project.build.directory}/generated-resources/openapi")
+    @Parameter(property = "openapi.bundle.outputDirectory", defaultValue = $$"${project.build.directory}/generated-resources/openapi")
     lateinit var outputDirectory: File
 
     /** Write the bundle to this file instead of `outputDirectory`. Only allowed when a single API is bundled. */

@@ -17,7 +17,7 @@ object JsPaths {
     @Volatile
     internal var windows: Boolean = System.getProperty("os.name", "").lowercase().contains("win")
 
-    /** Host path → JS path. Relative paths only get their separators normalised. */
+    /** Host path → JS path. Relative paths only get their separators normalized. */
     fun toJs(hostPath: String): String {
         if (!windows) return hostPath
         val slashed = hostPath.replace('\\', '/')

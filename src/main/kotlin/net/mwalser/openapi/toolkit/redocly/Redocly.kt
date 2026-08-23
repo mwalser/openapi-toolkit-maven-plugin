@@ -1,7 +1,5 @@
 package net.mwalser.openapi.toolkit.redocly
 
-import java.nio.file.Path
-
 /**
  * Typed facade over the commands of the embedded Redocly bundle.
  *
@@ -11,7 +9,6 @@ import java.nio.file.Path
 class Redocly(private val runtime: RedoclyRuntime, private val log: JsLog = JsLog.SILENT) {
 
     val version: String get() = runtime.redoclyVersion
-    val effectiveEngine: RedoclyRuntime.EffectiveEngine get() = runtime.effectiveEngine
 
     fun lint(options: LintOptions): LintResult =
         runtime.run("lint", options, JsPaths.toHostPath(options.cwd), log)

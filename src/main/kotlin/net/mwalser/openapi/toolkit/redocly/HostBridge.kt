@@ -12,7 +12,6 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
 import java.time.Duration
-import kotlin.streams.toList
 
 /**
  * The object installed as `globalThis.__jvm` in the JavaScript context. All file system and network
@@ -22,7 +21,7 @@ import kotlin.streams.toList
 internal class HostBridge(
     @Volatile var log: JsLog = JsLog.SILENT,
     @Volatile var workingDirectory: Path = Path.of("").toAbsolutePath(),
-    private val httpClientFactory: () -> HttpClient = { HttpClient.newBuilder().followRedirects(HttpClient.Redirect.NORMAL).build() },
+    httpClientFactory: () -> HttpClient = { HttpClient.newBuilder().followRedirects(HttpClient.Redirect.NORMAL).build() },
 ) {
     private val httpClient: HttpClient by lazy(httpClientFactory)
 

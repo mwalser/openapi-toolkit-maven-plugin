@@ -200,7 +200,7 @@ The engine is chosen from what is available — there is nothing to configure, a
 used (`Redocly 2.47.0 - JavaScript engine: …`):
 
 1. **Runtime compilation in-process** when Maven itself runs on a GraalVM JDK.
-2. **Native isolate** — GraalJS as a pre-compiled native image inside the JVM (Community licence since GraalVM 25.1).
+2. **Native isolate** — GraalJS as a pre-compiled native image inside the JVM (Community license since GraalVM 25.1).
    Opt in by adding the artifact for your platform to the *plugin's* dependencies (~60 MB download); if it is present
    but cannot start (e.g. wrong platform), the build fails with a clear message instead of silently running slower:
    ```xml
@@ -243,7 +243,7 @@ mvn generate-resources -Pbuild-js   # rebuild the embedded JS bundle (needs Node
 
 The project is written in Kotlin. `js/README.md` explains the JavaScript side and how to upgrade Redocly.
 
-## Licence
+## License
 
 Apache License 2.0. The embedded bundle contains `@redocly/openapi-core` and parts of `@redocly/cli`
 (MIT, © Redocly Inc.) and their dependencies; see `LICENSE` and `js/vendor/redocly-cli/LICENSE`.
