@@ -14,7 +14,7 @@ import {
  * @param opts {{
  *   cwd: string, configPath?: string, apis?: string[], extends?: string[],
  *   format?: string, reportFormat?: string, maxProblems?: number,
- *   skipRules?: string[], skipPreprocessors?: string[],
+ *   skipRules?: string[],
  *   generateIgnoreFile?: boolean, lintConfig?: 'warn'|'error'|'off'
  * }}
  */
@@ -33,7 +33,6 @@ export async function runLint(opts) {
     const aliasConfig = config.forAlias(alias);
     checkIfRulesetExist(aliasConfig.rules);
     aliasConfig.skipRules(opts.skipRules);
-    aliasConfig.skipPreprocessors(opts.skipPreprocessors);
 
     const started = performance.now();
     const problems = await lint({ ref: path, config: aliasConfig });
@@ -66,8 +65,9 @@ export async function runLint(opts) {
     ignoreFile = { ignored: totalIgnored };
   }
 
+  // reports are meant for CI tooling and always contain every problem; maxProblems only bounds the console output
   const report = opts.reportFormat
-    ? formatToString(allProblems, { format: opts.reportFormat, maxProblems, totals, command: 'lint', cwd })
+    ? formatToString(allProblems, { format: opts.reportFormat, maxProblems: Number.MAX_SAFE_INTEGER, totals, command: 'lint', cwd })
     : null;
 
   return {

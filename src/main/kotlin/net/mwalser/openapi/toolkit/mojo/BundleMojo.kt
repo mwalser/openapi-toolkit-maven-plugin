@@ -33,9 +33,12 @@ class BundleMojo : AbstractApiMojo() {
     @Parameter(property = "openapi.bundle.outputFile")
     var outputFile: File? = null
 
-    /** Output format: `yaml` (default), `yml` or `json`. */
-    @Parameter(property = "openapi.bundle.ext", defaultValue = "yaml")
-    var ext: String = "yaml"
+    /**
+     * Output format: `yaml`, `yml` or `json`. Defaults to the extension of `outputFile` when that is set,
+     * otherwise `yaml`.
+     */
+    @Parameter(property = "openapi.bundle.ext")
+    var ext: String? = null
 
     /** Produce a fully dereferenced bundle (no `$ref` left). */
     @Parameter(property = "openapi.bundle.dereferenced", defaultValue = "false")
@@ -53,7 +56,10 @@ class BundleMojo : AbstractApiMojo() {
     @Parameter(property = "openapi.bundle.keepUrlReferences", defaultValue = "false")
     var keepUrlReferences: Boolean = false
 
-    /** Naming strategy for components pulled in from other files: `auto` (default), `prefix-tag`, `prefix-file`, ... */
+    /**
+     * How components pulled in from other files are named: `basename` (Redocly's default, from the file name)
+     * or `title` (from the schema's `title`).
+     */
     @Parameter(property = "openapi.bundle.componentNamesStrategy")
     var componentNamesStrategy: String? = null
 
@@ -64,10 +70,6 @@ class BundleMojo : AbstractApiMojo() {
     /** Decorator ids to skip. */
     @Parameter(property = "openapi.bundle.skipDecorators")
     var skipDecorators: List<String>? = null
-
-    /** Preprocessor ids to skip. */
-    @Parameter(property = "openapi.bundle.skipPreprocessors")
-    var skipPreprocessors: List<String>? = null
 
     /** Add `outputDirectory` as a resource directory of the project so the bundles end up in the artifact. */
     @Parameter(property = "openapi.bundle.addResource", defaultValue = "false")
@@ -86,10 +88,19 @@ class BundleMojo : AbstractApiMojo() {
 
     override fun validateParameters() {
         super.validateParameters()
-        requireOneOf("openapi.bundle.ext", ext, listOf("yaml", "yml", "json"))
+        ext?.let { requireOneOf("openapi.bundle.ext", it, EXTENSIONS) }
+        componentNamesStrategy?.let { requireOneOf("openapi.bundle.componentNamesStrategy", it, listOf("basename", "title")) }
         componentRenamingConflicts?.let { requireOneOf("openapi.bundle.componentRenamingConflicts", it, CONFIG_LINT_SEVERITIES) }
         if (attach && classifier.isBlank()) throw MojoExecutionException("openapi.bundle.classifier must not be blank when attach=true")
+        val fileExt = outputFile?.extension?.lowercase()
+        if (ext != null && fileExt in EXTENSIONS && fileExt != ext) {
+            throw MojoExecutionException("openapi.bundle.ext '$ext' conflicts with the extension of openapi.bundle.outputFile '${outputFile?.name}'")
+        }
     }
+
+    /** The output format actually used. */
+    private val effectiveExt: String
+        get() = ext ?: outputFile?.extension?.lowercase()?.takeIf { it in EXTENSIONS } ?: "yaml"
 
     @Throws(MojoExecutionException::class, MojoFailureException::class)
     override fun run() {
@@ -104,7 +115,7 @@ class BundleMojo : AbstractApiMojo() {
                 extends = extends,
                 outputDirectory = JsPaths.toJs(outDir),
                 outputFile = outFile?.let { JsPaths.toJs(it) },
-                ext = ext,
+                ext = effectiveExt,
                 dereferenced = dereferenced,
                 force = force,
                 removeUnusedComponents = removeUnusedComponents,
@@ -112,7 +123,6 @@ class BundleMojo : AbstractApiMojo() {
                 componentNamesStrategy = componentNamesStrategy,
                 componentRenamingConflicts = componentRenamingConflicts,
                 skipDecorators = skipDecorators,
-                skipPreprocessors = skipPreprocessors,
                 lintConfig = lintConfig,
                 maxProblems = maxProblems,
             ),
@@ -134,8 +144,8 @@ class BundleMojo : AbstractApiMojo() {
             if (api.removedComponents > 0) log.info("Removed ${plural(api.removedComponents, "unused component")}")
             if (api.written && attach) {
                 val artifactClassifier = api.alias ?: classifier
-                projectHelper.attachArtifact(project, ext, artifactClassifier, File(hostPath(api.outputFile)))
-                log.info("Attached ${relativize(api.outputFile)} as artifact (type=$ext, classifier=$artifactClassifier)")
+                projectHelper.attachArtifact(project, effectiveExt, artifactClassifier, File(hostPath(api.outputFile)))
+                log.info("Attached ${relativize(api.outputFile)} as artifact (type=$effectiveExt, classifier=$artifactClassifier)")
             }
         }
 
@@ -149,5 +159,9 @@ class BundleMojo : AbstractApiMojo() {
         if (result.totals.errors > 0 && !force) {
             throw MojoFailureException("OpenAPI bundle failed with ${plural(result.totals.errors, "error")}.")
         }
+    }
+
+    companion object {
+        val EXTENSIONS: List<String> = listOf("yaml", "yml", "json")
     }
 }

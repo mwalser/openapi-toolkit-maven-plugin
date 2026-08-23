@@ -54996,7 +54996,6 @@ async function runLint(opts) {
     const aliasConfig = config.forAlias(alias);
     checkIfRulesetExist(aliasConfig.rules);
     aliasConfig.skipRules(opts.skipRules);
-    aliasConfig.skipPreprocessors(opts.skipPreprocessors);
     const started = performance.now();
     const problems = await lint({ ref: path35, config: aliasConfig });
     const fileTotals = getTotals(problems);
@@ -55025,7 +55024,7 @@ async function runLint(opts) {
     config.saveIgnore();
     ignoreFile = { ignored: totalIgnored };
   }
-  const report = opts.reportFormat ? formatToString(allProblems, { format: opts.reportFormat, maxProblems, totals, command: "lint", cwd }) : null;
+  const report = opts.reportFormat ? formatToString(allProblems, { format: opts.reportFormat, maxProblems: Number.MAX_SAFE_INTEGER, totals, command: "lint", cwd }) : null;
   return {
     usedDefaultConfig: typeof config.document?.parsed === "undefined" && !(opts.extends && opts.extends.length),
     configLint,
@@ -55056,7 +55055,6 @@ async function runBundle(opts) {
   const results = [];
   for (const { path: ref, alias } of apis) {
     const aliasConfig = config.forAlias(alias);
-    aliasConfig.skipPreprocessors(opts.skipPreprocessors);
     aliasConfig.skipDecorators(opts.skipDecorators);
     const started = performance.now();
     const { bundle: result, problems, ...meta } = await bundle({

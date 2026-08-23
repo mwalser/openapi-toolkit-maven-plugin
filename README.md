@@ -91,13 +91,12 @@ Runs `redocly lint`. Fails the build when errors are found.
 
 | Parameter | Property | Default | Description |
 |---|---|---|---|
-| `format` | `openapi.lint.format` | `stylish` | Console format: `stylish`, `codeframe`, `summary`, `markdown`, `github-actions`, `json`, `checkstyle`, `codeclimate`, `junit`. |
-| `reportFile` | `openapi.lint.reportFile` | – | Additionally write the problems to this file (also limited by `maxProblems`) … |
-| `reportFormat` | `openapi.lint.reportFormat` | `checkstyle` | … in this format (any of the console formats; `checkstyle` or `junit` for CI integration). |
+| `format` | `openapi.lint.format` | `stylish` | Build log format: `stylish`, `codeframe`, `summary`, `markdown` or `github-actions` (annotations, printed unprefixed so GitHub picks them up). |
+| `reportFile` | `openapi.lint.reportFile` | – | Additionally write *all* problems (not limited by `maxProblems`) to this file … |
+| `reportFormat` | `openapi.lint.reportFormat` | `checkstyle` | … in this format: `checkstyle`, `junit`, `json`, `codeclimate` or any build log format. |
 | `failOnErrors` | `openapi.lint.failOnErrors` | `true` | Fail the build on `error` problems. |
 | `failOnWarnings` | `openapi.lint.failOnWarnings` | `false` | Fail the build on `warn` problems. |
 | `skipRules` | `openapi.lint.skipRules` | – | Rule ids to skip. |
-| `skipPreprocessors` | `openapi.lint.skipPreprocessors` | – | Preprocessor ids to skip. |
 | `generateIgnoreFile` | `openapi.lint.generateIgnoreFile` | `false` | Write problems to `.redocly.lint-ignore.yaml`; this baseline-generation mode does not fail on API problems. |
 
 `reportFormat` has an effect only when `reportFile` is set. Configuration errors are checked independently and
@@ -111,20 +110,20 @@ Runs `redocly bundle`: resolves all `$ref`s into one file and applies the config
 |---|---|---|---|
 | `outputDirectory` | `openapi.bundle.outputDirectory` | `${project.build.directory}/generated-resources/openapi` | Output directory; files are named `<alias>.<ext>` (or `<basename>.<ext>`). |
 | `outputFile` | `openapi.bundle.outputFile` | – | Explicit output file (single API only). |
-| `ext` | `openapi.bundle.ext` | `yaml` | `yaml`, `yml` or `json`. |
+| `ext` | `openapi.bundle.ext` | extension of `outputFile`, else `yaml` | `yaml`, `yml` or `json`. |
 | `dereferenced` | `openapi.bundle.dereferenced` | `false` | Inline everything, leave no `$ref`. |
 | `force` | `openapi.bundle.force` | `false` | Write the bundle even if there are errors. |
 | `removeUnusedComponents` | `openapi.bundle.removeUnusedComponents` | `false` | Drop unreferenced components. |
 | `keepUrlReferences` | `openapi.bundle.keepUrlReferences` | `false` | Keep absolute URL `$ref`s. |
-| `componentNamesStrategy` | `openapi.bundle.componentNamesStrategy` | – | Naming strategy for imported components. |
+| `componentNamesStrategy` | `openapi.bundle.componentNamesStrategy` | `basename` | Naming of components pulled in from other files: `basename` (file name) or `title` (schema title). |
 | `componentRenamingConflicts` | `openapi.bundle.componentRenamingConflicts` | `warn` | Report component renaming conflicts as `warn`, `error` or `off`. |
-| `skipDecorators` / `skipPreprocessors` | `openapi.bundle.skip…` | – | Ids to skip. |
+| `skipDecorators` | `openapi.bundle.skipDecorators` | – | Decorator ids to skip. |
 | `addResource` | `openapi.bundle.addResource` | `false` | Add the output directory as a project resource (bundle ends up in the jar). |
 | `attach` | `openapi.bundle.attach` | `false` | Attach each bundle as a build artifact (`type` = `ext`, `classifier` = alias). |
 | `classifier` | `openapi.bundle.classifier` | `openapi` | Classifier used when an API has no alias. |
 
-`outputFile` overrides `outputDirectory` and is valid only for one API. `ext` controls serialization and the attached
-artifact type even when `outputFile` is set. The `output` field of `apis.<alias>` in `redocly.yaml` is ignored because
+`outputFile` overrides `outputDirectory` and is valid only for one API; its extension determines the format unless
+`ext` is set (a conflicting `ext` is an error). `ext` also becomes the type of attached artifacts. The `output` field of `apis.<alias>` in `redocly.yaml` is ignored because
 Maven controls where bundles go. With `addResource=true`, bundles are added at the artifact's resource root.
 
 ### `openapi:check-config`
@@ -134,7 +133,7 @@ Lints `redocly.yaml` (`redocly check-config`).
 | Parameter | Property | Default | Description |
 |---|---|---|---|
 | `severity` | `openapi.checkConfig.severity` | `warn` | `warn` reports problems; `error` fails the build. |
-| `format` | `openapi.checkConfig.format` | `stylish` | Problem output format, as for `lint`. |
+| `format` | `openapi.checkConfig.format` | `stylish` | Build log format, as for `lint`. |
 
 If no implicit `redocly.yaml` exists, the goal warns and succeeds. An explicitly configured missing `configFile` fails.
 
@@ -226,8 +225,8 @@ The JavaScript runtime is created once per JVM and reused by every goal and modu
 ## Limitations
 
 - **Custom JavaScript plugins** (`plugins:` in `redocly.yaml`) are not supported: the bundle runs in Redocly's
-  "browser" mode, which cannot load plugin files. Built-in rulesets, rule configuration and built-in decorators /
-  preprocessors all work.
+  "browser" mode, which cannot load plugin files. Built-in rulesets, rule configuration and built-in decorators all
+  work; preprocessors only exist in custom plugins, so there is no `skipPreprocessors` parameter.
 - Not included (they need a Node process, the Redocly cloud or live HTTP): `build-docs`, `preview`, `push`,
   `login`, `respect`, `translate`, `eject`, `generate-*`, `drift`, `proxy`, `scorecard-classic`.
 - Windows: paths are mapped for the POSIX `path` implementation used by the bundle; this is covered by unit tests

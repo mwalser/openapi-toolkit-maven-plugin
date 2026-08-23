@@ -105,11 +105,11 @@ abstract class AbstractRedoclyMojo : AbstractMojo() {
 
     /** Prints the result of linting the configuration file and fails the build on configuration errors. */
     @Throws(MojoFailureException::class)
-    protected fun reportConfigLint(result: ConfigLintResult?, configPath: Path?) {
+    protected fun reportConfigLint(result: ConfigLintResult?, configPath: Path?, format: String = "stylish") {
         if (result == null) return
         val t = result.totals
         if (t.errors == 0 && t.warnings == 0) return
-        MavenJsLog.block(log, result.output, if (t.errors > 0) MavenJsLog.Level.ERROR else MavenJsLog.Level.WARN)
+        printProblems(result.output, format, if (t.errors > 0) MavenJsLog.Level.ERROR else MavenJsLog.Level.WARN)
         val summary = "Configuration file ${configPath ?: ""}: ${plural(t.errors, "error")}, ${plural(t.warnings, "warning")}"
         if (t.errors > 0) {
             throw MojoFailureException("$summary. Fix the configuration or set lintConfig=off.")
@@ -142,10 +142,27 @@ abstract class AbstractRedoclyMojo : AbstractMojo() {
         return out
     }
 
+    /**
+     * Prints formatted problems. Human-readable formats go through the Maven log; `github-actions` is written
+     * to stdout unprefixed because GitHub only recognises workflow commands at the start of a line.
+     */
+    protected fun printProblems(output: String, format: String, level: MavenJsLog.Level) {
+        if (format == GITHUB_ACTIONS_FORMAT) {
+            output.trimEnd('\n', '\r').takeIf { it.isNotEmpty() }?.let { println(it) }
+        } else {
+            MavenJsLog.block(log, output, level)
+        }
+    }
+
     companion object {
-        /** Output formats understood by Redocly's `formatProblems`. */
-        val PROBLEM_FORMATS: List<String> =
-            listOf("stylish", "codeframe", "summary", "markdown", "github-actions", "json", "checkstyle", "codeclimate", "junit")
+        const val GITHUB_ACTIONS_FORMAT = "github-actions"
+
+        /** Formats suitable for the build log (plus GitHub Actions annotations). */
+        val CONSOLE_FORMATS: List<String> = listOf("stylish", "codeframe", "summary", "markdown", GITHUB_ACTIONS_FORMAT)
+
+        /** All output formats understood by Redocly's `formatProblems`; the machine-readable ones are for report files. */
+        val REPORT_FORMATS: List<String> = CONSOLE_FORMATS + listOf("json", "checkstyle", "codeclimate", "junit")
+
         val CONFIG_LINT_SEVERITIES: List<String> = listOf("warn", "error", "off")
     }
 }

@@ -21,10 +21,13 @@ class MojoParametersTest {
     @Test
     fun `invalid enumerated values are rejected before anything runs`() {
         assertRejected("openapi.lint.format", LintMojo().apply { format = "typo" })
+        assertRejected("openapi.lint.format", LintMojo().apply { format = "junit" }) // machine formats are for reportFile
         assertRejected("openapi.lint.reportFormat", LintMojo().apply { reportFile = java.io.File("x"); reportFormat = "typo" })
         assertRejected("openapi.lintConfig", LintMojo().apply { lintConfig = "loud" })
         assertRejected("openapi.maxProblems", LintMojo().apply { maxProblems = 0 })
         assertRejected("openapi.bundle.ext", BundleMojo().apply { ext = "xml" })
+        assertRejected("openapi.bundle.ext", BundleMojo().apply { ext = "yaml"; outputFile = java.io.File("spec.json") })
+        assertRejected("openapi.bundle.componentNamesStrategy", BundleMojo().apply { componentNamesStrategy = "auto" })
         assertRejected("openapi.bundle.componentRenamingConflicts", BundleMojo().apply { componentRenamingConflicts = "fatal" })
         assertRejected("openapi.bundle.classifier", BundleMojo().apply { attach = true; classifier = " " })
         assertRejected("openapi.checkConfig.severity", CheckConfigMojo().apply { severity = "off" })
@@ -56,9 +59,9 @@ class MojoParametersTest {
         val configured = runtime + setOf("configFile", "maxProblems")
         val api = configured + setOf("apis", "lintConfig")
 
-        assertEquals(api + setOf("extends", "format", "reportFile", "reportFormat", "failOnErrors", "failOnWarnings", "skipRules", "skipPreprocessors", "generateIgnoreFile"), parameters("lint"))
+        assertEquals(api + setOf("extends", "format", "reportFile", "reportFormat", "failOnErrors", "failOnWarnings", "skipRules", "generateIgnoreFile"), parameters("lint"))
         assertEquals(
-            api + setOf("extends", "outputDirectory", "outputFile", "ext", "dereferenced", "force", "removeUnusedComponents", "keepUrlReferences", "componentNamesStrategy", "componentRenamingConflicts", "skipDecorators", "skipPreprocessors", "addResource", "attach", "classifier"),
+            api + setOf("extends", "outputDirectory", "outputFile", "ext", "dereferenced", "force", "removeUnusedComponents", "keepUrlReferences", "componentNamesStrategy", "componentRenamingConflicts", "skipDecorators", "addResource", "attach", "classifier"),
             parameters("bundle"),
         )
         assertEquals(configured + setOf("severity", "format"), parameters("check-config"))

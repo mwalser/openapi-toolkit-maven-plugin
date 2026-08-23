@@ -14,14 +14,14 @@ class CheckConfigMojo : AbstractConfiguredMojo() {
     @Parameter(property = "openapi.checkConfig.severity", defaultValue = "warn")
     var severity: String = "warn"
 
-    /** Console output format (see the `lint` goal). */
+    /** Build log output format (see the `lint` goal). */
     @Parameter(property = "openapi.checkConfig.format", defaultValue = "stylish")
     var format: String = "stylish"
 
     override fun validateParameters() {
         super.validateParameters()
         requireOneOf("openapi.checkConfig.severity", severity, listOf("warn", "error"))
-        requireOneOf("openapi.checkConfig.format", format, PROBLEM_FORMATS)
+        requireOneOf("openapi.checkConfig.format", format, CONSOLE_FORMATS)
     }
 
     @Throws(MojoExecutionException::class, MojoFailureException::class)
@@ -34,7 +34,7 @@ class CheckConfigMojo : AbstractConfiguredMojo() {
         val result = redocly().checkConfig(
             CheckConfigOptions(cwd = jsCwd, configPath = jsPath(configPath), severity = severity, format = format, maxProblems = maxProblems),
         )
-        reportConfigLint(result.configLint, configPath)
+        reportConfigLint(result.configLint, configPath, format)
         val t = result.configLint?.totals
         if (t == null || (t.errors == 0 && t.warnings == 0)) {
             log.info("Configuration file ${relativize(configPath.toString())} is valid.")

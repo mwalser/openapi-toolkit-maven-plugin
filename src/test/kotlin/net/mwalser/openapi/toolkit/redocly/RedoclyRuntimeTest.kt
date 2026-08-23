@@ -95,6 +95,19 @@ class RedoclyRuntimeTest {
     }
 
     @Test
+    fun `maxProblems bounds the console output but not the report`(@TempDir dir: Path) {
+        val project = fixture("petstore3", dir)
+        Files.delete(project.resolve("redocly.yaml"))
+        val result = redocly().lint(LintOptions(cwd = project.toString(), apis = listOf("openapi.json"), maxProblems = 3, reportFormat = "json"))
+        val api = result.apis.single()
+        assertTrue(api.totals.errors + api.totals.warnings > 3)
+        // stylish output: one line per problem after the file header
+        assertEquals(3, api.output.lines().count { it.contains("  warning  ") || it.contains("  error  ") })
+        assertContains(result.report!!, "\"errors\": ${api.totals.errors}")
+        assertEquals(api.totals.errors + api.totals.warnings, Regex("\"ruleId\"").findAll(result.report!!).count())
+    }
+
+    @Test
     fun `lints the configuration file and reports unknown rules`(@TempDir dir: Path) {
         val project = fixture("broken", dir)
         val result = redocly().lint(

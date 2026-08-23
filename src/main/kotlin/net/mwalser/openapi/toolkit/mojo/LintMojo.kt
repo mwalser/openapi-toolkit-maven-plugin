@@ -20,17 +20,17 @@ class LintMojo : AbstractApiMojo() {
     var extends: List<String>? = null
 
     /**
-     * Console output format: `stylish` (default), `codeframe`, `summary`, `markdown`, `github-actions`,
-     * `json`, `checkstyle`, `codeclimate` or `junit`.
+     * Build log output format: `stylish` (default), `codeframe`, `summary`, `markdown` or `github-actions`
+     * (annotations, printed unprefixed so GitHub picks them up). Machine-readable formats belong in `reportFile`.
      */
     @Parameter(property = "openapi.lint.format", defaultValue = "stylish")
     var format: String = "stylish"
 
-    /** When set, problems are additionally written to this file in `reportFormat`, limited by `maxProblems`. */
+    /** When set, all problems (not limited by `maxProblems`) are additionally written to this file in `reportFormat`. */
     @Parameter(property = "openapi.lint.reportFile")
     var reportFile: File? = null
 
-    /** Format of `reportFile`: `checkstyle` (default), `junit`, `json`, `codeclimate`, `markdown`, `summary`, `stylish` or `codeframe`. */
+    /** Format of `reportFile`: `checkstyle` (default), `junit`, `json`, `codeclimate`, or any of the build log formats. */
     @Parameter(property = "openapi.lint.reportFormat", defaultValue = "checkstyle")
     var reportFormat: String = "checkstyle"
 
@@ -46,10 +46,6 @@ class LintMojo : AbstractApiMojo() {
     @Parameter(property = "openapi.lint.skipRules")
     var skipRules: List<String>? = null
 
-    /** Preprocessor ids to skip. */
-    @Parameter(property = "openapi.lint.skipPreprocessors")
-    var skipPreprocessors: List<String>? = null
-
     /**
      * Instead of reporting, write all found problems to `.redocly.lint-ignore.yaml` next to the
      * configuration file so they are ignored from now on (`redocly lint --generate-ignore-file`).
@@ -59,8 +55,8 @@ class LintMojo : AbstractApiMojo() {
 
     override fun validateParameters() {
         super.validateParameters()
-        requireOneOf("openapi.lint.format", format, PROBLEM_FORMATS)
-        if (reportFile != null) requireOneOf("openapi.lint.reportFormat", reportFormat, PROBLEM_FORMATS)
+        requireOneOf("openapi.lint.format", format, CONSOLE_FORMATS)
+        if (reportFile != null) requireOneOf("openapi.lint.reportFormat", reportFormat, REPORT_FORMATS)
     }
 
     @Throws(MojoExecutionException::class, MojoFailureException::class)
@@ -77,13 +73,12 @@ class LintMojo : AbstractApiMojo() {
                 reportFormat = if (reportFile != null) reportFormat else null,
                 maxProblems = maxProblems,
                 skipRules = skipRules,
-                skipPreprocessors = skipPreprocessors,
                 generateIgnoreFile = generateIgnoreFile,
                 lintConfig = lintConfig,
             ),
         )
 
-        reportConfigLint(result.configLint, configPath)
+        reportConfigLint(result.configLint, configPath, format)
         if (result.usedDefaultConfig) {
             log.info("No Redocly configuration found - using the built-in 'recommended' ruleset.")
         }
@@ -92,7 +87,7 @@ class LintMojo : AbstractApiMojo() {
             val using = api.alias?.let { " using lint rules for api '$it'" } ?: ""
             log.info("Validating ${relativize(api.path)}$using (${api.durationMillis} ms)")
             if (!generateIgnoreFile) {
-                MavenJsLog.block(log, api.output, levelFor(api.totals))
+                printProblems(api.output, format, levelFor(api.totals))
             }
         }
 

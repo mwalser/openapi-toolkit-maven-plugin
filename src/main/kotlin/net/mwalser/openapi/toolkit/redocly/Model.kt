@@ -41,7 +41,6 @@ data class LintOptions(
     val reportFormat: String? = null,
     val maxProblems: Int = 100,
     val skipRules: List<String>? = null,
-    val skipPreprocessors: List<String>? = null,
     val generateIgnoreFile: Boolean = false,
     val lintConfig: String = "warn",
 )
@@ -86,7 +85,6 @@ data class BundleOptions(
     val componentNamesStrategy: String? = null,
     val componentRenamingConflicts: String? = null,
     val skipDecorators: List<String>? = null,
-    val skipPreprocessors: List<String>? = null,
     val lintConfig: String = "warn",
     val format: String = "codeframe",
     val maxProblems: Int = 100,

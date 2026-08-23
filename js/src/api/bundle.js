@@ -22,7 +22,7 @@ const OUTPUT_EXTENSIONS = ['json', 'yaml', 'yml'];
  *   outputDirectory: string, outputFile?: string, ext?: 'json'|'yaml'|'yml',
  *   dereferenced?: boolean, force?: boolean, removeUnusedComponents?: boolean, keepUrlReferences?: boolean,
  *   componentNamesStrategy?: string, componentRenamingConflicts?: string,
- *   skipDecorators?: string[], skipPreprocessors?: string[], lintConfig?: 'warn'|'error'|'off',
+ *   skipDecorators?: string[], lintConfig?: 'warn'|'error'|'off',
  *   maxProblems?: number, format?: string
  * }}
  */
@@ -44,7 +44,6 @@ export async function runBundle(opts) {
 
   for (const { path: ref, alias } of apis) {
     const aliasConfig = config.forAlias(alias);
-    aliasConfig.skipPreprocessors(opts.skipPreprocessors);
     aliasConfig.skipDecorators(opts.skipDecorators);
 
     const started = performance.now();
