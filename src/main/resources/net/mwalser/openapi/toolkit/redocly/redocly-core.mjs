@@ -55348,21 +55348,26 @@ async function handleStats({ argv, config, collectSpecData }) {
 }
 
 // src/api/stats.js
+function stripWrapper(output, command) {
+  return output.replace(new RegExp(`^Document: .*? ${command}:\\n+`), "").replace(new RegExp(`\\n*[^\\n]*: ${command} processed in \\d+ms\\n*$`), "\n");
+}
 async function runStats(opts) {
   const config = await loadProjectConfig({ configPath: opts.configPath });
-  const configLint = await lintConfigFile(config, { severity: opts.lintConfig, cwd: opts.cwd });
-  const [{ path: path35, alias }] = resolveApis(config, opts.api ? [opts.api] : [], opts.cwd);
+  const configLint = await lintConfigFile(config, { severity: opts.lintConfig, maxProblems: opts.maxProblems, cwd: opts.cwd });
   const format = opts.format || "stylish";
-  startCapture();
-  let output;
-  try {
-    await handleStats({ argv: { api: path35, format }, config: config.forAlias(alias), version: "" });
-  } finally {
-    output = stopCapture();
+  const results = [];
+  for (const { path: path35, alias } of resolveApis(config, opts.apis, opts.cwd)) {
+    startCapture();
+    let output;
+    try {
+      await handleStats({ argv: { api: path35, format }, config: config.forAlias(alias), version: "" });
+    } finally {
+      output = stopCapture();
+    }
+    const body = stripWrapper(output, "stats");
+    results.push({ path: path35, alias, output: body, stats: format === "json" ? JSON.parse(body) : null });
   }
-  const body = output.replace(/^Document: .*? stats:\n+/, "").replace(/\n*[^\n]*: stats processed in \d+ms\n*$/, "\n");
-  const stats = format === "json" ? JSON.parse(body) : null;
-  return { configLint, path: path35, alias, format, output: body, stats };
+  return { configLint, format, apis: results };
 }
 
 // vendor/redocly-cli/commands/join/index.ts
@@ -56140,7 +56145,8 @@ Please choose only one!`
 var path18 = __toESM(require_path_browserify(), 1);
 async function runJoin(opts) {
   const config = await loadProjectConfig({ configPath: opts.configPath });
-  const configLint = await lintConfigFile(config, { severity: opts.lintConfig, cwd: opts.cwd });
+  const configLint = await lintConfigFile(config, { severity: opts.lintConfig, maxProblems: opts.maxProblems, cwd: opts.cwd });
+  const apis = resolveApis(config, opts.apis, opts.cwd);
   const output = path18.resolve(opts.cwd, opts.output);
   startCapture();
   let log;
@@ -56160,7 +56166,7 @@ async function runJoin(opts) {
   } finally {
     log = stopCapture();
   }
-  return { configLint, outputFile: output, output: log };
+  return { configLint, apis: apis.map(({ path: p2, alias }) => ({ path: p2, alias })), outputFile: output, output: log };
 }
 
 // vendor/redocly-cli/commands/split/asyncapi/split-asyncapi-definition.ts
@@ -57878,23 +57884,25 @@ function printScore(result, api, startedAt, format, operationDetails, debugData)
 // src/api/score.js
 async function runScore(opts) {
   const config = await loadProjectConfig({ configPath: opts.configPath });
-  const configLint = await lintConfigFile(config, { severity: opts.lintConfig, cwd: opts.cwd });
-  const [{ path: path35, alias }] = resolveApis(config, opts.api ? [opts.api] : [], opts.cwd);
+  const configLint = await lintConfigFile(config, { severity: opts.lintConfig, maxProblems: opts.maxProblems, cwd: opts.cwd });
   const format = opts.format || "stylish";
-  startCapture();
-  let output;
-  try {
-    await handleScore({
-      argv: { api: path35, format, "operation-details": !!opts.operationDetails },
-      config: config.forAlias(alias),
-      version: ""
-    });
-  } finally {
-    output = stopCapture();
+  const results = [];
+  for (const { path: path35, alias } of resolveApis(config, opts.apis, opts.cwd)) {
+    startCapture();
+    let output;
+    try {
+      await handleScore({
+        argv: { api: path35, format, "operation-details": !!opts.operationDetails },
+        config: config.forAlias(alias),
+        version: ""
+      });
+    } finally {
+      output = stopCapture();
+    }
+    const body = stripWrapper(output, "score");
+    results.push({ path: path35, alias, output: body, score: format === "json" ? JSON.parse(body) : null });
   }
-  const body = output.replace(/^Document: .*? score:\n+/, "").replace(/\n*[^\n]*: score processed in \d+ms\n*$/, "\n");
-  const score = format === "json" ? JSON.parse(body) : null;
-  return { configLint, path: path35, alias, format, output: body, score };
+  return { configLint, format, apis: results };
 }
 
 // src/index.js

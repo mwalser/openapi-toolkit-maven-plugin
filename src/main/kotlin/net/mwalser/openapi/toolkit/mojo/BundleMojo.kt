@@ -16,10 +16,14 @@ import java.io.File
  * configured in `redocly.yaml`.
  */
 @Mojo(name = "bundle", defaultPhase = LifecyclePhase.GENERATE_RESOURCES, threadSafe = true)
-class BundleMojo : AbstractRedoclyMojo() {
+class BundleMojo : AbstractApiMojo() {
 
     @Component
     lateinit var projectHelper: MavenProjectHelper
+
+    /** Overrides the `extends` list of the configuration, e.g. `recommended`, `minimal`, `recommended-strict`. */
+    @Parameter(property = "openapi.extends")
+    var extends: List<String>? = null
 
     /** Directory the bundled files are written to. File names are `<alias>.<ext>` or `<basename>.<ext>`. */
     @Parameter(property = "openapi.bundle.outputDirectory", defaultValue = "\${project.build.directory}/generated-resources/openapi")
@@ -53,6 +57,10 @@ class BundleMojo : AbstractRedoclyMojo() {
     @Parameter(property = "openapi.bundle.componentNamesStrategy")
     var componentNamesStrategy: String? = null
 
+    /** Severity of component naming conflicts between files: `warn` (Redocly's default), `error` or `off`. */
+    @Parameter(property = "openapi.bundle.componentRenamingConflicts")
+    var componentRenamingConflicts: String? = null
+
     /** Decorator ids to skip. */
     @Parameter(property = "openapi.bundle.skipDecorators")
     var skipDecorators: List<String>? = null
@@ -76,11 +84,18 @@ class BundleMojo : AbstractRedoclyMojo() {
     @Parameter(property = "openapi.bundle.classifier", defaultValue = "openapi")
     var classifier: String = "openapi"
 
+    override fun validateParameters() {
+        super.validateParameters()
+        requireOneOf("openapi.bundle.ext", ext, listOf("yaml", "yml", "json"))
+        componentRenamingConflicts?.let { requireOneOf("openapi.bundle.componentRenamingConflicts", it, CONFIG_LINT_SEVERITIES) }
+        if (attach && classifier.isBlank()) throw MojoExecutionException("openapi.bundle.classifier must not be blank when attach=true")
+    }
+
     @Throws(MojoExecutionException::class, MojoFailureException::class)
     override fun run() {
         val configPath = resolveConfigFile()
-        val outDir = if (outputDirectory.isAbsolute) outputDirectory else File(project.basedir, outputDirectory.path)
-        val outFile = outputFile?.let { if (it.isAbsolute) it else File(project.basedir, it.path) }
+        val outDir = resolve(outputDirectory)
+        val outFile = outputFile?.let { resolve(it) }
         val result = redocly().bundle(
             BundleOptions(
                 cwd = jsCwd,
@@ -95,6 +110,7 @@ class BundleMojo : AbstractRedoclyMojo() {
                 removeUnusedComponents = removeUnusedComponents,
                 keepUrlReferences = keepUrlReferences,
                 componentNamesStrategy = componentNamesStrategy,
+                componentRenamingConflicts = componentRenamingConflicts,
                 skipDecorators = skipDecorators,
                 skipPreprocessors = skipPreprocessors,
                 lintConfig = lintConfig,

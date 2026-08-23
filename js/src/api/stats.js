@@ -2,21 +2,31 @@ import { handleStats } from '../../vendor/redocly-cli/commands/stats/index.js';
 import { startCapture, stopCapture } from '../polyfills.js';
 import { lintConfigFile, loadProjectConfig, resolveApis } from './common.js';
 
-/** @param opts {{ cwd: string, configPath?: string, api?: string, format?: 'stylish'|'json'|'markdown', lintConfig?: string }} */
+/** Strips the "Document: <path> stats:" header and the "processed in" footer printed by the CLI command. */
+function stripWrapper(output, command) {
+  return output
+    .replace(new RegExp(`^Document: .*? ${command}:\\n+`), '')
+    .replace(new RegExp(`\\n*[^\\n]*: ${command} processed in \\d+ms\\n*$`), '\n');
+}
+
+/** @param opts {{ cwd: string, configPath?: string, apis?: string[], format?: 'stylish'|'json'|'markdown', lintConfig?: string, maxProblems?: number }} */
 export async function runStats(opts) {
   const config = await loadProjectConfig({ configPath: opts.configPath });
-  const configLint = await lintConfigFile(config, { severity: opts.lintConfig, cwd: opts.cwd });
-  const [{ path, alias }] = resolveApis(config, opts.api ? [opts.api] : [], opts.cwd);
+  const configLint = await lintConfigFile(config, { severity: opts.lintConfig, maxProblems: opts.maxProblems, cwd: opts.cwd });
   const format = opts.format || 'stylish';
-  startCapture();
-  let output;
-  try {
-    await handleStats({ argv: { api: path, format }, config: config.forAlias(alias), version: '' });
-  } finally {
-    output = stopCapture();
+  const results = [];
+  for (const { path, alias } of resolveApis(config, opts.apis, opts.cwd)) {
+    startCapture();
+    let output;
+    try {
+      await handleStats({ argv: { api: path, format }, config: config.forAlias(alias), version: '' });
+    } finally {
+      output = stopCapture();
+    }
+    const body = stripWrapper(output, 'stats');
+    results.push({ path, alias, output: body, stats: format === 'json' ? JSON.parse(body) : null });
   }
-  // handleStats wraps the formatted stats in a "Document: <path> stats:" header and a "processed in" footer
-  const body = output.replace(/^Document: .*? stats:\n+/, '').replace(/\n*[^\n]*: stats processed in \d+ms\n*$/, '\n');
-  const stats = format === 'json' ? JSON.parse(body) : null;
-  return { configLint, path, alias, format, output: body, stats };
+  return { configLint, format, apis: results };
 }
+
+export { stripWrapper };

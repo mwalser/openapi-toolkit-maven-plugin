@@ -8,7 +8,7 @@ import org.apache.maven.plugins.annotations.Parameter
 
 /** Lints the Redocly configuration file (`redocly check-config`). */
 @Mojo(name = "check-config", threadSafe = true)
-class CheckConfigMojo : AbstractRedoclyMojo() {
+class CheckConfigMojo : AbstractConfiguredMojo() {
 
     /** Severity of configuration problems: `warn` (default) or `error`. */
     @Parameter(property = "openapi.checkConfig.severity", defaultValue = "warn")
@@ -17,6 +17,12 @@ class CheckConfigMojo : AbstractRedoclyMojo() {
     /** Console output format (see the `lint` goal). */
     @Parameter(property = "openapi.checkConfig.format", defaultValue = "stylish")
     var format: String = "stylish"
+
+    override fun validateParameters() {
+        super.validateParameters()
+        requireOneOf("openapi.checkConfig.severity", severity, listOf("warn", "error"))
+        requireOneOf("openapi.checkConfig.format", format, PROBLEM_FORMATS)
+    }
 
     @Throws(MojoExecutionException::class, MojoFailureException::class)
     override fun run() {

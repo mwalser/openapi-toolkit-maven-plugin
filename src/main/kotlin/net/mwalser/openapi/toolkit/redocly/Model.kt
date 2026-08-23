@@ -128,21 +128,47 @@ data class CheckConfigResult(val configLint: ConfigLintResult? = null)
 data class StatsOptions(
     val cwd: String,
     val configPath: String? = null,
-    val api: String? = null,
+    val apis: List<String> = emptyList(),
     val format: String = "stylish",
     val lintConfig: String = "warn",
+    val maxProblems: Int = 100,
 )
 
-data class StatsResult(
-    val configLint: ConfigLintResult? = null,
+data class ApiStatsResult(
     val path: String,
     val alias: String? = null,
-    val format: String,
     /** The statistics formatted as requested. */
     val output: String = "",
     /** The statistics as structured data; only available for `format = json`. */
     val stats: Map<String, Any?>? = null,
 )
+
+data class StatsResult(val configLint: ConfigLintResult? = null, val format: String, val apis: List<ApiStatsResult> = emptyList())
+
+// ---- score --------------------------------------------------------------------------------------
+
+data class ScoreOptions(
+    val cwd: String,
+    val configPath: String? = null,
+    val apis: List<String> = emptyList(),
+    val format: String = "stylish",
+    val operationDetails: Boolean = false,
+    val lintConfig: String = "warn",
+    val maxProblems: Int = 100,
+)
+
+data class ApiScoreResult(
+    val path: String,
+    val alias: String? = null,
+    val output: String = "",
+    /** The score as structured data; only available for `format = json`. */
+    val score: Map<String, Any?>? = null,
+) {
+    /** The agent-readiness score (0-100); only available for `format = json`. */
+    val agentReadiness: Double? get() = (score?.get("agentReadiness") as? Number)?.toDouble()
+}
+
+data class ScoreResult(val configLint: ConfigLintResult? = null, val format: String, val apis: List<ApiScoreResult> = emptyList())
 
 // ---- join ---------------------------------------------------------------------------------------
 
@@ -156,33 +182,20 @@ data class JoinOptions(
     val prefixComponentsWithInfoProp: String? = null,
     val withoutXTagGroups: Boolean = false,
     val lintConfig: String = "warn",
+    val maxProblems: Int = 100,
 )
 
-data class JoinResult(val configLint: ConfigLintResult? = null, val outputFile: String, val output: String = "")
+data class JoinInput(val path: String, val alias: String? = null)
+
+data class JoinResult(
+    val configLint: ConfigLintResult? = null,
+    val apis: List<JoinInput> = emptyList(),
+    val outputFile: String,
+    val output: String = "",
+)
 
 // ---- split --------------------------------------------------------------------------------------
 
 data class SplitOptions(val cwd: String, val api: String, val outDir: String, val separator: String = "_")
 
 data class SplitResult(val api: String, val outDir: String, val output: String = "")
-
-// ---- score --------------------------------------------------------------------------------------
-
-data class ScoreOptions(
-    val cwd: String,
-    val configPath: String? = null,
-    val api: String? = null,
-    val format: String = "stylish",
-    val operationDetails: Boolean = false,
-    val lintConfig: String = "warn",
-)
-
-data class ScoreResult(
-    val configLint: ConfigLintResult? = null,
-    val path: String,
-    val alias: String? = null,
-    val format: String,
-    val output: String = "",
-    /** The score as structured data; only available for `format = json`. */
-    val score: Map<String, Any?>? = null,
-)

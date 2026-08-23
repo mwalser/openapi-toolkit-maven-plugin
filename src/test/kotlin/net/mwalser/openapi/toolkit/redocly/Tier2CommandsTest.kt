@@ -41,22 +41,27 @@ class Tier2CommandsTest {
         val project = fixture("petstore", dir)
         val configPath = project.resolve("redocly.yaml").toString()
 
-        val stylish = redocly().stats(StatsOptions(cwd = project.toString(), configPath = configPath))
+        val stylish = redocly().stats(StatsOptions(cwd = project.toString(), configPath = configPath)).apis.single()
         assertEquals("petstore", stylish.alias)
         assertContains(stylish.output, "Path Items: 2")
         assertContains(stylish.output, "Operations: 2")
         assertContains(stylish.output, "Schemas: 1")
 
-        val json = redocly().stats(StatsOptions(cwd = project.toString(), configPath = configPath, api = "openapi.yaml", format = "json"))
-        val stats = assertNotNull(json.stats)
+        val json = redocly().stats(StatsOptions(cwd = project.toString(), configPath = configPath, apis = listOf("openapi.yaml"), format = "json"))
+        val stats = assertNotNull(json.apis.single().stats)
         @Suppress("UNCHECKED_CAST")
         assertEquals(2, (stats["operations"] as Map<String, Any?>)["total"])
         @Suppress("UNCHECKED_CAST")
         assertEquals(1, (stats["schemas"] as Map<String, Any?>)["total"])
 
-        val markdown = redocly().stats(StatsOptions(cwd = project.toString(), configPath = configPath, format = "markdown"))
+        val markdown = redocly().stats(StatsOptions(cwd = project.toString(), configPath = configPath, format = "markdown")).apis.single()
         assertContains(markdown.output, "| Feature  | Count  |")
         assertContains(markdown.output, "Operations")
+
+        // several APIs are processed in one go
+        Files.writeString(project.resolve("redocly.yaml"), "extends: [minimal]\napis:\n  one:\n    root: openapi.yaml\n  two:\n    root: openapi.yaml\n")
+        val both = redocly().stats(StatsOptions(cwd = project.toString(), configPath = configPath))
+        assertEquals(listOf("one", "two"), both.apis.map { it.alias })
     }
 
     @Test
@@ -94,6 +99,7 @@ class Tier2CommandsTest {
             JoinOptions(cwd = project.toString(), apis = listOf("openapi.yaml", "orders.yaml"), output = "out/joined.yaml", prefixTagsWithInfoProp = "title"),
         )
         assertEquals(project.resolve("out/joined.yaml").toString(), result.outputFile)
+        assertEquals(listOf(project.resolve("openapi.yaml").toString(), second.toString()), result.apis.map { it.path })
         val joined = Path.of(result.outputFile).readText()
         assertContains(joined, "/pets:")
         assertContains(joined, "/orders:")
@@ -133,11 +139,11 @@ class ScoreCommandTest {
         Path.of("src/test/resources/fixtures/petstore3").copyToRecursively(dir, followLinks = false, overwrite = true)
         RedoclyRuntime.create(EngineMode.INTERPRETER).use { runtime ->
             val redocly = Redocly(runtime)
-            val stylish = redocly.score(ScoreOptions(cwd = dir.toString(), api = "openapi.json"))
+            val stylish = redocly.score(ScoreOptions(cwd = dir.toString(), apis = listOf("openapi.json"))).apis.single()
             assertContains(stylish.output, "Agent Readiness:")
-            val json = redocly.score(ScoreOptions(cwd = dir.toString(), api = "openapi.json", format = "json"))
+            val json = redocly.score(ScoreOptions(cwd = dir.toString(), apis = listOf("openapi.json"), format = "json")).apis.single()
             val score = assertNotNull(json.score)
-            val readiness = (score["agentReadiness"] as Number).toDouble()
+            val readiness = assertNotNull(json.agentReadiness)
             assertTrue(readiness in 0.0..100.0, "agentReadiness=$readiness")
             assertTrue(score.containsKey("hotspots"))
         }

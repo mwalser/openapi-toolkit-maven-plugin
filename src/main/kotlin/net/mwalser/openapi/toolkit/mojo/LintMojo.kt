@@ -13,7 +13,11 @@ import java.io.File
  * `error` are found (configurable via `failOnErrors` / `failOnWarnings`).
  */
 @Mojo(name = "lint", defaultPhase = LifecyclePhase.VALIDATE, threadSafe = true)
-class LintMojo : AbstractRedoclyMojo() {
+class LintMojo : AbstractApiMojo() {
+
+    /** Overrides the `extends` list of the configuration, e.g. `recommended`, `minimal`, `recommended-strict`. */
+    @Parameter(property = "openapi.extends")
+    var extends: List<String>? = null
 
     /**
      * Console output format: `stylish` (default), `codeframe`, `summary`, `markdown`, `github-actions`,
@@ -22,7 +26,7 @@ class LintMojo : AbstractRedoclyMojo() {
     @Parameter(property = "openapi.lint.format", defaultValue = "stylish")
     var format: String = "stylish"
 
-    /** When set, all problems are additionally written to this file in `reportFormat`. */
+    /** When set, problems are additionally written to this file in `reportFormat`, limited by `maxProblems`. */
     @Parameter(property = "openapi.lint.reportFile")
     var reportFile: File? = null
 
@@ -52,6 +56,12 @@ class LintMojo : AbstractRedoclyMojo() {
      */
     @Parameter(property = "openapi.lint.generateIgnoreFile", defaultValue = "false")
     var generateIgnoreFile: Boolean = false
+
+    override fun validateParameters() {
+        super.validateParameters()
+        requireOneOf("openapi.lint.format", format, PROBLEM_FORMATS)
+        if (reportFile != null) requireOneOf("openapi.lint.reportFormat", reportFormat, PROBLEM_FORMATS)
+    }
 
     @Throws(MojoExecutionException::class, MojoFailureException::class)
     override fun run() {
@@ -87,9 +97,7 @@ class LintMojo : AbstractRedoclyMojo() {
         }
 
         reportFile?.let { file ->
-            val out = if (file.isAbsolute) file else File(project.basedir, file.path)
-            out.parentFile?.mkdirs()
-            out.writeText(result.report ?: "")
+            val out = writeOutput(file, result.report ?: "")
             log.info("Lint report ($reportFormat) written to ${relativize(out.path)}")
         }
 

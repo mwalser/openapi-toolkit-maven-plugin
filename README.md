@@ -12,6 +12,8 @@ Nothing is downloaded at build time except ordinary Maven dependencies.
 
 ## Quick start
 
+This project is currently unreleased. Run `mvn install` in this repository before using the snapshot below.
+
 ```xml
 <plugin>
   <groupId>net.mwalser</groupId>
@@ -48,25 +50,41 @@ rules:
 `mvn verify` then lints `src/main/openapi/openapi.yaml` (failing the build on errors) and writes the bundled
 description to `target/generated-resources/openapi/petstore.yaml`.
 
-Without a `redocly.yaml`, point the plugin at files directly and Redocly's built-in `recommended` ruleset is used:
+Without a `redocly.yaml`, point the plugin at files directly and Redocly's built-in `recommended` ruleset is used.
+The short `openapi:<goal>` form works after the plugin is declared in the POM:
 
 ```
-mvn net.mwalser:openapi-toolkit-maven-plugin:lint -Dopenapi.apis=src/main/openapi/openapi.yaml
+mvn openapi:lint -Dopenapi.apis=src/main/openapi/openapi.yaml
 ```
 
 ## Goals
 
-All goals share these parameters:
+Common parameters are only offered by the goals they actually affect (`mvn help:describe -Dplugin=openapi -Ddetail`
+shows exactly what a goal accepts):
 
-| Parameter | Property | Default | Description |
-|---|---|---|---|
-| `skip` | `openapi.skip` | `false` | Skip execution. |
-| `configFile` | `openapi.configFile` | `redocly.yaml` if it exists | Redocly configuration file. |
-| `apis` | `openapi.apis` | all APIs of the config | Aliases from `apis:` or paths/URLs. |
-| `extends` | `openapi.extends` | – | Overrides the `extends` list (`recommended`, `minimal`, `recommended-strict`, …). |
-| `lintConfig` | `openapi.lintConfig` | `warn` | Lint the configuration file first: `warn`, `error`, `off`. |
-| `maxProblems` | `openapi.maxProblems` | `100` | Maximum number of problems printed per API. |
-| `engine` | `openapi.engine` | `AUTO` | JavaScript engine mode, see [Performance](#performance). |
+| Parameter | Property | Default | Description | Goals |
+|---|---|---|---|---|
+| `skip` | `openapi.skip` | `false` | Skip execution. | all |
+| `engine` | `openapi.engine` | `AUTO` | JavaScript engine mode, see [Performance](#performance). | all |
+| `configFile` | `openapi.configFile` | `redocly.yaml` if it exists | Redocly configuration file. | all except `split` |
+| `maxProblems` | `openapi.maxProblems` | `100` | Maximum number of problems printed per API and for the configuration file. | all except `split` |
+| `apis` | `openapi.apis` | all APIs of the config | Aliases from `apis:` or paths/URLs to process. | `lint`, `bundle`, `stats`, `score`, `join` |
+| `lintConfig` | `openapi.lintConfig` | `warn` | Lint the configuration file first: `warn`, `error`, `off`. | `lint`, `bundle`, `stats`, `score`, `join` |
+| `extends` | `openapi.extends` | – | Overrides the `extends` list (`recommended`, `minimal`, `recommended-strict`, …). | `lint`, `bundle` |
+
+Enumerated values (formats, severities, …) are validated before anything runs; an invalid value fails the build
+with a message naming the property.
+
+List parameters use normal Maven collection syntax:
+
+```xml
+<apis>
+  <api>petstore</api>
+  <api>src/main/openapi/admin.yaml</api>
+</apis>
+```
+
+For a single value on the command line, use `-Dopenapi.apis=petstore`.
 
 ### `openapi:lint` (default phase: `validate`)
 
@@ -75,13 +93,16 @@ Runs `redocly lint`. Fails the build when errors are found.
 | Parameter | Property | Default | Description |
 |---|---|---|---|
 | `format` | `openapi.lint.format` | `stylish` | Console format: `stylish`, `codeframe`, `summary`, `markdown`, `github-actions`, `json`, `checkstyle`, `codeclimate`, `junit`. |
-| `reportFile` | `openapi.lint.reportFile` | – | Additionally write all problems to this file … |
-| `reportFormat` | `openapi.lint.reportFormat` | `checkstyle` | … in this format (e.g. `checkstyle` or `junit` for CI integration). |
+| `reportFile` | `openapi.lint.reportFile` | – | Additionally write the problems to this file (also limited by `maxProblems`) … |
+| `reportFormat` | `openapi.lint.reportFormat` | `checkstyle` | … in this format (any of the console formats; `checkstyle` or `junit` for CI integration). |
 | `failOnErrors` | `openapi.lint.failOnErrors` | `true` | Fail the build on `error` problems. |
 | `failOnWarnings` | `openapi.lint.failOnWarnings` | `false` | Fail the build on `warn` problems. |
 | `skipRules` | `openapi.lint.skipRules` | – | Rule ids to skip. |
 | `skipPreprocessors` | `openapi.lint.skipPreprocessors` | – | Preprocessor ids to skip. |
-| `generateIgnoreFile` | `openapi.lint.generateIgnoreFile` | `false` | Write all problems to `.redocly.lint-ignore.yaml` instead of reporting them. |
+| `generateIgnoreFile` | `openapi.lint.generateIgnoreFile` | `false` | Write problems to `.redocly.lint-ignore.yaml`; this baseline-generation mode does not fail on API problems. |
+
+`reportFormat` has an effect only when `reportFile` is set. Configuration errors are checked independently and
+still fail when `failOnErrors` is `false`; use `lintConfig=off` to disable that check explicitly.
 
 ### `openapi:bundle` (default phase: `generate-resources`)
 
@@ -97,34 +118,61 @@ Runs `redocly bundle`: resolves all `$ref`s into one file and applies the config
 | `removeUnusedComponents` | `openapi.bundle.removeUnusedComponents` | `false` | Drop unreferenced components. |
 | `keepUrlReferences` | `openapi.bundle.keepUrlReferences` | `false` | Keep absolute URL `$ref`s. |
 | `componentNamesStrategy` | `openapi.bundle.componentNamesStrategy` | – | Naming strategy for imported components. |
+| `componentRenamingConflicts` | `openapi.bundle.componentRenamingConflicts` | `warn` | Report component renaming conflicts as `warn`, `error` or `off`. |
 | `skipDecorators` / `skipPreprocessors` | `openapi.bundle.skip…` | – | Ids to skip. |
 | `addResource` | `openapi.bundle.addResource` | `false` | Add the output directory as a project resource (bundle ends up in the jar). |
 | `attach` | `openapi.bundle.attach` | `false` | Attach each bundle as a build artifact (`type` = `ext`, `classifier` = alias). |
 | `classifier` | `openapi.bundle.classifier` | `openapi` | Classifier used when an API has no alias. |
 
-Note: the `output` field of `apis.<alias>` in `redocly.yaml` is ignored; Maven controls where bundles go.
+`outputFile` overrides `outputDirectory` and is valid only for one API. `ext` controls serialization and the attached
+artifact type even when `outputFile` is set. The `output` field of `apis.<alias>` in `redocly.yaml` is ignored because
+Maven controls where bundles go. With `addResource=true`, bundles are added at the artifact's resource root.
 
 ### `openapi:check-config`
 
-Lints `redocly.yaml` (`redocly check-config`). `severity` (`openapi.checkConfig.severity`, default `warn`) decides
-whether problems fail the build.
+Lints `redocly.yaml` (`redocly check-config`).
+
+| Parameter | Property | Default | Description |
+|---|---|---|---|
+| `severity` | `openapi.checkConfig.severity` | `warn` | `warn` reports problems; `error` fails the build. |
+| `format` | `openapi.checkConfig.format` | `stylish` | Problem output format, as for `lint`. |
+
+If no implicit `redocly.yaml` exists, the goal warns and succeeds. An explicitly configured missing `configFile` fails.
 
 ### `openapi:stats`
 
-Prints `redocly stats` for one API (`api` / `openapi.stats.api`, defaults to the first configured API) in
-`format` `stylish`, `json` or `markdown`; `outputFile` writes it to a file instead of the log.
+Prints `redocly stats` for every selected API (`apis`).
+
+| Parameter | Property | Default | Description |
+|---|---|---|---|
+| `format` | `openapi.stats.format` | `stylish` | `stylish`, `json` or `markdown`. |
+| `outputFile` | `openapi.stats.outputFile` | build log | Write the output to a file instead (requires a single selected API). |
 
 ### `openapi:score`
 
-Runs `redocly score` (integration simplicity / agent readiness, OpenAPI 3 only). Parameters `api`, `format`
-(`stylish`/`json`), `operationDetails`, `outputFile`, and `minScore` (`openapi.score.minScore`) to fail the build
-when the agent-readiness score is below a threshold.
+Runs `redocly score` (integration simplicity / agent readiness, OpenAPI 3 only) for every selected API (`apis`).
+
+| Parameter | Property | Default | Description |
+|---|---|---|---|
+| `format` | `openapi.score.format` | `stylish` | `stylish` or `json`. |
+| `operationDetails` | `openapi.score.operationDetails` | `false` | Include per-operation details in stylish output. |
+| `outputFile` | `openapi.score.outputFile` | build log | Write the output to a file instead (requires a single selected API). |
+| `minScore` | `openapi.score.minScore` | – | Fail the build when any selected API scores below this agent-readiness value (0-100). |
+
+For example, `mvn openapi:score -Dopenapi.apis=petstore -Dopenapi.score.minScore=75` works as a quality gate.
 
 ### `openapi:join`
 
-Joins two or more OpenAPI 3 descriptions (`redocly join`, experimental upstream). Select them with `apis`;
-`outputFile` (default `target/generated-resources/openapi/joined.yaml`), `prefixTagsWithInfoProp`,
-`prefixTagsWithFilename`, `prefixComponentsWithInfoProp`, `withoutXTagGroups` mirror the CLI options.
+Joins two or more OpenAPI 3 descriptions (`redocly join`, experimental upstream). Select them with `apis`, or omit
+`apis` to use all APIs from `redocly.yaml`.
+
+| Parameter | Property | Default | Description |
+|---|---|---|---|
+| `outputFile` | `openapi.join.outputFile` | `target/generated-resources/openapi/joined.yaml` | Joined YAML or JSON file. |
+| `prefixTagsWithInfoProp` | `openapi.join.prefixTagsWithInfoProp` | – | Prefix tags with an `info` property such as `title`. |
+| `prefixTagsWithFilename` | `openapi.join.prefixTagsWithFilename` | `false` | Prefix tags with each source filename. |
+| `prefixComponentsWithInfoProp` | `openapi.join.prefixComponentsWithInfoProp` | – | Prefix component names with an `info` property. |
+| `withoutXTagGroups` | `openapi.join.withoutXTagGroups` | `false` | Do not generate `x-tagGroups`. |
 
 ### `openapi:split`
 
@@ -133,6 +181,9 @@ Splits a single-file description into a multi-file tree (`redocly split`). Meant
 ```
 mvn openapi:split -Dopenapi.split.api=openapi.yaml -Dopenapi.split.outputDirectory=src/main/openapi
 ```
+
+`api` and `outputDirectory` are required. `separator` (`openapi.split.separator`, default `_`) controls generated
+path filenames. This goal does not read `redocly.yaml`.
 
 ## Performance
 

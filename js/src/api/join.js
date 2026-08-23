@@ -1,18 +1,19 @@
 import { handleJoin } from '../../vendor/redocly-cli/commands/join/index.js';
 import * as path from 'node:path';
 import { startCapture, stopCapture } from '../polyfills.js';
-import { lintConfigFile, loadProjectConfig } from './common.js';
+import { lintConfigFile, loadProjectConfig, resolveApis } from './common.js';
 
 /**
  * @param opts {{
  *   cwd: string, configPath?: string, apis: string[], output: string,
  *   prefixTagsWithInfoProp?: string, prefixTagsWithFilename?: boolean,
- *   prefixComponentsWithInfoProp?: string, withoutXTagGroups?: boolean, lintConfig?: string
+ *   prefixComponentsWithInfoProp?: string, withoutXTagGroups?: boolean, lintConfig?: string, maxProblems?: number
  * }}
  */
 export async function runJoin(opts) {
   const config = await loadProjectConfig({ configPath: opts.configPath });
-  const configLint = await lintConfigFile(config, { severity: opts.lintConfig, cwd: opts.cwd });
+  const configLint = await lintConfigFile(config, { severity: opts.lintConfig, maxProblems: opts.maxProblems, cwd: opts.cwd });
+  const apis = resolveApis(config, opts.apis, opts.cwd);
   const output = path.resolve(opts.cwd, opts.output);
   startCapture();
   let log;
@@ -32,5 +33,5 @@ export async function runJoin(opts) {
   } finally {
     log = stopCapture();
   }
-  return { configLint, outputFile: output, output: log };
+  return { configLint, apis: apis.map(({ path: p, alias }) => ({ path: p, alias })), outputFile: output, output: log };
 }

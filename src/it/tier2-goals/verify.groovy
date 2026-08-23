@@ -1,10 +1,12 @@
 def log = new File(basedir, 'build.log').text
 assert log.contains('Statistics for api/openapi.yaml:')
+assert log.contains('Statistics for api/orders.yaml:')
 assert log.contains('Operations: 2')
 assert log.contains('Score for api/openapi.yaml:')
+assert log.contains('Score for api/orders.yaml:')
 assert log.contains('Agent Readiness:')
-assert log.contains('meets the required minimum of 10')
-assert log.contains('Joined 2 API descriptions into target/generated-resources/openapi/joined.yaml')
+assert log.contains('scores of 2 APIs meet the required minimum of 10')
+assert log.contains('Joined 2 API descriptions (api/openapi.yaml, api/orders.yaml) into target/generated-resources/openapi/joined.yaml')
 assert log.contains('Split api/orders.yaml into target/split')
 assert log.contains('BUILD SUCCESS')
 

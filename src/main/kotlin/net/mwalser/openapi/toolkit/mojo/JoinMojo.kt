@@ -13,7 +13,7 @@ import java.io.File
  * Select the descriptions with the `apis` parameter (aliases or paths); at least two are required.
  */
 @Mojo(name = "join", threadSafe = true)
-class JoinMojo : AbstractRedoclyMojo() {
+class JoinMojo : AbstractApiMojo() {
 
     /** The joined description. The extension (`yaml`, `yml` or `json`) determines the output format. */
     @Parameter(property = "openapi.join.outputFile", defaultValue = "\${project.build.directory}/generated-resources/openapi/joined.yaml")
@@ -38,7 +38,7 @@ class JoinMojo : AbstractRedoclyMojo() {
     @Throws(MojoExecutionException::class, MojoFailureException::class)
     override fun run() {
         val configPath = resolveConfigFile()
-        val out = if (outputFile.isAbsolute) outputFile else File(project.basedir, outputFile.path)
+        val out = resolve(outputFile)
         val result = redocly().join(
             JoinOptions(
                 cwd = jsCwd,
@@ -50,10 +50,11 @@ class JoinMojo : AbstractRedoclyMojo() {
                 prefixComponentsWithInfoProp = prefixComponentsWithInfoProp,
                 withoutXTagGroups = withoutXTagGroups,
                 lintConfig = lintConfig,
+                maxProblems = maxProblems,
             ),
         )
         reportConfigLint(result.configLint, configPath)
         MavenJsLog.block(log, result.output, MavenJsLog.Level.INFO)
-        log.info("Joined ${plural(apis.size, "API description")} into ${relativize(result.outputFile)}")
+        log.info("Joined ${plural(result.apis.size, "API description")} (${result.apis.joinToString { relativize(it.path) }}) into ${relativize(result.outputFile)}")
     }
 }

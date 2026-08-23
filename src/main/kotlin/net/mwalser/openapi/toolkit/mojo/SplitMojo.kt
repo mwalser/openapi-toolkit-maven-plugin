@@ -27,9 +27,14 @@ class SplitMojo : AbstractRedoclyMojo() {
     @Parameter(property = "openapi.split.separator", defaultValue = "_")
     var separator: String = "_"
 
+    override fun validateParameters() {
+        super.validateParameters()
+        if (separator.isBlank()) throw MojoExecutionException("Invalid value for openapi.split.separator; must not be blank")
+    }
+
     @Throws(MojoExecutionException::class, MojoFailureException::class)
     override fun run() {
-        val out = if (outputDirectory.isAbsolute) outputDirectory else File(project.basedir, outputDirectory.path)
+        val out = resolve(outputDirectory)
         val result = redocly().split(SplitOptions(cwd = jsCwd, api = JsPaths.toJs(api), outDir = JsPaths.toJs(out), separator = separator))
         MavenJsLog.block(log, result.output, MavenJsLog.Level.INFO)
         log.info("Split ${relativize(result.api)} into ${relativize(result.outDir)}")
