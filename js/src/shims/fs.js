@@ -1,55 +1,60 @@
-// Minimal `node:fs` replacement backed by the JVM host bridge. Only what openapi-core
-// and the bundled CLI commands actually use. Paths are plain strings; encoding is always UTF-8.
-const host = () => globalThis.__jvm;
+// Minimal `node:fs` replacement backed by the JVM host bridge: only what openapi-core and the bundled CLI
+// commands actually use. Paths are resolved against the working directory of the current run; encoding is
+// always UTF-8.
+import * as path from 'node:path';
+import { callHost, host } from '../host.js';
 
-function enoent(p) {
-  const e = new Error(`ENOENT: no such file or directory, open '${p}'`);
-  e.code = 'ENOENT';
-  return e;
+function hostCall(syscall, p, fn) {
+  const target = path.resolve(String(p));
+  return callHost(syscall, target, () => fn(target));
+}
+
+function notFound(syscall, p) {
+  const error = new Error(`ENOENT: no such file or directory, ${syscall} '${p}'`);
+  error.code = 'ENOENT';
+  error.syscall = syscall;
+  error.path = String(p);
+  return error;
 }
 
 export function existsSync(p) {
-  return host().exists(String(p));
+  return hostCall('stat', p, (target) => host.exists(target));
 }
 
-export function lstatSync(p) {
-  const kind = host().statKind(String(p)); // 'file' | 'dir' | null
-  if (kind == null) throw enoent(p);
+export function statSync(p) {
+  const kind = hostCall('stat', p, (target) => host.statKind(target)); // 'file' | 'dir' | null
+  if (kind == null) throw notFound('stat', p);
   return { isDirectory: () => kind === 'dir', isFile: () => kind === 'file', isSymbolicLink: () => false };
 }
-export const statSync = lstatSync;
+export const lstatSync = statSync;
 
-export function readFileSync(p, _enc) {
-  const content = host().readFile(String(p));
-  if (content == null) throw enoent(p);
+export function readFileSync(p, _encoding) {
+  const content = hostCall('open', p, (target) => host.readFile(target));
+  if (content == null) throw notFound('open', p);
   return content;
 }
 
 export function writeFileSync(p, data) {
-  host().writeFile(String(p), String(data));
+  hostCall('open', p, (target) => host.writeFile(target, String(data)));
 }
 
-export function mkdirSync(p, _opts) {
-  host().mkdirs(String(p));
+export function mkdirSync(p, _options) {
+  hostCall('mkdir', p, (target) => host.mkdirs(target));
 }
 
 export function readdirSync(p) {
-  const entries = host().readdir(String(p));
-  if (entries == null) throw enoent(p);
-  return Array.from({ length: entries.length }, (_, i) => entries[i]);
-}
-
-export function unlinkSync(p) {
-  host().delete(String(p));
+  const entries = hostCall('scandir', p, (target) => host.readdir(target));
+  if (entries == null) throw notFound('scandir', p);
+  return Array.from(entries);
 }
 
 export const promises = {
-  readFile: async (p, enc) => readFileSync(p, enc),
+  readFile: async (p, encoding) => readFileSync(p, encoding),
   writeFile: async (p, data) => writeFileSync(p, data),
-  mkdir: async (p, opts) => mkdirSync(p, opts),
+  mkdir: async (p, options) => mkdirSync(p, options),
   readdir: async (p) => readdirSync(p),
-  stat: async (p) => lstatSync(p),
-  lstat: async (p) => lstatSync(p),
+  stat: async (p) => statSync(p),
+  lstat: async (p) => statSync(p),
 };
 
-export default { existsSync, lstatSync, statSync, readFileSync, writeFileSync, mkdirSync, readdirSync, unlinkSync, promises };
+export default { existsSync, statSync, lstatSync, readFileSync, writeFileSync, mkdirSync, readdirSync, promises };

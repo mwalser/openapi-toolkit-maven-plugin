@@ -74,7 +74,8 @@ shows exactly what a goal accepts):
 Enumerated values (formats, severities, …) are validated before anything runs; an invalid value fails the build
 with a message naming the property.
 
-List parameters use normal Maven collection syntax:
+List parameters use normal Maven collection syntax (Sisu also splits comma-separated command-line values such as
+`-Dopenapi.apis=petstore,admin`):
 
 ```xml
 <apis>
@@ -132,7 +133,7 @@ Lints `redocly.yaml` (`redocly check-config`).
 
 | Parameter | Property | Default | Description |
 |---|---|---|---|
-| `severity` | `openapi.checkConfig.severity` | `warn` | `warn` reports problems; `error` fails the build. |
+| `severity` | `openapi.checkConfig.severity` | `error` | `warn` reports problems; `error` fails the build. |
 | `format` | `openapi.checkConfig.format` | `stylish` | Build log format, as for `lint`. |
 
 If no implicit `redocly.yaml` exists, the goal warns and succeeds. An explicitly configured missing `configFile` fails.
@@ -194,12 +195,12 @@ works on every JDK 21+), which is fine for typical API descriptions but noticeab
 | Twilio API | 1.9 MB | 1.1 s | 18 s | 7 s |
 | GitHub REST API | 12.9 MB | 6 s | 90 s | 44 s |
 
-(lint, cold, 4 cores; plus a one-time ~4 s / ~1.4 s to load the bundle per Maven build. Problem counts are identical.)
+(lint, cold, 4 cores; plus one-time HotSpot warm-up of roughly 4 s / 1.4 s per Maven build. Problem counts are identical.)
 
 The engine is chosen from what is available — there is nothing to configure, and the build log states which one is
 used (`Redocly 2.47.0 - JavaScript engine: …`):
 
-1. **Runtime compilation in-process** when Maven itself runs on a GraalVM JDK.
+1. **Runtime compilation in-process** when Maven itself runs on a GraalVM JDK 25 matching GraalJS 25.
 2. **Native isolate** — GraalJS as a pre-compiled native image inside the JVM (Community license since GraalVM 25.1).
    Opt in by adding the artifact for your platform to the *plugin's* dependencies (~60 MB download); if it is present
    but cannot start (e.g. wrong platform), the build fails with a clear message instead of silently running slower:
@@ -220,7 +221,14 @@ used (`Redocly 2.47.0 - JavaScript engine: …`):
    ```
 3. **Interpreter** otherwise.
 
-The JavaScript runtime is created once per JVM and reused by every goal and module of the build.
+The JavaScript runtime is created once per JVM and reused by every goal and module of the build. On JDK 24+, add
+`--enable-native-access=ALL-UNNAMED` to `.mvn/jvm.config` to suppress the JDK's Truffle native-access warning.
+The optional isolate extracts resources into `~/.cache/org.graalvm.polyglot/` (roughly 140 MB); set
+`-Dpolyglot.engine.userResourceCache=<dir>` when the home directory is read-only.
+
+Maven offline mode (`-o`) also applies to remote `$ref` and `extends` URLs. Online requests honor Maven's active,
+decrypted proxy configuration. For `resolve.http.headers`, prefer explicit patterns such as
+`https://api.example.com/**`; matching is performed against the complete URL string.
 
 ## Limitations
 
@@ -241,7 +249,12 @@ mvn test -Pisolate-tests        # unit tests with the native isolate for this pl
 mvn generate-resources -Pbuild-js   # rebuild the embedded JS bundle (needs Node.js + npm)
 ```
 
-The project is written in Kotlin. `js/README.md` explains the JavaScript side and how to upgrade Redocly.
+If an API description is generated during `generate-sources`, bind the `lint` execution to a later phase than its
+default `validate` phase so the file exists before linting.
+
+The project is written in Kotlin; only the mojo classes (`src/main/java`) are Java, because Maven takes goal and
+parameter descriptions from Javadoc. They declare the parameters and hand over to the Kotlin `Goal` classes.
+`js/README.md` explains the JavaScript side and how to upgrade Redocly.
 
 ## License
 

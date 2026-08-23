@@ -1,0 +1,3 @@
+apis:
+  wrong:
+    root: definitely-missing.yaml

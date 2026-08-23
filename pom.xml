@@ -12,6 +12,17 @@
   <description>Lint, bundle and transform OpenAPI descriptions with Redocly inside the JVM (GraalJS) - no Node.js required.</description>
   <url>https://github.com/mwalser/openapi-toolkit-maven-plugin</url>
   <inceptionYear>2026</inceptionYear>
+  <scm>
+    <connection>scm:git:https://github.com/mwalser/openapi-toolkit-maven-plugin.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com/mwalser/openapi-toolkit-maven-plugin.git</developerConnection>
+    <url>https://github.com/mwalser/openapi-toolkit-maven-plugin</url>
+    <tag>HEAD</tag>
+  </scm>
+  <developers>
+    <developer>
+      <name>Michael Walser</name>
+    </developer>
+  </developers>
 
   <licenses>
     <license>
@@ -38,6 +49,8 @@
     <junit.version>5.14.4</junit.version>
     <!-- version of @redocly/openapi-core embedded in src/main/resources (see js/package.json) -->
     <redocly.version>2.47.0</redocly.version>
+    <isolate.platform>unsupported</isolate.platform>
+    <project.build.outputTimestamp>2026-08-23T00:00:00Z</project.build.outputTimestamp>
   </properties>
 
   <dependencies>
@@ -115,9 +128,82 @@
   </dependencies>
 
   <build>
-    <sourceDirectory>src/main/kotlin</sourceDirectory>
+    <sourceDirectory>src/main/java</sourceDirectory>
     <testSourceDirectory>src/test/kotlin</testSourceDirectory>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+      </resource>
+      <resource>
+        <directory>${project.basedir}</directory>
+        <includes>
+          <include>LICENSE</include>
+        </includes>
+        <targetPath>META-INF</targetPath>
+      </resource>
+    </resources>
+    <pluginManagement>
+      <plugins>
+        <!-- lifecycle plugins pinned for reproducible builds (maven-enforcer-plugin requirePluginVersions) -->
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-clean-plugin</artifactId>
+          <version>3.5.0</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-resources-plugin</artifactId>
+          <version>3.5.0</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>3.5.6</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-jar-plugin</artifactId>
+          <version>3.5.1</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-install-plugin</artifactId>
+          <version>3.1.4</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-deploy-plugin</artifactId>
+          <version>3.1.4</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-site-plugin</artifactId>
+          <version>3.21.0</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
     <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <version>3.6.2</version>
+        <executions>
+          <execution>
+            <id>enforce-plugin-versions</id>
+            <goals><goal>enforce</goal></goals>
+            <configuration>
+              <rules>
+                <requirePluginVersions/>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <!--
+        Mixed sources: the mojo classes are Java (maven-plugin-plugin reads descriptions from Javadoc only),
+        everything else is Kotlin. Kotlin compiles first, resolving the Java classes from source; the Java
+        compilation is rebound to run after it with the Kotlin classes on its classpath.
+      -->
       <plugin>
         <groupId>org.jetbrains.kotlin</groupId>
         <artifactId>kotlin-maven-plugin</artifactId>
@@ -126,10 +212,35 @@
           <execution>
             <id>compile</id>
             <goals><goal>compile</goal></goals>
+            <configuration>
+              <sourceDirs>
+                <sourceDir>${project.basedir}/src/main/kotlin</sourceDir>
+                <sourceDir>${project.basedir}/src/main/java</sourceDir>
+              </sourceDirs>
+            </configuration>
           </execution>
           <execution>
             <id>test-compile</id>
             <goals><goal>test-compile</goal></goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.15.0</version>
+        <configuration>
+          <release>${maven.compiler.release}</release>
+        </configuration>
+        <executions>
+          <execution>
+            <id>default-compile</id>
+            <phase>none</phase>
+          </execution>
+          <execution>
+            <id>java-compile</id>
+            <phase>compile</phase>
+            <goals><goal>compile</goal></goals>
           </execution>
         </executions>
       </plugin>
@@ -140,34 +251,73 @@
         <configuration>
           <goalPrefix>openapi</goalPrefix>
         </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <version>3.5.6</version>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-        <version>3.5.1</version>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-resources-plugin</artifactId>
-        <version>3.5.0</version>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.15.0</version>
-        <configuration>
-          <release>${maven.compiler.release}</release>
-        </configuration>
+        <executions>
+          <execution>
+            <id>help-goal</id>
+            <goals><goal>helpmojo</goal></goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
 
   <profiles>
+    <!-- Signs and attaches sources/javadoc for publishing to Maven Central. -->
+    <profile>
+      <id>release</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-source-plugin</artifactId>
+            <version>3.4.0</version>
+            <executions>
+              <execution>
+                <id>attach-sources</id>
+                <goals><goal>jar-no-fork</goal></goals>
+              </execution>
+            </executions>
+          </plugin>
+          <!-- Dokka documents the Kotlin and the Java sources together; javadoc alone cannot resolve the Kotlin types. -->
+          <plugin>
+            <groupId>org.jetbrains.dokka</groupId>
+            <artifactId>dokka-maven-plugin</artifactId>
+            <version>2.0.0</version>
+            <configuration>
+              <sourceDirectories>
+                <dir>${project.basedir}/src/main/kotlin</dir>
+                <dir>${project.basedir}/src/main/java</dir>
+              </sourceDirectories>
+            </configuration>
+            <executions>
+              <execution>
+                <id>attach-javadocs</id>
+                <phase>package</phase>
+                <goals><goal>javadocJar</goal></goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>3.2.8</version>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals><goal>sign</goal></goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.sonatype.central</groupId>
+            <artifactId>central-publishing-maven-plugin</artifactId>
+            <version>0.9.0</version>
+            <extensions>true</extensions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
     <!-- Rebuilds the embedded JavaScript bundle from js/ (requires Node.js + npm; only needed when upgrading Redocly). -->
     <profile>
       <id>build-js</id>
@@ -185,7 +335,10 @@
                 <configuration>
                   <executable>npm</executable>
                   <workingDirectory>${project.basedir}/js</workingDirectory>
-                  <arguments><argument>ci</argument></arguments>
+                  <arguments>
+                    <argument>ci</argument>
+                    <argument>--ignore-scripts</argument>
+                  </arguments>
                 </configuration>
               </execution>
               <execution>
@@ -200,6 +353,7 @@
                     <argument>build</argument>
                     <argument>--</argument>
                     <argument>${project.basedir}/src/main/resources/net/mwalser/openapi/toolkit/redocly/redocly-core.mjs</argument>
+                    <argument>${project.basedir}/src/main/resources/META-INF/THIRD-PARTY-NOTICES.txt</argument>
                   </arguments>
                 </configuration>
               </execution>
@@ -254,7 +408,9 @@
             <version>3.10.1</version>
             <configuration>
               <cloneProjectsTo>${project.build.directory}/it</cloneProjectsTo>
-              <postBuildHookScript>verify</postBuildHookScript>
+              <localRepositoryPath>${project.build.directory}/local-repo</localRepositoryPath>
+              <settingsFile>${project.basedir}/src/it/settings.xml</settingsFile>
+              <mergeUserSettings>true</mergeUserSettings>
               <streamLogs>false</streamLogs>
               <showErrors>true</showErrors>
             </configuration>

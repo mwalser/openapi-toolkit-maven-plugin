@@ -1,10 +1,16 @@
 package net.mwalser.openapi.toolkit.redocly
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-
 // ---- shared -------------------------------------------------------------------------------------
 
-data class Totals(val errors: Int = 0, val warnings: Int = 0, val ignored: Int = 0)
+/** Options of every command; paths are JS paths (see [JsPaths]). */
+interface CommandOptions {
+    /** Directory that relative paths — in options, configuration and API descriptions — are resolved against. */
+    val cwd: String
+}
+
+data class Totals(val errors: Int = 0, val warnings: Int = 0, val ignored: Int = 0) {
+    val hasProblems: Boolean get() = errors > 0 || warnings > 0
+}
 
 data class ProblemLocation(val file: String? = null, val pointer: String? = null, val line: Int? = null, val col: Int? = null)
 
@@ -31,9 +37,8 @@ data class UnusedConfig(
 
 // ---- lint ---------------------------------------------------------------------------------------
 
-@JsonIgnoreProperties(ignoreUnknown = true)
 data class LintOptions(
-    val cwd: String,
+    override val cwd: String,
     val configPath: String? = null,
     val apis: List<String> = emptyList(),
     val extends: List<String>? = null,
@@ -43,7 +48,7 @@ data class LintOptions(
     val skipRules: List<String>? = null,
     val generateIgnoreFile: Boolean = false,
     val lintConfig: String = "warn",
-)
+) : CommandOptions
 
 data class ApiLintResult(
     val path: String,
@@ -71,7 +76,7 @@ data class LintResult(
 // ---- bundle -------------------------------------------------------------------------------------
 
 data class BundleOptions(
-    val cwd: String,
+    override val cwd: String,
     val configPath: String? = null,
     val apis: List<String> = emptyList(),
     val extends: List<String>? = null,
@@ -88,7 +93,7 @@ data class BundleOptions(
     val lintConfig: String = "warn",
     val format: String = "codeframe",
     val maxProblems: Int = 100,
-)
+) : CommandOptions
 
 data class ApiBundleResult(
     val path: String,
@@ -112,25 +117,25 @@ data class BundleResult(
 // ---- check-config -------------------------------------------------------------------------------
 
 data class CheckConfigOptions(
-    val cwd: String,
+    override val cwd: String,
     val configPath: String,
-    val severity: String = "warn",
+    val severity: String = "error",
     val format: String = "stylish",
     val maxProblems: Int = 100,
-)
+) : CommandOptions
 
 data class CheckConfigResult(val configLint: ConfigLintResult? = null)
 
 // ---- stats --------------------------------------------------------------------------------------
 
 data class StatsOptions(
-    val cwd: String,
+    override val cwd: String,
     val configPath: String? = null,
     val apis: List<String> = emptyList(),
     val format: String = "stylish",
     val lintConfig: String = "warn",
     val maxProblems: Int = 100,
-)
+) : CommandOptions
 
 data class ApiStatsResult(
     val path: String,
@@ -146,32 +151,31 @@ data class StatsResult(val configLint: ConfigLintResult? = null, val format: Str
 // ---- score --------------------------------------------------------------------------------------
 
 data class ScoreOptions(
-    val cwd: String,
+    override val cwd: String,
     val configPath: String? = null,
     val apis: List<String> = emptyList(),
     val format: String = "stylish",
     val operationDetails: Boolean = false,
     val lintConfig: String = "warn",
     val maxProblems: Int = 100,
-)
+) : CommandOptions
 
 data class ApiScoreResult(
     val path: String,
     val alias: String? = null,
     val output: String = "",
+    /** The agent-readiness score (0-100). */
+    val agentReadiness: Double,
     /** The score as structured data; only available for `format = json`. */
     val score: Map<String, Any?>? = null,
-) {
-    /** The agent-readiness score (0-100); only available for `format = json`. */
-    val agentReadiness: Double? get() = (score?.get("agentReadiness") as? Number)?.toDouble()
-}
+)
 
 data class ScoreResult(val configLint: ConfigLintResult? = null, val format: String, val apis: List<ApiScoreResult> = emptyList())
 
 // ---- join ---------------------------------------------------------------------------------------
 
 data class JoinOptions(
-    val cwd: String,
+    override val cwd: String,
     val configPath: String? = null,
     val apis: List<String>,
     val output: String,
@@ -181,7 +185,7 @@ data class JoinOptions(
     val withoutXTagGroups: Boolean = false,
     val lintConfig: String = "warn",
     val maxProblems: Int = 100,
-)
+) : CommandOptions
 
 data class JoinInput(val path: String, val alias: String? = null)
 
@@ -194,6 +198,6 @@ data class JoinResult(
 
 // ---- split --------------------------------------------------------------------------------------
 
-data class SplitOptions(val cwd: String, val api: String, val outDir: String, val separator: String = "_")
+data class SplitOptions(override val cwd: String, val api: String, val outDir: String, val separator: String = "_") : CommandOptions
 
 data class SplitResult(val api: String, val outDir: String, val output: String = "")

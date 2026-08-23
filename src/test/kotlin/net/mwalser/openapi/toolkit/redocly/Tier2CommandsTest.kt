@@ -7,7 +7,6 @@ import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Files
 import java.nio.file.Path
-import kotlin.io.path.copyToRecursively
 import kotlin.io.path.readText
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
@@ -29,12 +28,6 @@ class Tier2CommandsTest {
     fun stop() = runtime.close()
 
     private fun redocly() = Redocly(runtime)
-
-    @OptIn(kotlin.io.path.ExperimentalPathApi::class)
-    private fun fixture(name: String, target: Path): Path {
-        Path.of("src/test/resources/fixtures", name).copyToRecursively(target, followLinks = false, overwrite = true)
-        return target
-    }
 
     @Test
     fun `stats in all formats`(@TempDir dir: Path) {
@@ -119,6 +112,17 @@ class Tier2CommandsTest {
     }
 
     @Test
+    fun `a failing join still reports the bundling problems it printed`(@TempDir dir: Path) {
+        writeApiWithRef(dir, "./missing.yaml")
+        Files.writeString(dir.resolve("two.yaml"), "openapi: 3.0.3\ninfo: { title: Two, version: '1' }\npaths: {}\n")
+        val error = assertFailsWith<RedoclyException> {
+            redocly().join(JoinOptions(cwd = dir.toString(), apis = listOf("openapi.yaml", "two.yaml"), output = "joined.yaml"))
+        }
+        assertContains(error.message!!, "missing.yaml")
+        assertTrue(error.message!!.lines().size > 1, error.message)
+    }
+
+    @Test
     fun `splits a description into files`(@TempDir dir: Path) {
         val project = fixture("petstore3", dir)
         val result = redocly().split(SplitOptions(cwd = project.toString(), api = "openapi.json", outDir = "split"))
@@ -130,22 +134,17 @@ class Tier2CommandsTest {
         assertContains(outDir.resolve("openapi.json").readText(), "paths/pet.json")
         assertContains(result.output, "is successfully split")
     }
-}
 
-class ScoreCommandTest {
-    @OptIn(kotlin.io.path.ExperimentalPathApi::class)
     @Test
     fun `scores a description`(@TempDir dir: Path) {
-        Path.of("src/test/resources/fixtures/petstore3").copyToRecursively(dir, followLinks = false, overwrite = true)
-        RedoclyRuntime.create(EngineMode.INTERPRETER).use { runtime ->
-            val redocly = Redocly(runtime)
-            val stylish = redocly.score(ScoreOptions(cwd = dir.toString(), apis = listOf("openapi.json"))).apis.single()
-            assertContains(stylish.output, "Agent Readiness:")
-            val json = redocly.score(ScoreOptions(cwd = dir.toString(), apis = listOf("openapi.json"), format = "json")).apis.single()
-            val score = assertNotNull(json.score)
-            val readiness = assertNotNull(json.agentReadiness)
-            assertTrue(readiness in 0.0..100.0, "agentReadiness=$readiness")
-            assertTrue(score.containsKey("hotspots"))
-        }
+        val project = fixture("petstore3", dir)
+        val stylish = redocly().score(ScoreOptions(cwd = project.toString(), apis = listOf("openapi.json"))).apis.single()
+        assertContains(stylish.output, "Agent Readiness:")
+        assertTrue(stylish.agentReadiness in 0.0..100.0, "agentReadiness=${stylish.agentReadiness}")
+
+        val json = redocly().score(ScoreOptions(cwd = project.toString(), apis = listOf("openapi.json"), format = "json")).apis.single()
+        val score = assertNotNull(json.score)
+        assertEquals(stylish.agentReadiness, json.agentReadiness)
+        assertTrue(score.containsKey("hotspots"))
     }
 }

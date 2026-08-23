@@ -31,5 +31,6 @@ class JsPathsTest {
 
         assertEquals("C:\\Users\\me\\out\\spec.yaml", JsPaths.toHost("/C:/Users/me/out/spec.yaml"))
         assertEquals("out\\spec.yaml", JsPaths.toHost("out/spec.yaml"))
+        assertEquals("https://example.com/openapi.yaml", JsPaths.toHost("https://example.com/openapi.yaml"))
     }
 }

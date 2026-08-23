@@ -34,6 +34,7 @@ export async function runBundle(opts) {
   }
   const config = await loadProjectConfig({ configPath: opts.configPath, customExtends: opts.extends });
   const configLint = await lintConfigFile(config, { severity: opts.lintConfig, format, maxProblems, cwd });
+  if (configLint?.totals.errors > 0) return { configLint, apis: [], totals: { errors: 0, warnings: 0, ignored: 0 } };
   const apis = resolveApis(config, opts.apis, cwd);
   if (opts.outputFile && apis.length > 1) {
     throw new CommandError(`<outputFile> can only be used with a single API, but ${apis.length} were selected.`);
@@ -82,7 +83,7 @@ export async function runBundle(opts) {
       durationMillis: Math.round(performance.now() - started),
       removedComponents: meta.visitorsData?.['remove-unused-components']?.removedCount || 0,
       problems: problems.map(describeProblem),
-      output: formatToString(problems, { format, maxProblems, totals: fileTotals, command: 'bundle', cwd }),
+      output: await formatToString(problems, { format, maxProblems, totals: fileTotals, command: 'bundle', cwd }),
     });
   }
 

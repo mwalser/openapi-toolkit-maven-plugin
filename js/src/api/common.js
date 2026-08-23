@@ -10,26 +10,46 @@ import {
 } from '@redocly/openapi-core';
 import * as path from 'node:path';
 import * as fs from 'node:fs';
-import { startCapture, stopCapture } from '../polyfills.js';
+import { captureOutput } from '../polyfills.js';
 
+/** A failure caused by the input (options, configuration, API descriptions) rather than by a bug. */
 export class CommandError extends Error {
-  constructor(message, details) {
-    super(message);
+  constructor(message, options) {
+    super(message, options);
     this.name = 'CommandError';
-    this.details = details;
   }
 }
 
 /** Loads redocly.yaml (or the built-in defaults when no config file is given). */
 export async function loadProjectConfig({ configPath, customExtends }) {
+  let config;
   try {
-    return await loadConfig({
+    config = await loadConfig({
       configPath: configPath || undefined,
-      customExtends: customExtends && customExtends.length ? customExtends : undefined,
+      customExtends: customExtends?.length ? customExtends : undefined,
     });
   } catch (e) {
-    throw new CommandError(`Error while loading the configuration${configPath ? ` from ${configPath}` : ''}: ${e.message}`);
+    throw new CommandError(`Error while loading the configuration${configPath ? ` from ${configPath}` : ''}: ${e.message}`, { cause: e });
   }
+  rejectCustomPlugins(config);
+  return config;
+}
+
+/**
+ * The bundle runs openapi-core in browser mode, which silently ignores `plugins:` — and with them every rule and
+ * decorator they provide. Failing is better than linting with a ruleset the user did not configure.
+ */
+function rejectCustomPlugins(config) {
+  const configured = config.document?.parsed || {};
+  const plugins = (configured.plugins || []).filter((plugin) => typeof plugin === 'string');
+  if (!plugins.length) return;
+  const pluginIds = plugins.map((plugin) => path.basename(plugin).replace(/\.[^.]+$/, ''));
+  const providedBy = (id) => pluginIds.some((pluginId) => id.startsWith(`${pluginId}/`));
+  const uses = ['rules', 'preprocessors', 'decorators'].flatMap((section) => Object.keys(configured[section] || {}).filter(providedBy));
+  throw new CommandError(
+    `Custom JavaScript plugins are not supported: ${plugins.join(', ')}` +
+      (uses.length ? `. Configured plugin rules/decorators: ${uses.join(', ')}` : ''),
+  );
 }
 
 export function configDirectory(config, cwd) {
@@ -88,13 +108,9 @@ export function checkIfRulesetExist(rules) {
 }
 
 /** Runs formatProblems and returns what it would have printed. */
-export function formatToString(problems, opts) {
-  startCapture();
-  try {
-    formatProblems(problems, { color: false, ...opts });
-  } finally {
-    return stopCapture();
-  }
+export async function formatToString(problems, opts) {
+  const { output } = await captureOutput(() => formatProblems(problems, { color: false, ...opts }));
+  return output;
 }
 
 /** Compact, JSON-friendly view of a problem (the raw objects reference whole source documents). */
@@ -137,7 +153,7 @@ export async function lintConfigFile(config, { severity = 'warn', format = 'styl
   return {
     totals,
     problems: problems.map(describeProblem),
-    output: formatToString(problems, { format, maxProblems, totals, command: 'check-config', cwd }),
+    output: await formatToString(problems, { format, maxProblems, totals, command: 'check-config', cwd }),
   };
 }
 

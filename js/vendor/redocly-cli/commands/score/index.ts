@@ -94,6 +94,8 @@ export async function handleScore({ argv, config, collectSpecData }: CommandArgs
     !!argv['operation-details'],
     debugOpId ? { operationId: debugOpId, logs: debugLogs } : undefined
   );
+  // openapi-toolkit: the computed score is returned so that callers can evaluate it without re-running the command.
+  return result;
 }
 
 function printScore(

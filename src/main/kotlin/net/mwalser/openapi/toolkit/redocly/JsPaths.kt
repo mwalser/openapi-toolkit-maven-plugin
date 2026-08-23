@@ -13,26 +13,32 @@ import java.nio.file.Path
 object JsPaths {
     private val windowsDrive = Regex("^[A-Za-z]:[\\\\/]")
     private val jsWindowsDrive = Regex("^/[A-Za-z]:/")
+    private val urlScheme = Regex("^[A-Za-z][A-Za-z0-9+.-]*://")
 
     @Volatile
     internal var windows: Boolean = System.getProperty("os.name", "").lowercase().contains("win")
 
     /** Host path → JS path. Relative paths only get their separators normalized. */
+    @JvmStatic
     fun toJs(hostPath: String): String {
         if (!windows) return hostPath
         val slashed = hostPath.replace('\\', '/')
         return if (windowsDrive.containsMatchIn(hostPath)) "/$slashed" else slashed
     }
 
+    @JvmStatic
     fun toJs(path: Path): String = toJs(path.toString())
 
+    @JvmStatic
     fun toJs(file: File): String = toJs(file.path)
 
-    /** JS path → host path. */
+    /** JS path → host path. URLs pass through unchanged. */
+    @JvmStatic
     fun toHost(jsPath: String): String {
-        if (!windows) return jsPath
+        if (!windows || urlScheme.containsMatchIn(jsPath)) return jsPath
         return if (jsWindowsDrive.containsMatchIn(jsPath)) jsPath.substring(1).replace('/', '\\') else jsPath.replace('/', '\\')
     }
 
+    @JvmStatic
     fun toHostPath(jsPath: String): Path = Path.of(toHost(jsPath))
 }

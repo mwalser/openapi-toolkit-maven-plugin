@@ -4,7 +4,7 @@ import { lintConfigFile, loadProjectConfig } from './common.js';
 export async function runCheckConfig(opts) {
   const config = await loadProjectConfig({ configPath: opts.configPath });
   const configLint = await lintConfigFile(config, {
-    severity: opts.severity || 'warn',
+    severity: opts.severity || 'error',
     format: opts.format || 'stylish',
     maxProblems: opts.maxProblems,
     cwd: opts.cwd,

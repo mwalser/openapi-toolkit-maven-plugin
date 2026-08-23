@@ -1,15 +1,18 @@
 package net.mwalser.openapi.toolkit.redocly
 
+import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpServer
 import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.io.TempDir
 import java.net.InetSocketAddress
+import java.net.ServerSocket
 import java.nio.file.Files
 import java.nio.file.Path
-import kotlin.io.path.copyToRecursively
+import java.nio.file.attribute.PosixFilePermissions
 import kotlin.io.path.readText
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
@@ -40,14 +43,7 @@ class RedoclyRuntimeTest {
     @AfterAll
     fun stop() = runtime.close()
 
-    private fun redocly() = Redocly(runtime, log)
-
-    @OptIn(kotlin.io.path.ExperimentalPathApi::class)
-    private fun fixture(name: String, target: Path): Path {
-        val source = Path.of("src/test/resources/fixtures", name)
-        source.copyToRecursively(target, followLinks = false, overwrite = true)
-        return target
-    }
+    private fun redocly(network: NetworkConfig = NetworkConfig()) = Redocly(runtime, log, network)
 
     @Test
     fun `reports the embedded redocly version`() {
@@ -152,6 +148,20 @@ class RedoclyRuntimeTest {
     }
 
     @Test
+    fun `implicit config and ignore files are looked up in cwd, not in the jvm working directory`(@TempDir dir: Path) {
+        val module = fixture("petstore", dir.resolve("module"))
+        val generated = redocly().lint(LintOptions(cwd = module.toString(), configPath = module.resolve("redocly.yaml").toString(), generateIgnoreFile = true))
+        assertTrue(generated.ignoreFile!!.ignored > 0)
+        Files.delete(module.resolve("redocly.yaml"))
+        // a redocly.yaml above the module (as in a reactor root) must not be picked up either
+        Files.writeString(dir.resolve("redocly.yaml"), "apis:\n  wrong:\n    root: missing.yaml\n")
+
+        val result = redocly().lint(LintOptions(cwd = module.toString(), apis = listOf("openapi.yaml")))
+        assertTrue(result.usedDefaultConfig)
+        assertTrue(result.totals.ignored > 0, "module-local ignore file was not loaded")
+    }
+
+    @Test
     fun `bundles an api with external refs`(@TempDir dir: Path) {
         val project = fixture("petstore", dir)
         val result = redocly().bundle(
@@ -167,6 +177,14 @@ class RedoclyRuntimeTest {
         assertContains(yaml, "components:\n  schemas:\n    pet:")
         assertContains(yaml, "\$ref: '#/components/schemas/pet'")
         assertFalse(yaml.contains("schemas/pet.yaml"))
+    }
+
+    @Test
+    fun `resolves a two hundred deep ref chain`(@TempDir dir: Path) {
+        // GraalJS recursion is bounded by the thread stack; this overflows on Maven's 1 MB main thread
+        writeDeepRefChain(dir, depth = 200)
+        val result = redocly().lint(LintOptions(cwd = dir.toString(), apis = listOf("openapi.yaml"), extends = listOf("minimal")))
+        assertEquals(0, result.totals.errors, result.apis.single().problems.toString())
     }
 
     @Test
@@ -202,9 +220,9 @@ class RedoclyRuntimeTest {
     @Test
     fun `resolves http refs through the host`(@TempDir dir: Path) {
         val server = HttpServer.create(InetSocketAddress("127.0.0.1", 0), 0)
-        val requests = mutableListOf<String>()
+        val requests = mutableListOf<Pair<String, String>>()
         server.createContext("/schemas/pet.yaml") { exchange ->
-            requests += exchange.requestHeaders.getFirst("X-Token") ?: "<none>"
+            requests += (exchange.requestHeaders.getFirst("X-Token") ?: "<none>") to (exchange.requestHeaders.getFirst("X-Env") ?: "<none>")
             val body = "type: object\nproperties:\n  name:\n    type: string\n".toByteArray()
             exchange.responseHeaders.add("Content-Type", "application/yaml")
             exchange.sendResponseHeaders(200, body.size.toLong())
@@ -240,6 +258,9 @@ class RedoclyRuntimeTest {
                       - matches: '$base/**'
                         name: X-Token
                         value: secret
+                      - matches: '$base/**'
+                        name: X-Env
+                        envVariable: PATH
                 """.trimIndent(),
             )
             val result = redocly().bundle(
@@ -247,23 +268,122 @@ class RedoclyRuntimeTest {
             )
             assertEquals(Totals(), result.totals)
             assertContains(Path.of(result.apis.single().outputFile).readText(), "components:\n  schemas:\n    pet:")
-            assertEquals(listOf("secret"), requests)
+            assertEquals(listOf("secret" to System.getenv("PATH")), requests)
         } finally {
             server.stop(0)
         }
     }
 
     @Test
+    fun `offline mode refuses remote refs without making a request`(@TempDir dir: Path) {
+        var requests = 0
+        val server = httpServer { requests++; it.sendResponseHeaders(500, -1); it.close() }
+        try {
+            val url = "http://127.0.0.1:${server.address.port}/schema.yaml"
+            writeApiWithRef(dir, url)
+            val result = redocly(NetworkConfig(offline = true)).bundle(BundleOptions(cwd = dir.toString(), apis = listOf("openapi.yaml"), outputDirectory = "out"))
+            val message = result.apis.single().problems.joinToString { it.message }
+            assertContains(message, "Maven is offline (-o)")
+            assertContains(message, url)
+            assertEquals(0, requests)
+        } finally {
+            server.stop(0)
+        }
+    }
+
+    @Test
+    fun `a file that is not valid utf-8 is decoded leniently`(@TempDir dir: Path) {
+        val latin1 = "openapi: 3.0.3\ninfo: { title: Caf\u00e9, version: '1' }\nservers: [{ url: https://api.example.test }]\npaths: {}\n"
+        Files.write(dir.resolve("latin.yaml"), latin1.toByteArray(Charsets.ISO_8859_1))
+        val result = redocly().lint(LintOptions(cwd = dir.toString(), apis = listOf("latin.yaml"), extends = listOf("minimal")))
+        assertEquals(0, result.totals.errors, result.apis.single().problems.toString())
+    }
+
+    @Test
+    fun `a refused connection is reported with code and url`(@TempDir dir: Path) {
+        val unusedPort = ServerSocket(0).use { it.localPort }
+        val url = "http://127.0.0.1:$unusedPort/schema.yaml"
+        writeApiWithRef(dir, url)
+        val result = redocly().bundle(BundleOptions(cwd = dir.toString(), apis = listOf("openapi.yaml"), outputDirectory = "out"))
+        val message = result.apis.single().problems.joinToString { it.message }
+        assertContains(message, "ECONNREFUSED")
+        assertContains(message, url)
+    }
+
+    @Test
+    fun `an http error status is reported with the url`(@TempDir dir: Path) {
+        val server = httpServer { it.sendResponseHeaders(404, -1); it.close() }
+        try {
+            val url = "http://127.0.0.1:${server.address.port}/missing.yaml"
+            writeApiWithRef(dir, url)
+            val result = redocly().bundle(BundleOptions(cwd = dir.toString(), apis = listOf("openapi.yaml"), outputDirectory = "out"))
+            val message = result.apis.single().problems.joinToString { it.message }
+            assertContains(message, url)
+            assertContains(message, "404")
+        } finally {
+            server.stop(0)
+        }
+    }
+
+    @Test
+    fun `an unreadable file is reported with code and path`(@TempDir dir: Path) {
+        val unreadable = dir.resolve("unreadable.yaml")
+        Files.writeString(unreadable, "openapi: 3.0.3")
+        val posix = runCatching { Files.setPosixFilePermissions(unreadable, PosixFilePermissions.fromString("---------")) }.isSuccess
+        assumeTrue(posix && !Files.isReadable(unreadable), "file system does not enforce POSIX permissions")
+
+        val error = assertFailsWith<RedoclyException> { redocly().lint(LintOptions(cwd = dir.toString(), apis = listOf("unreadable.yaml"))) }
+        assertContains(error.message!!, "EACCES")
+        assertContains(error.message!!, unreadable.toString())
+    }
+
+    private fun httpServer(handler: (HttpExchange) -> Unit): HttpServer {
+        val server = HttpServer.create(InetSocketAddress("127.0.0.1", 0), 0)
+        server.createContext("/", handler)
+        server.start()
+        return server
+    }
+
+    @Test
     fun `checks the configuration`(@TempDir dir: Path) {
         val project = fixture("broken", dir)
         val result = redocly().checkConfig(CheckConfigOptions(cwd = project.toString(), configPath = project.resolve("redocly.yaml").toString()))
-        assertEquals(Totals(warnings = 1), result.configLint?.totals)
-        assertContains(result.configLint!!.output, "4:3  warning  configuration struct  Property `no-unknown-rule` is not expected here.")
+        assertEquals(Totals(errors = 1), result.configLint?.totals)
+        assertContains(result.configLint!!.output, "4:3  error    configuration struct  Property `no-unknown-rule` is not expected here.")
 
         Files.writeString(project.resolve("redocly.yaml"), "extends:\n  - recommended\nrules:\n  info-license: loud\n")
         val invalid = redocly().checkConfig(CheckConfigOptions(cwd = project.toString(), configPath = project.resolve("redocly.yaml").toString(), severity = "error"))
         assertEquals(1, invalid.configLint?.totals?.errors)
         assertContains(invalid.configLint!!.output, "redocly.yaml")
+    }
+
+    @Test
+    fun `rejects custom plugins and names the affected configuration`(@TempDir dir: Path) {
+        Files.writeString(dir.resolve("openapi.yaml"), "openapi: 3.0.3\ninfo: { title: Test, version: '1' }\npaths: {}\n")
+        Files.writeString(dir.resolve("redocly.yaml"), "plugins: [./acme.js]\nrules:\n  acme/required: error\napis:\n  test:\n    root: openapi.yaml\n")
+
+        val error = assertFailsWith<RedoclyException> {
+            redocly().lint(LintOptions(cwd = dir.toString(), configPath = dir.resolve("redocly.yaml").toString()))
+        }
+        assertContains(error.message!!, "Custom JavaScript plugins are not supported")
+        assertContains(error.message!!, "./acme.js")
+        assertContains(error.message!!, "acme/required")
+    }
+
+    @Test
+    fun `configuration errors abort before any api is processed`(@TempDir dir: Path) {
+        var requests = 0
+        val server = httpServer { requests++; it.sendResponseHeaders(200, 0); it.close() }
+        try {
+            val remote = "http://127.0.0.1:${server.address.port}/openapi.yaml"
+            Files.writeString(dir.resolve("redocly.yaml"), "rules:\n  info-license: loud\napis:\n  remote:\n    root: $remote\n")
+            val result = redocly().lint(LintOptions(cwd = dir.toString(), configPath = dir.resolve("redocly.yaml").toString(), lintConfig = "error"))
+            assertTrue(result.configLint!!.totals.errors > 0)
+            assertTrue(result.apis.isEmpty())
+            assertEquals(0, requests)
+        } finally {
+            server.stop(0)
+        }
     }
 
     @Test

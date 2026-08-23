@@ -22,6 +22,7 @@ export async function runLint(opts) {
   const { cwd, format = 'stylish', maxProblems = 100 } = opts;
   const config = await loadProjectConfig({ configPath: opts.configPath, customExtends: opts.extends });
   const configLint = await lintConfigFile(config, { severity: opts.lintConfig, format, maxProblems, cwd });
+  if (configLint?.totals.errors > 0) return { configLint, apis: [], totals: { errors: 0, warnings: 0, ignored: 0 } };
   const apis = resolveApis(config, opts.apis, cwd);
 
   const totals = { errors: 0, warnings: 0, ignored: 0 };
@@ -55,7 +56,7 @@ export async function runLint(opts) {
       totals: fileTotals,
       durationMillis: Math.round(performance.now() - started),
       problems: problems.map(describeProblem),
-      output: formatToString(problems, { format, maxProblems, totals: fileTotals, command: 'lint', cwd }),
+      output: await formatToString(problems, { format, maxProblems, totals: fileTotals, command: 'lint', cwd }),
     });
   }
 
@@ -67,7 +68,7 @@ export async function runLint(opts) {
 
   // reports are meant for CI tooling and always contain every problem; maxProblems only bounds the console output
   const report = opts.reportFormat
-    ? formatToString(allProblems, { format: opts.reportFormat, maxProblems: Number.MAX_SAFE_INTEGER, totals, command: 'lint', cwd })
+    ? await formatToString(allProblems, { format: opts.reportFormat, maxProblems: Number.MAX_SAFE_INTEGER, totals, command: 'lint', cwd })
     : null;
 
   return {

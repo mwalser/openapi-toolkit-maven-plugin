@@ -1,0 +1,7 @@
+openapi: 3.0.3
+info: { title: Offline, version: '1' }
+paths: {}
+components:
+  schemas:
+    Remote:
+      $ref: https://example.invalid/schema.yaml

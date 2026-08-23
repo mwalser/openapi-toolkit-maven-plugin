@@ -41,20 +41,20 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
 var require_path_browserify = __commonJS({
   "node_modules/path-browserify/index.js"(exports, module2) {
     "use strict";
-    function assertPath(path35) {
-      if (typeof path35 !== "string") {
-        throw new TypeError("Path must be a string. Received " + JSON.stringify(path35));
+    function assertPath(path36) {
+      if (typeof path36 !== "string") {
+        throw new TypeError("Path must be a string. Received " + JSON.stringify(path36));
       }
     }
-    function normalizeStringPosix(path35, allowAboveRoot) {
+    function normalizeStringPosix(path36, allowAboveRoot) {
       var res = "";
       var lastSegmentLength = 0;
       var lastSlash = -1;
       var dots = 0;
       var code;
-      for (var i = 0; i <= path35.length; ++i) {
-        if (i < path35.length)
-          code = path35.charCodeAt(i);
+      for (var i = 0; i <= path36.length; ++i) {
+        if (i < path36.length)
+          code = path36.charCodeAt(i);
         else if (code === 47)
           break;
         else
@@ -94,9 +94,9 @@ var require_path_browserify = __commonJS({
             }
           } else {
             if (res.length > 0)
-              res += "/" + path35.slice(lastSlash + 1, i);
+              res += "/" + path36.slice(lastSlash + 1, i);
             else
-              res = path35.slice(lastSlash + 1, i);
+              res = path36.slice(lastSlash + 1, i);
             lastSegmentLength = i - lastSlash - 1;
           }
           lastSlash = i;
@@ -122,25 +122,25 @@ var require_path_browserify = __commonJS({
     }
     var posix = {
       // path.resolve([from ...], to)
-      resolve: function resolve12() {
+      resolve: function resolve13() {
         var resolvedPath = "";
         var resolvedAbsolute = false;
-        var cwd;
+        var cwd2;
         for (var i = arguments.length - 1; i >= -1 && !resolvedAbsolute; i--) {
-          var path35;
+          var path36;
           if (i >= 0)
-            path35 = arguments[i];
+            path36 = arguments[i];
           else {
-            if (cwd === void 0)
-              cwd = process.cwd();
-            path35 = cwd;
+            if (cwd2 === void 0)
+              cwd2 = process.cwd();
+            path36 = cwd2;
           }
-          assertPath(path35);
-          if (path35.length === 0) {
+          assertPath(path36);
+          if (path36.length === 0) {
             continue;
           }
-          resolvedPath = path35 + "/" + resolvedPath;
-          resolvedAbsolute = path35.charCodeAt(0) === 47;
+          resolvedPath = path36 + "/" + resolvedPath;
+          resolvedAbsolute = path36.charCodeAt(0) === 47;
         }
         resolvedPath = normalizeStringPosix(resolvedPath, !resolvedAbsolute);
         if (resolvedAbsolute) {
@@ -154,20 +154,20 @@ var require_path_browserify = __commonJS({
           return ".";
         }
       },
-      normalize: function normalize(path35) {
-        assertPath(path35);
-        if (path35.length === 0) return ".";
-        var isAbsolute2 = path35.charCodeAt(0) === 47;
-        var trailingSeparator = path35.charCodeAt(path35.length - 1) === 47;
-        path35 = normalizeStringPosix(path35, !isAbsolute2);
-        if (path35.length === 0 && !isAbsolute2) path35 = ".";
-        if (path35.length > 0 && trailingSeparator) path35 += "/";
-        if (isAbsolute2) return "/" + path35;
-        return path35;
+      normalize: function normalize(path36) {
+        assertPath(path36);
+        if (path36.length === 0) return ".";
+        var isAbsolute2 = path36.charCodeAt(0) === 47;
+        var trailingSeparator = path36.charCodeAt(path36.length - 1) === 47;
+        path36 = normalizeStringPosix(path36, !isAbsolute2);
+        if (path36.length === 0 && !isAbsolute2) path36 = ".";
+        if (path36.length > 0 && trailingSeparator) path36 += "/";
+        if (isAbsolute2) return "/" + path36;
+        return path36;
       },
-      isAbsolute: function isAbsolute2(path35) {
-        assertPath(path35);
-        return path35.length > 0 && path35.charCodeAt(0) === 47;
+      isAbsolute: function isAbsolute2(path36) {
+        assertPath(path36);
+        return path36.length > 0 && path36.charCodeAt(0) === 47;
       },
       join: function join15() {
         if (arguments.length === 0)
@@ -253,18 +253,18 @@ var require_path_browserify = __commonJS({
           return to2.slice(toStart);
         }
       },
-      _makeLong: function _makeLong(path35) {
-        return path35;
+      _makeLong: function _makeLong(path36) {
+        return path36;
       },
-      dirname: function dirname14(path35) {
-        assertPath(path35);
-        if (path35.length === 0) return ".";
-        var code = path35.charCodeAt(0);
+      dirname: function dirname14(path36) {
+        assertPath(path36);
+        if (path36.length === 0) return ".";
+        var code = path36.charCodeAt(0);
         var hasRoot = code === 47;
         var end = -1;
         var matchedSlash = true;
-        for (var i = path35.length - 1; i >= 1; --i) {
-          code = path35.charCodeAt(i);
+        for (var i = path36.length - 1; i >= 1; --i) {
+          code = path36.charCodeAt(i);
           if (code === 47) {
             if (!matchedSlash) {
               end = i;
@@ -276,21 +276,21 @@ var require_path_browserify = __commonJS({
         }
         if (end === -1) return hasRoot ? "/" : ".";
         if (hasRoot && end === 1) return "//";
-        return path35.slice(0, end);
+        return path36.slice(0, end);
       },
-      basename: function basename7(path35, ext) {
+      basename: function basename8(path36, ext) {
         if (ext !== void 0 && typeof ext !== "string") throw new TypeError('"ext" argument must be a string');
-        assertPath(path35);
+        assertPath(path36);
         var start = 0;
         var end = -1;
         var matchedSlash = true;
         var i;
-        if (ext !== void 0 && ext.length > 0 && ext.length <= path35.length) {
-          if (ext.length === path35.length && ext === path35) return "";
+        if (ext !== void 0 && ext.length > 0 && ext.length <= path36.length) {
+          if (ext.length === path36.length && ext === path36) return "";
           var extIdx = ext.length - 1;
           var firstNonSlashEnd = -1;
-          for (i = path35.length - 1; i >= 0; --i) {
-            var code = path35.charCodeAt(i);
+          for (i = path36.length - 1; i >= 0; --i) {
+            var code = path36.charCodeAt(i);
             if (code === 47) {
               if (!matchedSlash) {
                 start = i + 1;
@@ -314,11 +314,11 @@ var require_path_browserify = __commonJS({
             }
           }
           if (start === end) end = firstNonSlashEnd;
-          else if (end === -1) end = path35.length;
-          return path35.slice(start, end);
+          else if (end === -1) end = path36.length;
+          return path36.slice(start, end);
         } else {
-          for (i = path35.length - 1; i >= 0; --i) {
-            if (path35.charCodeAt(i) === 47) {
+          for (i = path36.length - 1; i >= 0; --i) {
+            if (path36.charCodeAt(i) === 47) {
               if (!matchedSlash) {
                 start = i + 1;
                 break;
@@ -329,18 +329,18 @@ var require_path_browserify = __commonJS({
             }
           }
           if (end === -1) return "";
-          return path35.slice(start, end);
+          return path36.slice(start, end);
         }
       },
-      extname: function extname6(path35) {
-        assertPath(path35);
+      extname: function extname6(path36) {
+        assertPath(path36);
         var startDot = -1;
         var startPart = 0;
         var end = -1;
         var matchedSlash = true;
         var preDotState = 0;
-        for (var i = path35.length - 1; i >= 0; --i) {
-          var code = path35.charCodeAt(i);
+        for (var i = path36.length - 1; i >= 0; --i) {
+          var code = path36.charCodeAt(i);
           if (code === 47) {
             if (!matchedSlash) {
               startPart = i + 1;
@@ -366,19 +366,19 @@ var require_path_browserify = __commonJS({
         preDotState === 1 && startDot === end - 1 && startDot === startPart + 1) {
           return "";
         }
-        return path35.slice(startDot, end);
+        return path36.slice(startDot, end);
       },
-      format: function format(pathObject) {
+      format: function format2(pathObject) {
         if (pathObject === null || typeof pathObject !== "object") {
           throw new TypeError('The "pathObject" argument must be of type Object. Received type ' + typeof pathObject);
         }
         return _format("/", pathObject);
       },
-      parse: function parse2(path35) {
-        assertPath(path35);
+      parse: function parse2(path36) {
+        assertPath(path36);
         var ret = { root: "", dir: "", base: "", ext: "", name: "" };
-        if (path35.length === 0) return ret;
-        var code = path35.charCodeAt(0);
+        if (path36.length === 0) return ret;
+        var code = path36.charCodeAt(0);
         var isAbsolute2 = code === 47;
         var start;
         if (isAbsolute2) {
@@ -391,10 +391,10 @@ var require_path_browserify = __commonJS({
         var startPart = 0;
         var end = -1;
         var matchedSlash = true;
-        var i = path35.length - 1;
+        var i = path36.length - 1;
         var preDotState = 0;
         for (; i >= start; --i) {
-          code = path35.charCodeAt(i);
+          code = path36.charCodeAt(i);
           if (code === 47) {
             if (!matchedSlash) {
               startPart = i + 1;
@@ -417,20 +417,20 @@ var require_path_browserify = __commonJS({
         preDotState === 0 || // The (right-most) trimmed path component is exactly '..'
         preDotState === 1 && startDot === end - 1 && startDot === startPart + 1) {
           if (end !== -1) {
-            if (startPart === 0 && isAbsolute2) ret.base = ret.name = path35.slice(1, end);
-            else ret.base = ret.name = path35.slice(startPart, end);
+            if (startPart === 0 && isAbsolute2) ret.base = ret.name = path36.slice(1, end);
+            else ret.base = ret.name = path36.slice(startPart, end);
           }
         } else {
           if (startPart === 0 && isAbsolute2) {
-            ret.name = path35.slice(1, startDot);
-            ret.base = path35.slice(1, end);
+            ret.name = path36.slice(1, startDot);
+            ret.base = path36.slice(1, end);
           } else {
-            ret.name = path35.slice(startPart, startDot);
-            ret.base = path35.slice(startPart, end);
+            ret.name = path36.slice(startPart, startDot);
+            ret.base = path36.slice(startPart, end);
           }
-          ret.ext = path35.slice(startDot, end);
+          ret.ext = path36.slice(startDot, end);
         }
-        if (startPart > 0) ret.dir = path35.slice(0, startPart - 1);
+        if (startPart > 0) ret.dir = path36.slice(0, startPart - 1);
         else if (isAbsolute2) ret.dir = "/";
         return ret;
       },
@@ -1050,8 +1050,8 @@ var require_utils = __commonJS({
       }
       return output;
     };
-    exports.basename = (path35, { windows } = {}) => {
-      const segs = path35.split(windows ? /[\\/]/ : "/");
+    exports.basename = (path36, { windows } = {}) => {
+      const segs = path36.split(windows ? /[\\/]/ : "/");
       const last = segs[segs.length - 1];
       if (last === "") {
         return segs[segs.length - 2];
@@ -2475,11 +2475,11 @@ var require_picomatch = __commonJS({
         return { isMatch: false, output: "" };
       }
       const opts = options2 || {};
-      const format = opts.format || (posix ? utils.toPosixSlashes : null);
+      const format2 = opts.format || (posix ? utils.toPosixSlashes : null);
       let match2 = input === glob;
-      let output = match2 && format ? format(input) : input;
+      let output = match2 && format2 ? format2(input) : input;
       if (match2 === false) {
-        output = format ? format(input) : input;
+        output = format2 ? format2(input) : input;
         match2 = output === glob;
       }
       if (match2 === false || opts.capture === true) {
@@ -2631,12 +2631,12 @@ var require_code = __commonJS({
     exports._ = _4;
     var plus = new _Code("+");
     function str(strs, ...args) {
-      const expr = [safeStringify2(strs[0])];
+      const expr = [safeStringify(strs[0])];
       let i = 0;
       while (i < args.length) {
         expr.push(plus);
         addCodeArg(expr, args[i]);
-        expr.push(plus, safeStringify2(strs[++i]));
+        expr.push(plus, safeStringify(strs[++i]));
       }
       optimize(expr);
       return new _Code(expr);
@@ -2688,16 +2688,16 @@ var require_code = __commonJS({
     }
     exports.strConcat = strConcat;
     function interpolate(x2) {
-      return typeof x2 == "number" || typeof x2 == "boolean" || x2 === null ? x2 : safeStringify2(Array.isArray(x2) ? x2.join(",") : x2);
+      return typeof x2 == "number" || typeof x2 == "boolean" || x2 === null ? x2 : safeStringify(Array.isArray(x2) ? x2.join(",") : x2);
     }
-    function stringify(x2) {
-      return new _Code(safeStringify2(x2));
+    function stringify2(x2) {
+      return new _Code(safeStringify(x2));
     }
-    exports.stringify = stringify;
-    function safeStringify2(x2) {
+    exports.stringify = stringify2;
+    function safeStringify(x2) {
       return JSON.stringify(x2).replace(/\u2028/g, "\\u2028").replace(/\u2029/g, "\\u2029");
     }
-    exports.safeStringify = safeStringify2;
+    exports.safeStringify = safeStringify;
     function getProperty(key) {
       return typeof key == "string" && exports.IDENTIFIER.test(key) ? new _Code(`.${key}`) : _4`[${key}]`;
     }
@@ -5564,7 +5564,7 @@ var require_compile = __commonJS({
       const schOrFunc = root.refs[ref];
       if (schOrFunc)
         return schOrFunc;
-      let _sch = resolve12.call(this, root, ref);
+      let _sch = resolve13.call(this, root, ref);
       if (_sch === void 0) {
         const schema = (_a = root.localRefs) === null || _a === void 0 ? void 0 : _a[ref];
         const { schemaId } = this.opts;
@@ -5575,7 +5575,7 @@ var require_compile = __commonJS({
         const remoteSchema = this.opts.loadSchemaSync(baseId, origRef, ref);
         if (remoteSchema && !(this.refs[ref] || this.schemas[ref])) {
           this.addSchema(remoteSchema, ref, void 0);
-          _sch = resolve12.call(this, root, ref);
+          _sch = resolve13.call(this, root, ref);
         }
       }
       if (_sch === void 0)
@@ -5598,7 +5598,7 @@ var require_compile = __commonJS({
     function sameSchemaEnv(s1, s2) {
       return s1.schema === s2.schema && s1.root === s2.root && s1.baseId === s2.baseId;
     }
-    function resolve12(root, ref) {
+    function resolve13(root, ref) {
       let sch;
       while (typeof (sch = this.refs[ref]) == "string")
         ref = sch;
@@ -5792,11 +5792,11 @@ var require_utils2 = __commonJS({
       output.address = address.join("");
       return output;
     }
-    function normalizeIPv6(host3) {
-      if (findToken(host3, ":") < 2) {
-        return { host: host3, isIPV6: false };
+    function normalizeIPv6(host2) {
+      if (findToken(host2, ":") < 2) {
+        return { host: host2, isIPV6: false };
       }
-      const ipv6 = getIPV6(host3);
+      const ipv6 = getIPV6(host2);
       if (!ipv6.error) {
         let newHost = ipv6.address;
         let escapedHost = ipv6.address;
@@ -5806,7 +5806,7 @@ var require_utils2 = __commonJS({
         }
         return { host: newHost, isIPV6: true, escapedHost };
       } else {
-        return { host: host3, isIPV6: false };
+        return { host: host2, isIPV6: false };
       }
     }
     function findToken(str, token) {
@@ -5816,8 +5816,8 @@ var require_utils2 = __commonJS({
       }
       return ind;
     }
-    function removeDotSegments(path35) {
-      let input = path35;
+    function removeDotSegments(path36) {
+      let input = path36;
       const output = [];
       let nextSlash = -1;
       let len = 0;
@@ -5894,10 +5894,10 @@ var require_utils2 = __commonJS({
     var HOST_DELIMS = { "@": "%40", "/": "%2F", "?": "%3F", "#": "%23", ":": "%3A" };
     var HOST_DELIM_RE = /[@/?#:]/g;
     var HOST_DELIM_NO_COLON_RE = /[@/?#]/g;
-    function reescapeHostDelimiters(host3, isIP) {
+    function reescapeHostDelimiters(host2, isIP) {
       const re2 = isIP ? HOST_DELIM_NO_COLON_RE : HOST_DELIM_RE;
       re2.lastIndex = 0;
-      return host3.replace(re2, (ch) => HOST_DELIMS[ch]);
+      return host2.replace(re2, (ch) => HOST_DELIMS[ch]);
     }
     function normalizePercentEncoding(input, decodeUnreserved = false) {
       if (input.indexOf("%") === -1) {
@@ -5970,16 +5970,16 @@ var require_utils2 = __commonJS({
         uriTokens.push("@");
       }
       if (component.host !== void 0) {
-        let host3 = unescape(component.host);
-        if (!isIPv4(host3)) {
-          const ipV6res = normalizeIPv6(host3);
+        let host2 = unescape(component.host);
+        if (!isIPv4(host2)) {
+          const ipV6res = normalizeIPv6(host2);
           if (ipV6res.isIPV6 === true) {
-            host3 = `[${ipV6res.escapedHost}]`;
+            host2 = `[${ipV6res.escapedHost}]`;
           } else {
-            host3 = reescapeHostDelimiters(host3, false);
+            host2 = reescapeHostDelimiters(host2, false);
           }
         }
-        uriTokens.push(host3);
+        uriTokens.push(host2);
       }
       if (typeof component.port === "number" || typeof component.port === "string") {
         uriTokens.push(":");
@@ -6069,8 +6069,8 @@ var require_schemes = __commonJS({
         wsComponent.secure = void 0;
       }
       if (wsComponent.resourceName) {
-        const [path35, query] = wsComponent.resourceName.split("?");
-        wsComponent.path = path35 && path35 !== "/" ? path35 : void 0;
+        const [path36, query] = wsComponent.resourceName.split("?");
+        wsComponent.path = path36 && path36 !== "/" ? path36 : void 0;
         wsComponent.query = query;
         wsComponent.resourceName = void 0;
       }
@@ -6229,7 +6229,7 @@ var require_fast_uri = __commonJS({
       }
       return uri;
     }
-    function resolve12(baseURI, relativeURI, options2) {
+    function resolve13(baseURI, relativeURI, options2) {
       const schemelessOptions = options2 ? Object.assign({ scheme: "null" }, options2) : { scheme: "null" };
       const { parsed: baseParsed, malformedAuthorityOrPort: baseMalformed } = parseWithStatus(baseURI, schemelessOptions);
       const { parsed: relativeParsed, malformedAuthorityOrPort: relativeMalformed } = parseWithStatus(relativeURI, schemelessOptions);
@@ -6513,7 +6513,7 @@ var require_fast_uri = __commonJS({
     var fastUri = {
       SCHEMES,
       normalize,
-      resolve: resolve12,
+      resolve: resolve13,
       resolveComponent,
       equal,
       serialize,
@@ -6933,10 +6933,10 @@ var require_core = __commonJS({
         return this;
       }
       // Add format
-      addFormat(name, format) {
-        if (typeof format == "string")
-          format = new RegExp(format);
-        this.formats[name] = format;
+      addFormat(name, format2) {
+        if (typeof format2 == "string")
+          format2 = new RegExp(format2);
+        this.formats[name] = format2;
         return this;
       }
       errorsText(errors = this.errors, { separator = ", ", dataVar = "data" } = {}) {
@@ -7054,9 +7054,9 @@ var require_core = __commonJS({
     }
     function addInitialFormats() {
       for (const name in this.opts.formats) {
-        const format = this.opts.formats[name];
-        if (format)
-          this.addFormat(name, format);
+        const format2 = this.opts.formats[name];
+        if (format2)
+          this.addFormat(name, format2);
       }
     }
     function addInitialKeywords(defs) {
@@ -9141,18 +9141,18 @@ var require_format = __commonJS({
           });
           const fDef = gen.const("fDef", (0, codegen_1._)`${fmts}[${schemaCode}]`);
           const fType = gen.let("fType");
-          const format = gen.let("format");
-          gen.if((0, codegen_1._)`typeof ${fDef} == "object" && !(${fDef} instanceof RegExp)`, () => gen.assign(fType, (0, codegen_1._)`${fDef}.type || "string"`).assign(format, (0, codegen_1._)`${fDef}.validate`), () => gen.assign(fType, (0, codegen_1._)`"string"`).assign(format, fDef));
+          const format2 = gen.let("format");
+          gen.if((0, codegen_1._)`typeof ${fDef} == "object" && !(${fDef} instanceof RegExp)`, () => gen.assign(fType, (0, codegen_1._)`${fDef}.type || "string"`).assign(format2, (0, codegen_1._)`${fDef}.validate`), () => gen.assign(fType, (0, codegen_1._)`"string"`).assign(format2, fDef));
           cxt.fail$data((0, codegen_1.or)(unknownFmt(), invalidFmt()));
           function unknownFmt() {
             if (opts.strictSchema === false)
               return codegen_1.nil;
-            return (0, codegen_1._)`${schemaCode} && !${format}`;
+            return (0, codegen_1._)`${schemaCode} && !${format2}`;
           }
           function invalidFmt() {
-            const callFormat = schemaEnv.$async ? (0, codegen_1._)`(${fDef}.async ? await ${format}(${data}) : ${format}(${data}))` : (0, codegen_1._)`${format}(${data})`;
-            const validData = (0, codegen_1._)`(typeof ${format} == "function" ? ${callFormat} : ${format}.test(${data}))`;
-            return (0, codegen_1._)`${format} && ${format} !== true && ${fType} === ${ruleType} && !${validData}`;
+            const callFormat = schemaEnv.$async ? (0, codegen_1._)`(${fDef}.async ? await ${format2}(${data}) : ${format2}(${data}))` : (0, codegen_1._)`${format2}(${data})`;
+            const validData = (0, codegen_1._)`(typeof ${format2} == "function" ? ${callFormat} : ${format2}.test(${data}))`;
+            return (0, codegen_1._)`${format2} && ${format2} !== true && ${fType} === ${ruleType} && !${validData}`;
           }
         }
         function validateFormat() {
@@ -9163,7 +9163,7 @@ var require_format = __commonJS({
           }
           if (formatDef === true)
             return;
-          const [fmtType, format, fmtRef] = getFormat(formatDef);
+          const [fmtType, format2, fmtRef] = getFormat(formatDef);
           if (fmtType === ruleType)
             cxt.pass(validCondition());
           function unknownFormat() {
@@ -9178,11 +9178,11 @@ var require_format = __commonJS({
           }
           function getFormat(fmtDef) {
             const code = fmtDef instanceof RegExp ? (0, codegen_1.regexpCode)(fmtDef) : opts.code.formats ? (0, codegen_1._)`${opts.code.formats}${(0, codegen_1.getProperty)(schema)}` : void 0;
-            const fmt2 = gen.scopeValue("formats", { key: schema, ref: fmtDef, code });
+            const fmt = gen.scopeValue("formats", { key: schema, ref: fmtDef, code });
             if (typeof fmtDef == "object" && !(fmtDef instanceof RegExp)) {
-              return [fmtDef.type || "string", fmtDef.validate, (0, codegen_1._)`${fmt2}.validate`];
+              return [fmtDef.type || "string", fmtDef.validate, (0, codegen_1._)`${fmt}.validate`];
             }
-            return ["string", fmtDef, fmt2];
+            return ["string", fmtDef, fmt];
           }
           function validCondition() {
             if (typeof formatDef == "object" && !(formatDef instanceof RegExp) && formatDef.async) {
@@ -9190,7 +9190,7 @@ var require_format = __commonJS({
                 throw new Error("async format in sync schema");
               return (0, codegen_1._)`await ${fmtRef}(${data})`;
             }
-            return typeof format == "function" ? (0, codegen_1._)`${fmtRef}(${data})` : (0, codegen_1._)`${fmtRef}.test(${data})`;
+            return typeof format2 == "function" ? (0, codegen_1._)`${fmtRef}(${data})` : (0, codegen_1._)`${fmtRef}.test(${data})`;
           }
         }
       }
@@ -9205,8 +9205,8 @@ var require_format2 = __commonJS({
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var format_1 = require_format();
-    var format = [format_1.default];
-    exports.default = format;
+    var format2 = [format_1.default];
+    exports.default = format2;
   }
 });
 
@@ -9798,7 +9798,7 @@ var require_json_schema_2020_12 = __commonJS({
     var unevaluated = require_unevaluated2();
     var content = require_content();
     var core = require_core3();
-    var format = require_format_annotation();
+    var format2 = require_format_annotation();
     var metadata = require_meta_data();
     var validation = require_validation2();
     var META_SUPPORT_DATA = ["/properties"];
@@ -9810,7 +9810,7 @@ var require_json_schema_2020_12 = __commonJS({
         unevaluated,
         content,
         core,
-        with$data(this, format),
+        with$data(this, format2),
         metadata,
         with$data(this, validation)
       ].forEach((sch) => this.addMetaSchema(sch, void 0, false));
@@ -10280,10 +10280,10 @@ var init_GraphQLError = __esm({
        */
       constructor(message, ...rawArgs) {
         var _this$nodes, _nodeLocations$, _ref;
-        const { nodes, source, positions, path: path35, originalError, extensions } = toNormalizedOptions(rawArgs);
+        const { nodes, source, positions, path: path36, originalError, extensions } = toNormalizedOptions(rawArgs);
         super(message);
         this.name = "GraphQLError";
-        this.path = path35 !== null && path35 !== void 0 ? path35 : void 0;
+        this.path = path36 !== null && path36 !== void 0 ? path36 : void 0;
         this.originalError = originalError !== null && originalError !== void 0 ? originalError : void 0;
         this.nodes = undefinedIfEmpty(
           Array.isArray(nodes) ? nodes : nodes ? [nodes] : void 0
@@ -13583,14 +13583,14 @@ function visit2(root, visitor, visitorKeys = QueryDocumentKeys) {
   let node = root;
   let key = void 0;
   let parent = void 0;
-  const path35 = [];
+  const path36 = [];
   const ancestors = [];
   do {
     index++;
     const isLeaving = index === keys.length;
     const isEdited = isLeaving && edits.length !== 0;
     if (isLeaving) {
-      key = ancestors.length === 0 ? void 0 : path35[path35.length - 1];
+      key = ancestors.length === 0 ? void 0 : path36[path36.length - 1];
       node = parent;
       parent = ancestors.pop();
       if (isEdited) {
@@ -13624,20 +13624,20 @@ function visit2(root, visitor, visitorKeys = QueryDocumentKeys) {
       if (node === null || node === void 0) {
         continue;
       }
-      path35.push(key);
+      path36.push(key);
     }
     let result;
     if (!Array.isArray(node)) {
       var _enterLeaveMap$get, _enterLeaveMap$get2;
       isNode(node) || devAssert(false, `Invalid AST Node: ${inspect(node)}.`);
       const visitFn = isLeaving ? (_enterLeaveMap$get = enterLeaveMap.get(node.kind)) === null || _enterLeaveMap$get === void 0 ? void 0 : _enterLeaveMap$get.leave : (_enterLeaveMap$get2 = enterLeaveMap.get(node.kind)) === null || _enterLeaveMap$get2 === void 0 ? void 0 : _enterLeaveMap$get2.enter;
-      result = visitFn === null || visitFn === void 0 ? void 0 : visitFn.call(visitor, node, key, parent, path35, ancestors);
+      result = visitFn === null || visitFn === void 0 ? void 0 : visitFn.call(visitor, node, key, parent, path36, ancestors);
       if (result === BREAK) {
         break;
       }
       if (result === false) {
         if (!isLeaving) {
-          path35.pop();
+          path36.pop();
           continue;
         }
       } else if (result !== void 0) {
@@ -13646,7 +13646,7 @@ function visit2(root, visitor, visitorKeys = QueryDocumentKeys) {
           if (isNode(result)) {
             node = result;
           } else {
-            path35.pop();
+            path36.pop();
             continue;
           }
         }
@@ -13656,7 +13656,7 @@ function visit2(root, visitor, visitorKeys = QueryDocumentKeys) {
       edits.push([key, node]);
     }
     if (isLeaving) {
-      path35.pop();
+      path36.pop();
     } else {
       var _node$kind;
       stack = {
@@ -22431,12 +22431,12 @@ var require_code3 = __commonJS({
     exports._ = _4;
     var plus = new _Code("+");
     function str(strs, ...args) {
-      const expr = [safeStringify2(strs[0])];
+      const expr = [safeStringify(strs[0])];
       let i = 0;
       while (i < args.length) {
         expr.push(plus);
         addCodeArg(expr, args[i]);
-        expr.push(plus, safeStringify2(strs[++i]));
+        expr.push(plus, safeStringify(strs[++i]));
       }
       optimize(expr);
       return new _Code(expr);
@@ -22488,16 +22488,16 @@ var require_code3 = __commonJS({
     }
     exports.strConcat = strConcat;
     function interpolate(x2) {
-      return typeof x2 == "number" || typeof x2 == "boolean" || x2 === null ? x2 : safeStringify2(Array.isArray(x2) ? x2.join(",") : x2);
+      return typeof x2 == "number" || typeof x2 == "boolean" || x2 === null ? x2 : safeStringify(Array.isArray(x2) ? x2.join(",") : x2);
     }
-    function stringify(x2) {
-      return new _Code(safeStringify2(x2));
+    function stringify2(x2) {
+      return new _Code(safeStringify(x2));
     }
-    exports.stringify = stringify;
-    function safeStringify2(x2) {
+    exports.stringify = stringify2;
+    function safeStringify(x2) {
       return JSON.stringify(x2).replace(/\u2028/g, "\\u2028").replace(/\u2029/g, "\\u2029");
     }
-    exports.safeStringify = safeStringify2;
+    exports.safeStringify = safeStringify;
     function getProperty(key) {
       return typeof key == "string" && exports.IDENTIFIER.test(key) ? new _Code(`.${key}`) : _4`[${key}]`;
     }
@@ -25241,7 +25241,7 @@ var require_compile2 = __commonJS({
       const schOrFunc = root.refs[ref];
       if (schOrFunc)
         return schOrFunc;
-      let _sch = resolve12.call(this, root, ref);
+      let _sch = resolve13.call(this, root, ref);
       if (_sch === void 0) {
         const schema = (_a = root.localRefs) === null || _a === void 0 ? void 0 : _a[ref];
         const { schemaId } = this.opts;
@@ -25252,7 +25252,7 @@ var require_compile2 = __commonJS({
         const remoteSchema = this.opts.loadSchemaSync(baseId, origRef, ref);
         if (remoteSchema && !(this.refs[ref] || this.schemas[ref])) {
           this.addSchema(remoteSchema, ref, void 0);
-          _sch = resolve12.call(this, root, ref);
+          _sch = resolve13.call(this, root, ref);
         }
       }
       if (_sch === void 0)
@@ -25275,7 +25275,7 @@ var require_compile2 = __commonJS({
     function sameSchemaEnv(s1, s2) {
       return s1.schema === s2.schema && s1.root === s2.root && s1.baseId === s2.baseId;
     }
-    function resolve12(root, ref) {
+    function resolve13(root, ref) {
       let sch;
       while (typeof (sch = this.refs[ref]) == "string")
         ref = sch;
@@ -25775,10 +25775,10 @@ var require_core4 = __commonJS({
         return this;
       }
       // Add format
-      addFormat(name, format) {
-        if (typeof format == "string")
-          format = new RegExp(format);
-        this.formats[name] = format;
+      addFormat(name, format2) {
+        if (typeof format2 == "string")
+          format2 = new RegExp(format2);
+        this.formats[name] = format2;
         return this;
       }
       errorsText(errors = this.errors, { separator = ", ", dataVar = "data" } = {}) {
@@ -25896,9 +25896,9 @@ var require_core4 = __commonJS({
     }
     function addInitialFormats() {
       for (const name in this.opts.formats) {
-        const format = this.opts.formats[name];
-        if (format)
-          this.addFormat(name, format);
+        const format2 = this.opts.formats[name];
+        if (format2)
+          this.addFormat(name, format2);
       }
     }
     function addInitialKeywords(defs) {
@@ -27653,18 +27653,18 @@ var require_format3 = __commonJS({
           });
           const fDef = gen.const("fDef", (0, codegen_1._)`${fmts}[${schemaCode}]`);
           const fType = gen.let("fType");
-          const format = gen.let("format");
-          gen.if((0, codegen_1._)`typeof ${fDef} == "object" && !(${fDef} instanceof RegExp)`, () => gen.assign(fType, (0, codegen_1._)`${fDef}.type || "string"`).assign(format, (0, codegen_1._)`${fDef}.validate`), () => gen.assign(fType, (0, codegen_1._)`"string"`).assign(format, fDef));
+          const format2 = gen.let("format");
+          gen.if((0, codegen_1._)`typeof ${fDef} == "object" && !(${fDef} instanceof RegExp)`, () => gen.assign(fType, (0, codegen_1._)`${fDef}.type || "string"`).assign(format2, (0, codegen_1._)`${fDef}.validate`), () => gen.assign(fType, (0, codegen_1._)`"string"`).assign(format2, fDef));
           cxt.fail$data((0, codegen_1.or)(unknownFmt(), invalidFmt()));
           function unknownFmt() {
             if (opts.strictSchema === false)
               return codegen_1.nil;
-            return (0, codegen_1._)`${schemaCode} && !${format}`;
+            return (0, codegen_1._)`${schemaCode} && !${format2}`;
           }
           function invalidFmt() {
-            const callFormat = schemaEnv.$async ? (0, codegen_1._)`(${fDef}.async ? await ${format}(${data}) : ${format}(${data}))` : (0, codegen_1._)`${format}(${data})`;
-            const validData = (0, codegen_1._)`(typeof ${format} == "function" ? ${callFormat} : ${format}.test(${data}))`;
-            return (0, codegen_1._)`${format} && ${format} !== true && ${fType} === ${ruleType} && !${validData}`;
+            const callFormat = schemaEnv.$async ? (0, codegen_1._)`(${fDef}.async ? await ${format2}(${data}) : ${format2}(${data}))` : (0, codegen_1._)`${format2}(${data})`;
+            const validData = (0, codegen_1._)`(typeof ${format2} == "function" ? ${callFormat} : ${format2}.test(${data}))`;
+            return (0, codegen_1._)`${format2} && ${format2} !== true && ${fType} === ${ruleType} && !${validData}`;
           }
         }
         function validateFormat() {
@@ -27675,7 +27675,7 @@ var require_format3 = __commonJS({
           }
           if (formatDef === true)
             return;
-          const [fmtType, format, fmtRef] = getFormat(formatDef);
+          const [fmtType, format2, fmtRef] = getFormat(formatDef);
           if (fmtType === ruleType)
             cxt.pass(validCondition());
           function unknownFormat() {
@@ -27690,11 +27690,11 @@ var require_format3 = __commonJS({
           }
           function getFormat(fmtDef) {
             const code = fmtDef instanceof RegExp ? (0, codegen_1.regexpCode)(fmtDef) : opts.code.formats ? (0, codegen_1._)`${opts.code.formats}${(0, codegen_1.getProperty)(schema)}` : void 0;
-            const fmt2 = gen.scopeValue("formats", { key: schema, ref: fmtDef, code });
+            const fmt = gen.scopeValue("formats", { key: schema, ref: fmtDef, code });
             if (typeof fmtDef == "object" && !(fmtDef instanceof RegExp)) {
-              return [fmtDef.type || "string", fmtDef.validate, (0, codegen_1._)`${fmt2}.validate`];
+              return [fmtDef.type || "string", fmtDef.validate, (0, codegen_1._)`${fmt}.validate`];
             }
-            return ["string", fmtDef, fmt2];
+            return ["string", fmtDef, fmt];
           }
           function validCondition() {
             if (typeof formatDef == "object" && !(formatDef instanceof RegExp) && formatDef.async) {
@@ -27702,7 +27702,7 @@ var require_format3 = __commonJS({
                 throw new Error("async format in sync schema");
               return (0, codegen_1._)`await ${fmtRef}(${data})`;
             }
-            return typeof format == "function" ? (0, codegen_1._)`${fmtRef}(${data})` : (0, codegen_1._)`${fmtRef}.test(${data})`;
+            return typeof format2 == "function" ? (0, codegen_1._)`${fmtRef}(${data})` : (0, codegen_1._)`${fmtRef}.test(${data})`;
           }
         }
       }
@@ -27717,8 +27717,8 @@ var require_format4 = __commonJS({
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var format_1 = require_format3();
-    var format = [format_1.default];
-    exports.default = format;
+    var format2 = [format_1.default];
+    exports.default = format2;
   }
 });
 
@@ -28196,26 +28196,26 @@ var require_limit = __commonJS({
             ref: self.formats,
             code: opts.code.formats
           });
-          const fmt2 = gen.const("fmt", (0, codegen_1._)`${fmts}[${fCxt.schemaCode}]`);
-          cxt.fail$data((0, codegen_1.or)((0, codegen_1._)`typeof ${fmt2} != "object"`, (0, codegen_1._)`${fmt2} instanceof RegExp`, (0, codegen_1._)`typeof ${fmt2}.compare != "function"`, compareCode(fmt2)));
+          const fmt = gen.const("fmt", (0, codegen_1._)`${fmts}[${fCxt.schemaCode}]`);
+          cxt.fail$data((0, codegen_1.or)((0, codegen_1._)`typeof ${fmt} != "object"`, (0, codegen_1._)`${fmt} instanceof RegExp`, (0, codegen_1._)`typeof ${fmt}.compare != "function"`, compareCode(fmt)));
         }
         function validateFormat() {
-          const format = fCxt.schema;
-          const fmtDef = self.formats[format];
+          const format2 = fCxt.schema;
+          const fmtDef = self.formats[format2];
           if (!fmtDef || fmtDef === true)
             return;
           if (typeof fmtDef != "object" || fmtDef instanceof RegExp || typeof fmtDef.compare != "function") {
-            throw new Error(`"${keyword}": format "${format}" does not define "compare" function`);
+            throw new Error(`"${keyword}": format "${format2}" does not define "compare" function`);
           }
-          const fmt2 = gen.scopeValue("formats", {
-            key: format,
+          const fmt = gen.scopeValue("formats", {
+            key: format2,
             ref: fmtDef,
-            code: opts.code.formats ? (0, codegen_1._)`${opts.code.formats}${(0, codegen_1.getProperty)(format)}` : void 0
+            code: opts.code.formats ? (0, codegen_1._)`${opts.code.formats}${(0, codegen_1.getProperty)(format2)}` : void 0
           });
-          cxt.fail$data(compareCode(fmt2));
+          cxt.fail$data(compareCode(fmt));
         }
-        function compareCode(fmt2) {
-          return (0, codegen_1._)`${fmt2}.compare(${data}, ${schemaCode}) ${KWDs[keyword].fail} 0`;
+        function compareCode(fmt) {
+          return (0, codegen_1._)`${fmt}.compare(${data}, ${schemaCode}) ${KWDs[keyword].fail} 0`;
         }
       },
       dependencies: ["format"]
@@ -33461,254 +33461,170 @@ var init_lint_graphql = __esm({
   }
 });
 
-// src/polyfills.js
+// src/host.js
 var host = globalThis.__jvm;
 if (!host) {
   throw new Error("Host bridge `globalThis.__jvm` is not installed");
 }
-var cachedCwd = null;
-function setCwd(dir) {
-  cachedCwd = dir;
-}
-if (typeof globalThis.process === "undefined") {
-  globalThis.process = {
-    platform: "browser",
-    version: "v22.0.0",
-    versions: { node: "22.0.0" },
-    argv: [],
-    env: new Proxy({}, { get: (_4, key) => typeof key === "string" ? host.env(key) ?? void 0 : void 0 }),
-    cwd: () => cachedCwd ?? (cachedCwd = host.cwd()),
-    stdout: { columns: 80, isTTY: false, write: (s2) => host.log("output", String(s2)) },
-    stderr: { columns: 80, isTTY: false, write: (s2) => host.log("info", String(s2)) },
-    nextTick: (fn, ...args) => Promise.resolve().then(() => fn(...args)),
-    exit: (code) => {
-      throw new Error(`process.exit(${code}) called`);
-    }
-  };
-}
-var captureBuffer = null;
-var fmt = (args) => args.map((a2) => typeof a2 === "string" ? a2 : safeStringify(a2)).join(" ");
-function safeStringify(v2) {
-  if (v2 instanceof Error) return v2.stack || v2.message;
+function callHost(syscall, target, fn) {
   try {
-    return JSON.stringify(v2);
-  } catch {
-    return String(v2);
+    return fn();
+  } catch (failure) {
+    const text = failure?.message || String(failure);
+    const [, code = "EIO", description = text] = /^([A-Z][A-Z0-9]*): ([^]*)$/.exec(text) || [];
+    const error = new Error(`${code}: ${description}, ${syscall} '${target}'`, { cause: failure });
+    error.code = code;
+    error.syscall = syscall;
+    error.path = target;
+    throw error;
   }
 }
-globalThis.console = {
-  log: (...a2) => {
-    const s2 = fmt(a2);
-    if (captureBuffer !== null) captureBuffer.push(s2);
-    else host.log("output", s2);
-  },
-  info: (...a2) => {
-    const s2 = fmt(a2);
-    if (captureBuffer !== null) captureBuffer.push(s2);
-    else host.log("info", s2);
-  },
-  warn: (...a2) => host.log("warn", fmt(a2)),
-  error: (...a2) => host.log("error", fmt(a2)),
-  debug: (...a2) => host.log("debug", fmt(a2)),
-  trace: (...a2) => host.log("debug", fmt(a2))
+
+// src/polyfills.js
+var cwd = null;
+function setCwd(directory) {
+  cwd = directory;
+}
+globalThis.process = {
+  platform: "browser",
+  version: "v22.0.0",
+  versions: { node: "22.0.0" },
+  argv: [],
+  env: new Proxy({}, { get: (_4, name) => typeof name === "string" ? host.env(name) ?? void 0 : void 0 }),
+  cwd: () => cwd ?? (cwd = host.cwd()),
+  stdout: { columns: 80, isTTY: false, write: (text) => host.log("output", String(text)) },
+  stderr: { columns: 80, isTTY: false, write: (text) => host.log("info", String(text)) },
+  nextTick: (fn, ...args) => Promise.resolve().then(() => fn(...args)),
+  exit: (code) => {
+    throw new Error(`process.exit(${code}) called`);
+  }
 };
-function startCapture() {
-  captureBuffer = [];
+var captured = null;
+function format(args) {
+  return args.map((arg) => typeof arg === "string" ? arg : stringify(arg)).join(" ");
 }
-function stopCapture() {
-  const out2 = (captureBuffer || []).join("");
-  captureBuffer = null;
-  return out2;
+function stringify(value) {
+  if (value instanceof Error) return value.stack || value.message;
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return String(value);
+  }
 }
-var timers = /* @__PURE__ */ new Map();
-var timerSeq = 0;
-if (typeof globalThis.setTimeout === "undefined") {
-  globalThis.setTimeout = (fn, _ms, ...args) => {
-    const id = ++timerSeq;
-    timers.set(id, () => fn(...args));
-    return id;
-  };
-  globalThis.clearTimeout = (id) => {
-    timers.delete(id);
-  };
-  globalThis.setInterval = () => {
-    throw new Error("setInterval is not supported");
-  };
-  globalThis.clearInterval = () => {
-  };
+function emit(level, args) {
+  const text = format(args);
+  if (captured) captured.push(text);
+  else host.log(level, text);
 }
-if (typeof globalThis.setImmediate === "undefined") {
-  globalThis.setImmediate = (fn, ...args) => globalThis.setTimeout(fn, 0, ...args);
-  globalThis.clearImmediate = globalThis.clearTimeout;
+globalThis.console = {
+  log: (...args) => emit("output", args),
+  info: (...args) => emit("info", args),
+  warn: (...args) => host.log("warn", format(args)),
+  error: (...args) => host.log("error", format(args)),
+  debug: (...args) => host.log("debug", format(args)),
+  trace: (...args) => host.log("debug", format(args))
+};
+async function captureOutput(fn) {
+  const outer = captured;
+  captured = [];
+  try {
+    const value = await fn();
+    return { value, output: captured.join("") };
+  } catch (error) {
+    if (error && typeof error === "object") error.details = { ...error.details, output: captured.join("") };
+    throw error;
+  } finally {
+    captured = outer;
+  }
 }
-if (typeof globalThis.queueMicrotask === "undefined") {
-  globalThis.queueMicrotask = (fn) => {
-    Promise.resolve().then(fn);
-  };
-}
-function drainTimers() {
-  const pending = [...timers.entries()];
-  timers.clear();
-  for (const [, fn] of pending) fn();
-  return pending.length;
-}
-if (typeof globalThis.structuredClone === "undefined") {
-  globalThis.structuredClone = function clone(v2, seen = /* @__PURE__ */ new Map()) {
+var pendingTimers = /* @__PURE__ */ new Set();
+var nextTimer = 1;
+globalThis.setTimeout = (fn, _delay, ...args) => {
+  const id = nextTimer++;
+  pendingTimers.add(id);
+  Promise.resolve().then(() => {
+    if (pendingTimers.delete(id)) fn(...args);
+  });
+  return id;
+};
+globalThis.clearTimeout = (id) => {
+  pendingTimers.delete(id);
+};
+globalThis.setInterval = () => {
+  throw new Error("setInterval is not supported");
+};
+globalThis.clearInterval = () => {
+};
+globalThis.structuredClone = (value) => {
+  const seen = /* @__PURE__ */ new Map();
+  const clone = (v2) => {
     if (v2 === null || typeof v2 !== "object") return v2;
     if (seen.has(v2)) return seen.get(v2);
     if (v2 instanceof Date) return new Date(v2.getTime());
     if (v2 instanceof RegExp) return new RegExp(v2.source, v2.flags);
     if (v2 instanceof Map) {
-      const m2 = /* @__PURE__ */ new Map();
-      seen.set(v2, m2);
-      for (const [k2, x2] of v2) m2.set(clone(k2, seen), clone(x2, seen));
-      return m2;
+      const copy2 = /* @__PURE__ */ new Map();
+      seen.set(v2, copy2);
+      for (const [key, item] of v2) copy2.set(clone(key), clone(item));
+      return copy2;
     }
     if (v2 instanceof Set) {
-      const s2 = /* @__PURE__ */ new Set();
-      seen.set(v2, s2);
-      for (const x2 of v2) s2.add(clone(x2, seen));
-      return s2;
+      const copy2 = /* @__PURE__ */ new Set();
+      seen.set(v2, copy2);
+      for (const item of v2) copy2.add(clone(item));
+      return copy2;
     }
     if (Array.isArray(v2)) {
-      const a2 = [];
-      seen.set(v2, a2);
-      for (const x2 of v2) a2.push(clone(x2, seen));
-      return a2;
+      const copy2 = [];
+      seen.set(v2, copy2);
+      for (const item of v2) copy2.push(clone(item));
+      return copy2;
     }
-    const o2 = {};
-    seen.set(v2, o2);
-    for (const k2 of Object.keys(v2)) o2[k2] = clone(v2[k2], seen);
-    return o2;
+    const copy = {};
+    seen.set(v2, copy);
+    for (const key of Object.keys(v2)) copy[key] = clone(v2[key]);
+    return copy;
   };
-}
-if (typeof globalThis.performance === "undefined") {
-  globalThis.performance = { now: () => Number(host.nowMillis()) };
-}
-if (typeof globalThis.URL === "undefined") {
-  class URL2 {
-    constructor(input, base) {
-      const parts = host.parseUrl(String(input), base === void 0 ? null : String(base));
-      if (parts == null) throw new TypeError(`Invalid URL: ${input}`);
-      this.href = parts.href;
-      this.protocol = parts.protocol;
-      this.host = parts.host;
-      this.hostname = parts.hostname;
-      this.port = parts.port;
-      this.pathname = parts.pathname;
-      this.search = parts.search;
-      this.hash = parts.hash;
-      this.origin = parts.origin;
-      this.username = "";
-      this.password = "";
-      this.searchParams = new URLSearchParams(this.search);
+  return clone(value);
+};
+globalThis.URL = class URL2 {
+  constructor(input, base) {
+    const parts = host.parseUrl(String(input), base === void 0 ? null : String(base));
+    if (parts == null) throw new TypeError(`Invalid URL: ${input}`);
+    for (const key of ["href", "protocol", "host", "hostname", "port", "pathname", "search", "hash", "origin"]) {
+      this[key] = parts[key];
     }
-    static canParse(input, base) {
-      return host.parseUrl(String(input), base === void 0 ? null : String(base)) != null;
-    }
-    toString() {
-      return this.href;
-    }
-    toJSON() {
-      return this.href;
-    }
+    this.username = "";
+    this.password = "";
   }
-  class URLSearchParams {
-    constructor(init = "") {
-      this._p = [];
-      const s2 = String(init).replace(/^\?/, "");
-      if (s2) for (const kv of s2.split("&")) {
-        const i = kv.indexOf("=");
-        const k2 = i < 0 ? kv : kv.slice(0, i);
-        const v2 = i < 0 ? "" : kv.slice(i + 1);
-        this._p.push([dec(k2), dec(v2)]);
-      }
-    }
-    get(k2) {
-      const e2 = this._p.find(([x2]) => x2 === k2);
-      return e2 ? e2[1] : null;
-    }
-    has(k2) {
-      return this._p.some(([x2]) => x2 === k2);
-    }
-    set(k2, v2) {
-      const i = this._p.findIndex(([x2]) => x2 === k2);
-      if (i < 0) this._p.push([k2, String(v2)]);
-      else {
-        this._p[i][1] = String(v2);
-        this._p = this._p.filter(([x2], j2) => x2 !== k2 || j2 === i);
-      }
-    }
-    append(k2, v2) {
-      this._p.push([k2, String(v2)]);
-    }
-    delete(k2) {
-      this._p = this._p.filter(([x2]) => x2 !== k2);
-    }
-    toString() {
-      return this._p.map(([k2, v2]) => `${enc(k2)}=${enc(v2)}`).join("&");
-    }
-    [Symbol.iterator]() {
-      return this._p[Symbol.iterator]();
-    }
+  static canParse(input, base) {
+    return host.parseUrl(String(input), base === void 0 ? null : String(base)) != null;
   }
-  const dec = (s2) => {
-    try {
-      return decodeURIComponent(s2.replace(/\+/g, " "));
-    } catch {
-      return s2;
-    }
+  toString() {
+    return this.href;
+  }
+  toJSON() {
+    return this.href;
+  }
+};
+globalThis.fetch = async (url3, init = {}) => {
+  const target = String(url3);
+  const requestHeaders = {};
+  for (const name of Object.keys(init.headers || {})) requestHeaders[name] = String(init.headers[name]);
+  const body = init.body == null ? null : String(init.body);
+  const response = callHost("fetch", target, () => host.fetch(target, init.method || "GET", requestHeaders, body));
+  const headers = Object.entries(response.headers).map(([name, value]) => [name.toLowerCase(), value]);
+  const header = (name) => headers.find(([candidate]) => candidate === String(name).toLowerCase())?.[1] ?? null;
+  return {
+    ok: response.status >= 200 && response.status < 300,
+    status: response.status,
+    statusText: "",
+    url: target,
+    headers: { get: header, has: (name) => header(name) != null },
+    text: async () => response.body,
+    json: async () => JSON.parse(response.body)
   };
-  const enc = (s2) => encodeURIComponent(s2);
-  globalThis.URL = URL2;
-  globalThis.URLSearchParams = URLSearchParams;
-}
-if (typeof globalThis.TextEncoder === "undefined") {
-  globalThis.TextEncoder = class {
-    encode(s2) {
-      return new Uint8Array(host.utf8Encode(String(s2)));
-    }
-  };
-  globalThis.TextDecoder = class {
-    decode(b2) {
-      return host.utf8Decode(b2);
-    }
-  };
-}
-if (typeof globalThis.fetch === "undefined") {
-  globalThis.fetch = async (url3, init = {}) => {
-    const headers = {};
-    if (init.headers) for (const k2 of Object.keys(init.headers)) headers[k2] = String(init.headers[k2]);
-    const res = host.fetch(String(url3), init.method || "GET", JSON.stringify(headers), init.body == null ? null : String(init.body));
-    const body = res.body;
-    const resHeaders = JSON.parse(res.headersJson);
-    const lookup = (n2) => {
-      const k2 = Object.keys(resHeaders).find((h2) => h2.toLowerCase() === String(n2).toLowerCase());
-      return k2 ? resHeaders[k2] : null;
-    };
-    return {
-      ok: res.status >= 200 && res.status < 300,
-      status: res.status,
-      statusText: res.statusText,
-      url: String(url3),
-      headers: { get: lookup, has: (n2) => lookup(n2) != null },
-      text: async () => body,
-      json: async () => JSON.parse(body)
-    };
-  };
-}
-if (typeof globalThis.AbortController === "undefined") {
-  globalThis.AbortController = class {
-    constructor() {
-      this.signal = { aborted: false, addEventListener() {
-      }, removeEventListener() {
-      } };
-    }
-    abort() {
-      this.signal.aborted = true;
-    }
-  };
-}
+};
 
 // src/shims/fs.js
 var fs_exports = {};
@@ -33721,55 +33637,57 @@ __export(fs_exports, {
   readFileSync: () => readFileSync,
   readdirSync: () => readdirSync,
   statSync: () => statSync,
-  unlinkSync: () => unlinkSync,
   writeFileSync: () => writeFileSync
 });
-var host2 = () => globalThis.__jvm;
-function enoent(p2) {
-  const e2 = new Error(`ENOENT: no such file or directory, open '${p2}'`);
-  e2.code = "ENOENT";
-  return e2;
+var path = __toESM(require_path_browserify(), 1);
+function hostCall(syscall, p2, fn) {
+  const target = path.resolve(String(p2));
+  return callHost(syscall, target, () => fn(target));
+}
+function notFound(syscall, p2) {
+  const error = new Error(`ENOENT: no such file or directory, ${syscall} '${p2}'`);
+  error.code = "ENOENT";
+  error.syscall = syscall;
+  error.path = String(p2);
+  return error;
 }
 function existsSync(p2) {
-  return host2().exists(String(p2));
+  return hostCall("stat", p2, (target) => host.exists(target));
 }
-function lstatSync(p2) {
-  const kind = host2().statKind(String(p2));
-  if (kind == null) throw enoent(p2);
+function statSync(p2) {
+  const kind = hostCall("stat", p2, (target) => host.statKind(target));
+  if (kind == null) throw notFound("stat", p2);
   return { isDirectory: () => kind === "dir", isFile: () => kind === "file", isSymbolicLink: () => false };
 }
-var statSync = lstatSync;
-function readFileSync(p2, _enc) {
-  const content = host2().readFile(String(p2));
-  if (content == null) throw enoent(p2);
+var lstatSync = statSync;
+function readFileSync(p2, _encoding) {
+  const content = hostCall("open", p2, (target) => host.readFile(target));
+  if (content == null) throw notFound("open", p2);
   return content;
 }
 function writeFileSync(p2, data) {
-  host2().writeFile(String(p2), String(data));
+  hostCall("open", p2, (target) => host.writeFile(target, String(data)));
 }
-function mkdirSync(p2, _opts) {
-  host2().mkdirs(String(p2));
+function mkdirSync(p2, _options) {
+  hostCall("mkdir", p2, (target) => host.mkdirs(target));
 }
 function readdirSync(p2) {
-  const entries = host2().readdir(String(p2));
-  if (entries == null) throw enoent(p2);
-  return Array.from({ length: entries.length }, (_4, i) => entries[i]);
-}
-function unlinkSync(p2) {
-  host2().delete(String(p2));
+  const entries = hostCall("scandir", p2, (target) => host.readdir(target));
+  if (entries == null) throw notFound("scandir", p2);
+  return Array.from(entries);
 }
 var promises = {
-  readFile: async (p2, enc) => readFileSync(p2, enc),
+  readFile: async (p2, encoding) => readFileSync(p2, encoding),
   writeFile: async (p2, data) => writeFileSync(p2, data),
-  mkdir: async (p2, opts) => mkdirSync(p2, opts),
+  mkdir: async (p2, options2) => mkdirSync(p2, options2),
   readdir: async (p2) => readdirSync(p2),
-  stat: async (p2) => lstatSync(p2),
-  lstat: async (p2) => lstatSync(p2)
+  stat: async (p2) => statSync(p2),
+  lstat: async (p2) => statSync(p2)
 };
-var fs_default = { existsSync, lstatSync, statSync, readFileSync, writeFileSync, mkdirSync, readdirSync, unlinkSync, promises };
+var fs_default = { existsSync, statSync, lstatSync, readFileSync, writeFileSync, mkdirSync, readdirSync, promises };
 
 // node_modules/@redocly/openapi-core/lib/utils/does-yaml-file-exist.js
-var path = __toESM(require_path_browserify(), 1);
+var path2 = __toESM(require_path_browserify(), 1);
 
 // node_modules/@redocly/openapi-core/lib/utils/dequal.js
 function dequal(foo, bar) {
@@ -33846,8 +33764,8 @@ var import_pluralize = __toESM(require_pluralize(), 1);
 var import_picomatch = __toESM(require_picomatch2(), 1);
 
 // node_modules/@redocly/openapi-core/lib/env.js
-var isBrowser = typeof window !== "undefined" || typeof process === "undefined" || process?.platform === "browser";
-var env = isBrowser ? {} : process.env || {};
+var isBrowser = true;
+var env = globalThis.process.env;
 
 // node_modules/@redocly/openapi-core/lib/utils/read-file-from-url.js
 async function readFileFromUrl(url3, config) {
@@ -33873,12 +33791,12 @@ function match(url3, pattern) {
 }
 
 // node_modules/@redocly/openapi-core/lib/utils/slash.js
-function slash(path35) {
-  const isExtendedLengthPath = /^\\\\\?\\/.test(path35);
+function slash(path36) {
+  const isExtendedLengthPath = /^\\\\\?\\/.test(path36);
   if (isExtendedLengthPath) {
-    return path35;
+    return path36;
   }
-  return path35.replace(/\\/g, "/");
+  return path36.replace(/\\/g, "/");
 }
 
 // node_modules/@redocly/openapi-core/lib/utils/regex-from-string.js
@@ -34429,7 +34347,7 @@ var Oas2Types = {
 };
 
 // node_modules/@redocly/openapi-core/lib/ref-utils.js
-var path2 = __toESM(require_path_browserify(), 1);
+var path3 = __toESM(require_path_browserify(), 1);
 function joinPointer(base, key) {
   if (base === "")
     base = "#/";
@@ -34498,16 +34416,16 @@ function isAbsoluteUrl(ref) {
   return ref.startsWith("http://") || ref.startsWith("https://") || ref.startsWith("file://") || ref.startsWith("data:");
 }
 function getDir(filePath) {
-  if (!path2.extname(filePath)) {
+  if (!path3.extname(filePath)) {
     return filePath;
   }
-  return isAbsoluteUrl(filePath) ? filePath.substring(0, filePath.lastIndexOf("/")) : path2.dirname(filePath);
+  return isAbsoluteUrl(filePath) ? filePath.substring(0, filePath.lastIndexOf("/")) : path3.dirname(filePath);
 }
 function resolvePath(base, relative11) {
   if (isAbsoluteUrl(base)) {
     return new URL(relative11, base.endsWith("/") ? base : `${base}/`).href;
   }
-  return path2.resolve(base, relative11);
+  return path3.resolve(base, relative11);
 }
 function isMappingRef(mapping) {
   return typeof mapping === "string" && (mapping.startsWith("#") || isAbsoluteUrl(mapping) || mapping.startsWith("./") || mapping.startsWith("../") || mapping.indexOf("/") > -1 || /\.(ya?ml|json)$/i.test(mapping));
@@ -40791,7 +40709,7 @@ var StatsAsync3 = (statsAccumulator) => {
 };
 
 // node_modules/@redocly/openapi-core/lib/config/config.js
-var path4 = __toESM(require_path_browserify(), 1);
+var path5 = __toESM(require_path_browserify(), 1);
 
 // node_modules/js-yaml/dist/js-yaml.mjs
 var NOT_RESOLVED = Symbol("NOT_RESOLVED");
@@ -43860,10 +43778,10 @@ var DEFAULT_PROJECT_PLUGIN_PATHS = [
 ];
 
 // node_modules/@redocly/openapi-core/lib/config/get-resolve-config.js
-function getResolveConfig(resolve12) {
+function getResolveConfig(resolve13) {
   return {
     http: {
-      headers: resolve12?.http?.headers ?? [],
+      headers: resolve13?.http?.headers ?? [],
       customFetch: void 0
     }
   };
@@ -44312,16 +44230,16 @@ var Config = class _Config {
     });
   }
   clearIgnoreForRef(ref) {
-    const dir = this.configPath ? path4.dirname(this.configPath) : process.cwd();
-    const absRef = isAbsoluteUrl(ref) ? ref : path4.resolve(dir, ref);
+    const dir = this.configPath ? path5.dirname(this.configPath) : process.cwd();
+    const absRef = isAbsoluteUrl(ref) ? ref : path5.resolve(dir, ref);
     delete this.ignore[absRef];
   }
   saveIgnore() {
-    const dir = this.configPath ? path4.dirname(this.configPath) : process.cwd();
-    const ignoreFile = path4.join(dir, IGNORE_FILE);
+    const dir = this.configPath ? path5.dirname(this.configPath) : process.cwd();
+    const ignoreFile = path5.join(dir, IGNORE_FILE);
     const mapped = {};
     for (const absFileName of Object.keys(this.ignore)) {
-      const mappedDefinitionName = isAbsoluteUrl(absFileName) ? absFileName : slash(path4.relative(dir, absFileName));
+      const mappedDefinitionName = isAbsoluteUrl(absFileName) ? absFileName : slash(path5.relative(dir, absFileName));
       const ignoredRules = mapped[mappedDefinitionName] = this.ignore[absFileName];
       for (const ruleId of Object.keys(ignoredRules)) {
         ignoredRules[ruleId] = Array.from(ignoredRules[ruleId]);
@@ -44759,7 +44677,7 @@ var FilterOut = ({ property, value, matchStrategy, applyTo: target }) => {
 };
 
 // node_modules/@redocly/openapi-core/lib/utils/yaml-fs-helper.js
-var path5 = __toESM(require_path_browserify(), 1);
+var path6 = __toESM(require_path_browserify(), 1);
 function yamlAndJsonSyncReader(filePath) {
   const content = readFileSync(filePath, "utf-8");
   return parseYaml(content);
@@ -44768,7 +44686,7 @@ function resolveRelativePath(filePath, base) {
   if (isAbsoluteUrl(filePath) || base === void 0) {
     return filePath;
   }
-  return path5.resolve(path5.dirname(base), filePath);
+  return path6.resolve(path6.dirname(base), filePath);
 }
 function readFileAsStringSync(filePath) {
   return readFileSync(filePath, "utf-8");
@@ -45739,13 +45657,13 @@ function hasSecurityRequirements(node) {
   const security = node?.security;
   return Array.isArray(security) && security.length > 0;
 }
-function isAsyncOperationSecured(operation, resolve12, resolveFrom) {
+function isAsyncOperationSecured(operation, resolve13, resolveFrom) {
   if (hasSecurityRequirements(operation))
     return true;
   if (!Array.isArray(operation?.traits))
     return false;
   for (const trait of operation.traits) {
-    const traitNode = isRef(trait) ? resolve12(trait, resolveFrom).node : trait;
+    const traitNode = isRef(trait) ? resolve13(trait, resolveFrom).node : trait;
     if (hasSecurityRequirements(traitNode))
       return true;
   }
@@ -45842,12 +45760,12 @@ function getExampleValueToValidate(example) {
 }
 function validateExample({ example, schema, options: options2, reference: reference2 }) {
   const { location, ctx, validator, allowAdditionalProperties, ajvContext } = options2;
-  const { resolve: resolve12, location: parentLocation, report, specVersion } = ctx;
+  const { resolve: resolve13, location: parentLocation, report, specVersion } = ctx;
   try {
     const { valid, errors } = validator.validate(example, schema, {
       schemaLoc: parentLocation.child("schema"),
       instancePath: location.pointer,
-      resolve: resolve12,
+      resolve: resolve13,
       allowAdditionalProperties,
       ajvContext,
       specVersion
@@ -46089,9 +46007,9 @@ var NoUnresolvedRefs = () => {
         reportUnresolvedRef(resolved, report, location);
       }
     },
-    DiscriminatorMapping(mapping, { report, resolve: resolve12, location }) {
+    DiscriminatorMapping(mapping, { report, resolve: resolve13, location }) {
       for (const mappingName of Object.keys(mapping)) {
-        const resolved = resolve12({ $ref: mapping[mappingName] });
+        const resolved = resolve13({ $ref: mapping[mappingName] });
         if (resolved.node !== void 0)
           return;
         reportUnresolvedRef(resolved, report, location.child(mappingName));
@@ -46157,7 +46075,7 @@ var NoUnsafeMarkdown = () => {
 var Struct = () => {
   return {
     // oxlint-disable-next-line sonarjs/cognitive-complexity
-    any(node, { report, type, location, rawLocation, key, resolve: resolve12, ignoreNextVisitorsOnNode }) {
+    any(node, { report, type, location, rawLocation, key, resolve: resolve13, ignoreNextVisitorsOnNode }) {
       const nodeType = oasTypeOf(node);
       const refLocation = rawLocation !== location ? rawLocation : void 0;
       if (type.items) {
@@ -46245,7 +46163,7 @@ var Struct = () => {
           continue;
         }
         if (propSchema.resolvable !== false && isRef(propValue)) {
-          propValue = resolve12(propValue).node;
+          propValue = resolve13(propValue).node;
         }
         if (propSchema.items && propSchema.items?.enum && Array.isArray(propValue)) {
           for (let i = 0; i < propValue.length; i++) {
@@ -46542,7 +46460,7 @@ var OutputsDefined = () => {
   const definedWorkflowOutputs = /* @__PURE__ */ new Map();
   const definedStepOutputs = /* @__PURE__ */ new Map();
   const deferredValidationTasks = [];
-  function matchWorkflowOutput({ value, report, location, path: path35, definedWorkflowOutputs: definedWorkflowOutputs2 }) {
+  function matchWorkflowOutput({ value, report, location, path: path36, definedWorkflowOutputs: definedWorkflowOutputs2 }) {
     const workflowOutputPattern = /\$workflows\.([^.\s]+)\.outputs\.([^.\s}\]#]+)/g;
     let match2;
     while ((match2 = workflowOutputPattern.exec(value)) !== null) {
@@ -46551,17 +46469,17 @@ var OutputsDefined = () => {
       if (!definedKeys) {
         report({
           message: `Workflow "${workflowId}" referenced in runtime expression "${fullMatch}" is not defined or has no outputs.`,
-          location: location.child(path35)
+          location: location.child(path36)
         });
       } else if (!definedKeys.includes(outputKey)) {
         report({
           message: `Output key "${outputKey}" is not defined in workflow "${workflowId}". Available outputs: [ ${definedKeys.join(", ")} ].`,
-          location: location.child(path35)
+          location: location.child(path36)
         });
       }
     }
   }
-  function matchStepOutput({ value, report, location, path: path35, definedStepOutputs: definedStepOutputs2 }) {
+  function matchStepOutput({ value, report, location, path: path36, definedStepOutputs: definedStepOutputs2 }) {
     const stepOutputPattern = /\$steps\.([^.\s]+)\.outputs\.([^.\s}\]#]+)/g;
     let match2;
     while ((match2 = stepOutputPattern.exec(value)) !== null) {
@@ -46570,35 +46488,35 @@ var OutputsDefined = () => {
       if (!definedKeys) {
         report({
           message: `Step "${stepId}" referenced in runtime expression "${fullMatch}" is not defined or has no outputs.`,
-          location: location.child(path35)
+          location: location.child(path36)
         });
       } else if (!definedKeys.includes(outputKey)) {
         report({
           message: `Output key "${outputKey}" is not defined in step "${stepId}". Available outputs: [ ${definedKeys.join(", ")} ].`,
-          location: location.child(path35)
+          location: location.child(path36)
         });
       }
     }
   }
-  function checkRuntimeExpressions(value, ctx, path35 = []) {
+  function checkRuntimeExpressions(value, ctx, path36 = []) {
     if (typeof value === "string") {
       matchWorkflowOutput({
         value,
         report: ctx.report,
         location: ctx.location,
-        path: path35,
+        path: path36,
         definedWorkflowOutputs
       });
       matchStepOutput({
         value,
         report: ctx.report,
         location: ctx.location,
-        path: path35,
+        path: path36,
         definedStepOutputs
       });
     } else if (isPlainObject(value) || Array.isArray(value)) {
       for (const [key, val] of Object.entries(value)) {
-        checkRuntimeExpressions(val, ctx, [...path35, key]);
+        checkRuntimeExpressions(val, ctx, [...path36, key]);
       }
     }
   }
@@ -47147,12 +47065,12 @@ var OperationOperationId = () => {
 };
 
 // node_modules/@redocly/openapi-core/lib/rules/common/security-scopes-defined.js
-function getDefinedScopes(scheme, resolve12, schemeLocation) {
+function getDefinedScopes(scheme, resolve13, schemeLocation) {
   if ("flows" in scheme && scheme.flows) {
-    const { node: flows, location: flowsLocation } = isRef(scheme.flows) ? resolve12(scheme.flows, schemeLocation.source.absoluteRef) : { node: scheme.flows, location: schemeLocation };
+    const { node: flows, location: flowsLocation } = isRef(scheme.flows) ? resolve13(scheme.flows, schemeLocation.source.absoluteRef) : { node: scheme.flows, location: schemeLocation };
     const flowsSource = (flowsLocation ?? schemeLocation).source.absoluteRef;
     const scopes = Object.values(flows ?? {}).flatMap((flow) => {
-      const resolvedFlow = isRef(flow) ? resolve12(flow, flowsSource).node : flow;
+      const resolvedFlow = isRef(flow) ? resolve13(flow, flowsSource).node : flow;
       return Object.keys(resolvedFlow?.scopes || {});
     });
     return [...new Set(scopes)];
@@ -47191,10 +47109,10 @@ var SecurityScopesDefined = (opts) => {
         }
       }
     },
-    SecurityScheme(scheme, { key, resolve: resolve12, location }) {
+    SecurityScheme(scheme, { key, resolve: resolve13, location }) {
       definedSchemes.set(key.toString(), {
         type: scheme.type,
-        definedScopes: scheme.type === "oauth2" ? getDefinedScopes(scheme, resolve12, location) : []
+        definedScopes: scheme.type === "oauth2" ? getDefinedScopes(scheme, resolve13, location) : []
       });
     },
     SecurityRequirement(requirement, { location }) {
@@ -47366,8 +47284,8 @@ var SecurityDefined = () => {
       enter(channel) {
         currentChannelServers = Array.isArray(channel?.servers) && channel.servers.length > 0 ? channel.servers : void 0;
       },
-      Operation(operation, { location, resolve: resolve12 }) {
-        if (isAsyncOperationSecured(operation, resolve12))
+      Operation(operation, { location, resolve: resolve13 }) {
+        if (isAsyncOperationSecured(operation, resolve13))
           return;
         operationsWithoutSecurity.push({ location, channelServers: currentChannelServers });
       }
@@ -47452,9 +47370,9 @@ var SecurityDefined2 = () => {
   let rootOperations;
   let rootOperationsFrom;
   let rootOperationsLocation;
-  const isOperationSecuredByServers = (operation, resolve12, resolveFrom) => {
+  const isOperationSecuredByServers = (operation, resolve13, resolveFrom) => {
     const channelRef = operation.channel;
-    const resolvedChannel = isRef(channelRef) ? resolve12(channelRef, resolveFrom) : void 0;
+    const resolvedChannel = isRef(channelRef) ? resolve13(channelRef, resolveFrom) : void 0;
     const channel = isRef(channelRef) ? resolvedChannel?.node : channelRef;
     const channelServers = channel?.servers;
     let applicableServers;
@@ -47469,16 +47387,16 @@ var SecurityDefined2 = () => {
     if (applicableServers.length === 0)
       return false;
     return applicableServers.every((server) => {
-      const serverNode = isRef(server) ? resolve12(server, serversFrom).node : server;
+      const serverNode = isRef(server) ? resolve13(server, serversFrom).node : server;
       return hasSecurityRequirements(serverNode);
     });
   };
   return {
     Root: {
-      enter(root, { location, resolve: resolve12 }) {
+      enter(root, { location, resolve: resolve13 }) {
         const serversNode = root?.servers;
         if (isRef(serversNode)) {
-          const resolvedServers = resolve12(serversNode);
+          const resolvedServers = resolve13(serversNode);
           rootServers = resolvedServers.node ?? void 0;
           rootServersFrom = resolvedServers.location?.source.absoluteRef;
         } else {
@@ -47487,7 +47405,7 @@ var SecurityDefined2 = () => {
         }
         const operationsNode = root?.operations;
         if (isRef(operationsNode)) {
-          const resolvedOperations = resolve12(operationsNode);
+          const resolvedOperations = resolve13(operationsNode);
           rootOperations = resolvedOperations.node ?? void 0;
           rootOperationsFrom = resolvedOperations.location?.source.absoluteRef;
           rootOperationsLocation = resolvedOperations.location;
@@ -47497,7 +47415,7 @@ var SecurityDefined2 = () => {
           rootOperationsLocation = location.child(["operations"]);
         }
       },
-      leave(_root, { report, resolve: resolve12 }) {
+      leave(_root, { report, resolve: resolve13 }) {
         for (const reference2 of references) {
           const checkPointer = reference2.local || reference2.refPointer.startsWith(COMPONENTS_POINTER);
           if (checkPointer && !pointsToSecurityScheme(reference2.refPointer)) {
@@ -47522,7 +47440,7 @@ var SecurityDefined2 = () => {
             let operation;
             let resolveFrom;
             if (isRef(opRef)) {
-              const resolvedOperation = resolve12(opRef, rootOperationsFrom);
+              const resolvedOperation = resolve13(opRef, rootOperationsFrom);
               operation = resolvedOperation.node;
               resolveFrom = resolvedOperation.location?.source.absoluteRef;
             } else {
@@ -47531,9 +47449,9 @@ var SecurityDefined2 = () => {
             }
             if (!operation)
               continue;
-            if (isAsyncOperationSecured(operation, resolve12, resolveFrom))
+            if (isAsyncOperationSecured(operation, resolve13, resolveFrom))
               continue;
-            if (isOperationSecuredByServers(operation, resolve12, resolveFrom))
+            if (isOperationSecuredByServers(operation, resolve13, resolveFrom))
               continue;
             report({
               message: `Every operation should have security defined on it.`,
@@ -47545,7 +47463,7 @@ var SecurityDefined2 = () => {
       }
     },
     SecuritySchemeList: {
-      enter(list, { location, resolve: resolve12 }) {
+      enter(list, { location, resolve: resolve13 }) {
         if (!list)
           return;
         for (let i = 0; i < list.length; i++) {
@@ -47553,7 +47471,7 @@ var SecurityDefined2 = () => {
           if (!isRef(item))
             continue;
           const itemLocation = location.child([i]);
-          const resolved = resolve12(item);
+          const resolved = resolve13(item);
           const refPointer = getRefPointer(item.$ref);
           const name = refPointer.split("/").pop() ?? item.$ref;
           references.push({
@@ -47570,13 +47488,13 @@ var SecurityDefined2 = () => {
 };
 
 // node_modules/@redocly/openapi-core/lib/rules/async3/security-scopes-defined.js
-function getAvailableScopes(scheme, resolve12, schemeLocation) {
+function getAvailableScopes(scheme, resolve13, schemeLocation) {
   if (!scheme.flows)
     return [];
-  const { node: flows, location: flowsLocation } = isRef(scheme.flows) ? resolve12(scheme.flows, schemeLocation.source.absoluteRef) : { node: scheme.flows, location: schemeLocation };
+  const { node: flows, location: flowsLocation } = isRef(scheme.flows) ? resolve13(scheme.flows, schemeLocation.source.absoluteRef) : { node: scheme.flows, location: schemeLocation };
   const flowsSource = (flowsLocation ?? schemeLocation).source.absoluteRef;
   const scopeNames = Object.values(flows ?? {}).flatMap((flow) => {
-    const resolvedFlow = isRef(flow) ? resolve12(flow, flowsSource).node : flow;
+    const resolvedFlow = isRef(flow) ? resolve13(flow, flowsSource).node : flow;
     return Object.keys(resolvedFlow?.availableScopes || {});
   });
   return [...new Set(scopeNames)];
@@ -47584,16 +47502,16 @@ function getAvailableScopes(scheme, resolve12, schemeLocation) {
 var SecurityScopesDefined2 = (opts) => {
   const usedSchemes = /* @__PURE__ */ new Map();
   return {
-    SecuritySchemeList(schemeList, { resolve: resolve12, location }) {
+    SecuritySchemeList(schemeList, { resolve: resolve13, location }) {
       for (let itemIndex = 0; itemIndex < schemeList.length; itemIndex++) {
         const item = schemeList[itemIndex];
-        const resolved = isRef(item) ? resolve12(item) : { node: item, location: location.child([itemIndex]) };
+        const resolved = isRef(item) ? resolve13(item) : { node: item, location: location.child([itemIndex]) };
         if (!resolved.node || !resolved.location)
           continue;
         usedSchemes.set(resolved.location.absolutePointer, {
           scheme: resolved.node,
           location: resolved.location,
-          availableScopes: resolved.node.type === "oauth2" ? getAvailableScopes(resolved.node, resolve12, resolved.location) : []
+          availableScopes: resolved.node.type === "oauth2" ? getAvailableScopes(resolved.node, resolve13, resolved.location) : []
         });
       }
     },
@@ -48091,9 +48009,9 @@ function getDialectBySpecVersion(specVersion) {
 var AjvValidator = class {
   instances = {};
   validate(data, schema, options2) {
-    const { schemaLoc, instancePath, resolve: resolve12, allowAdditionalProperties, ajvContext, specVersion } = options2;
+    const { schemaLoc, instancePath, resolve: resolve13, allowAdditionalProperties, ajvContext, specVersion } = options2;
     const dialect = getDialectBySpecVersion(specVersion);
-    const validate = this.getValidator(schema, schemaLoc, resolve12, allowAdditionalProperties, dialect);
+    const validate = this.getValidator(schema, schemaLoc, resolve13, allowAdditionalProperties, dialect);
     if (!validate)
       return { valid: true, errors: [] };
     const dataCxt = {
@@ -48134,7 +48052,7 @@ var AjvValidator = class {
       };
     }
   }
-  getAjv(resolve12, dialect) {
+  getAjv(resolve13, dialect) {
     if (!this.instances[dialect]) {
       const schemaIdKey = getSchemaIdKey(dialect);
       const options2 = {
@@ -48151,7 +48069,7 @@ var AjvValidator = class {
         logger: false,
         loadSchemaSync(base, $ref, $id) {
           const decodedBase = decodeURI(base.split("#")[0]);
-          const resolvedRef = resolve12({ $ref }, decodedBase);
+          const resolvedRef = resolve13({ $ref }, decodedBase);
           if (!resolvedRef || !resolvedRef.location)
             return false;
           return {
@@ -48165,8 +48083,8 @@ var AjvValidator = class {
     }
     return this.instances[dialect];
   }
-  getValidator(schema, loc, resolve12, allowAdditionalProperties, dialect) {
-    const ajv2 = this.getAjv(resolve12, dialect);
+  getValidator(schema, loc, resolve13, allowAdditionalProperties, dialect) {
+    const ajv2 = this.getAjv(resolve13, dialect);
     const $id = encodeURI(loc.absolutePointer);
     const schemaIdKey = getSchemaIdKey(dialect);
     if (!ajv2.getSchema($id)) {
@@ -48535,8 +48453,8 @@ var PathHttpVerbsOrder = (opts) => {
     throw new Error("path-http-verbs-order `order` option must be an array");
   }
   return {
-    PathItem(path35, { report, location }) {
-      const httpVerbs = Object.keys(path35).filter((k2) => order.includes(k2));
+    PathItem(path36, { report, location }) {
+      const httpVerbs = Object.keys(path36).filter((k2) => order.includes(k2));
       for (let i = 0; i < httpVerbs.length - 1; i++) {
         const aIdx = order.indexOf(httpVerbs[i]);
         const bIdx = order.indexOf(httpVerbs[i + 1]);
@@ -48688,8 +48606,8 @@ var createOperationHandlers = (pathContext, currentOperationParams, depth = 0) =
     }
   };
 };
-var extractTemplateParams = (path35) => {
-  return new Set(Array.from(path35.matchAll(pathRegex)).map((m2) => m2[1]));
+var extractTemplateParams = (path36) => {
+  return new Set(Array.from(path36.matchAll(pathRegex)).map((m2) => m2[1]));
 };
 var collectPathParamsFromOperation = (parameter, targetSet) => {
   if (isPlainObject(parameter) && "in" in parameter && "name" in parameter) {
@@ -48698,9 +48616,9 @@ var collectPathParamsFromOperation = (parameter, targetSet) => {
     }
   }
 };
-var validatePathParameter = ({ paramName, templateParams, path: path35, report, location, rawLocation }) => {
+var validatePathParameter = ({ paramName, templateParams, path: path36, report, location, rawLocation }) => {
   if (!templateParams.has(paramName)) {
-    const message = `Path parameter \`${paramName}\` is not used in the path \`${path35}\`.`;
+    const message = `Path parameter \`${paramName}\` is not used in the path \`${path36}\`.`;
     const from = rawLocation === location ? void 0 : rawLocation;
     report({
       message,
@@ -48710,12 +48628,12 @@ var validatePathParameter = ({ paramName, templateParams, path: path35, report, 
     });
   }
 };
-var validateRequiredPathParams = ({ templateParams, definedOperationParams, definedPathParams, path: path35, report, location }) => {
+var validateRequiredPathParams = ({ templateParams, definedOperationParams, definedPathParams, path: path36, report, location }) => {
   const allDefinedParams = /* @__PURE__ */ new Set([...definedOperationParams, ...definedPathParams]);
   for (const templateParam of templateParams) {
     if (!allDefinedParams.has(templateParam)) {
       report({
-        message: `The operation does not define the path parameter \`{${templateParam}}\` expected by path \`${path35}\`.`,
+        message: `The operation does not define the path parameter \`{${templateParam}}\` expected by path \`${path36}\`.`,
         location: location.child(["parameters"]).key(),
         reference: "https://redocly.com/docs/cli/rules/oas/path-parameters-defined"
       });
@@ -48838,9 +48756,9 @@ var ResponseContainsHeader = (options2) => {
 var SCALAR_TYPES = ["string", "integer", "number", "boolean", "null"];
 var ScalarPropertyMissingExample = () => {
   return {
-    SchemaProperties(properties, { report, location, specVersion, resolve: resolve12 }) {
+    SchemaProperties(properties, { report, location, specVersion, resolve: resolve13 }) {
       for (const propName of Object.keys(properties)) {
-        const propSchema = resolve12(getOwn(properties, propName)).node;
+        const propSchema = resolve13(getOwn(properties, propName)).node;
         if (!propSchema || !isScalarSchema(propSchema)) {
           continue;
         }
@@ -48876,7 +48794,7 @@ var SecurityDefined3 = (opts) => {
   const referencedSchemes = /* @__PURE__ */ new Map();
   const operationsWithoutSecurity = [];
   let eachOperationHasSecurity = true;
-  let path35;
+  let path36;
   return {
     Root: {
       leave(root, { report }) {
@@ -48920,10 +48838,10 @@ var SecurityDefined3 = (opts) => {
     },
     PathItem: {
       enter(pathItem, { key }) {
-        path35 = key;
+        path36 = key;
       },
       Operation(operation, { location, key }) {
-        const isException = opts.exceptions?.some((item) => item.path === path35 && (!item.methods || item.methods?.some((method) => method.toLowerCase() === key)));
+        const isException = opts.exceptions?.some((item) => item.path === path36 && (!item.methods || item.methods?.some((method) => method.toLowerCase() === key)));
         if (!operation?.security && !isException) {
           eachOperationHasSecurity = false;
           operationsWithoutSecurity.push(location);
@@ -49232,10 +49150,10 @@ var ComponentNameUnique = (options2) => {
   }
   const rule = {
     ref: {
-      leave(ref, { type, resolve: resolve12 }) {
+      leave(ref, { type, resolve: resolve13 }) {
         const typeName = type.name;
         if (typeNames.includes(typeName)) {
-          const resolvedRef = resolve12(ref);
+          const resolvedRef = resolve13(ref);
           if (!resolvedRef.location)
             return;
           addComponentFromAbsoluteLocation(typeName, resolvedRef.location);
@@ -49378,7 +49296,7 @@ var ValidContentExamples = (opts) => {
     return mediaType.schema === void 0;
   };
   const leave = (context) => (mediaType, ctx) => {
-    const { location, resolve: resolve12 } = ctx;
+    const { location, resolve: resolve13 } = ctx;
     if (isDefined(mediaType.example)) {
       resolveAndValidateExample(mediaType.example, location.child("example"));
     } else if (isPlainObject(mediaType.examples)) {
@@ -49388,7 +49306,7 @@ var ValidContentExamples = (opts) => {
     }
     function resolveAndValidateExample(example, location2, isMultiple) {
       if (isRef(example)) {
-        const resolved = resolve12(example);
+        const resolved = resolve13(example);
         if (!resolved.location)
           return;
         location2 = resolved.location;
@@ -49576,7 +49494,7 @@ var NoUnusedComponents = () => {
     });
   }
   return {
-    ref(ref, { type, resolve: resolve12, key, location }) {
+    ref(ref, { type, resolve: resolve13, key, location }) {
       if ([
         "Schema",
         "Header",
@@ -49586,7 +49504,7 @@ var NoUnusedComponents = () => {
         "RequestBody",
         "MediaTypesMap"
       ].includes(type.name)) {
-        const resolvedRef = resolve12(ref);
+        const resolvedRef = resolve13(ref);
         if (!resolvedRef.location)
           return;
         components.set(resolvedRef.location.absolutePointer, {
@@ -49619,8 +49537,8 @@ var NoUnusedComponents = () => {
       }
     },
     NamedSchemas: {
-      Schema(schema, { location, key, resolve: resolve12 }) {
-        const referencesDiscriminator = schema.allOf?.some((ref) => isRef(ref) && resolve12(ref)?.node?.discriminator);
+      Schema(schema, { location, key, resolve: resolve13 }) {
+        const referencesDiscriminator = schema.allOf?.some((ref) => isRef(ref) && resolve13(ref)?.node?.discriminator);
         registerComponent(location, key.toString(), referencesDiscriminator);
       }
     },
@@ -50235,7 +50153,7 @@ var NoUnusedComponents2 = () => {
     });
   }
   return {
-    ref(ref, { type, resolve: resolve12, key, location }) {
+    ref(ref, { type, resolve: resolve13, key, location }) {
       if ([
         "Schema",
         "ContentDescriptor",
@@ -50245,7 +50163,7 @@ var NoUnusedComponents2 = () => {
         "ExamplePairing",
         "Tag"
       ].includes(type.name)) {
-        const resolvedRef = resolve12(ref);
+        const resolvedRef = resolve13(ref);
         if (!resolvedRef.location)
           return;
         components.set(resolvedRef.location.absolutePointer, {
@@ -50310,12 +50228,12 @@ var NoUnusedComponents2 = () => {
 var NoDuplicatedMethodParams = () => {
   return {
     Method: {
-      leave(method, { report, resolve: resolve12, location }) {
+      leave(method, { report, resolve: resolve13, location }) {
         if (!method.params || !Array.isArray(method.params))
           return;
         const seenParams = /* @__PURE__ */ new Set();
         method.params.forEach((paramOrRef, index) => {
-          const resolved = resolve12(paramOrRef);
+          const resolved = resolve13(paramOrRef);
           if (!resolved.node)
             return;
           const param = resolved.node;
@@ -50340,12 +50258,12 @@ var NoDuplicatedMethodParams = () => {
 var NoRequiredParamsAfterOptional = () => {
   return {
     Method: {
-      leave(method, { report, resolve: resolve12, location }) {
+      leave(method, { report, resolve: resolve13, location }) {
         if (!method.params || !Array.isArray(method.params))
           return;
         let foundOptional = false;
         method.params.forEach((paramOrRef, index) => {
-          const resolved = resolve12(paramOrRef);
+          const resolved = resolve13(paramOrRef);
           if (!resolved.node)
             return;
           const param = resolved.node;
@@ -52225,10 +52143,10 @@ var defaultPlugin = {
 };
 
 // node_modules/@redocly/openapi-core/lib/config/load.js
-var path9 = __toESM(require_path_browserify(), 1);
+var path10 = __toESM(require_path_browserify(), 1);
 
 // node_modules/@redocly/openapi-core/lib/resolve.js
-var path6 = __toESM(require_path_browserify(), 1);
+var path7 = __toESM(require_path_browserify(), 1);
 
 // node_modules/@redocly/openapi-core/lib/graphql/detect-graphql.js
 var GRAPHQL_EXTENSIONS = [".graphql", ".gql"];
@@ -52244,8 +52162,8 @@ function makeRefId(absoluteRef, pointer) {
 
 // node_modules/@redocly/openapi-core/lib/utils/next-tick.js
 function nextTick() {
-  return new Promise((resolve12) => {
-    setTimeout(resolve12);
+  return new Promise((resolve13) => {
+    setTimeout(resolve13);
   });
 }
 
@@ -52304,7 +52222,7 @@ var BaseResolver = class {
     if (base && isAbsoluteUrl(base)) {
       return new URL(ref, base).href;
     }
-    return path6.resolve(base ? path6.dirname(base) : process.cwd(), ref);
+    return path7.resolve(base ? path7.dirname(base) : process.cwd(), ref);
   }
   async loadExternalRef(absoluteRef) {
     try {
@@ -52556,7 +52474,7 @@ async function resolveDocument(opts) {
 
 // node_modules/@redocly/openapi-core/lib/config/config-resolvers.js
 var import_node_module = __toESM(require_node_module(), 1);
-var path8 = __toESM(require_path_browserify(), 1);
+var path9 = __toESM(require_path_browserify(), 1);
 var url2 = __toESM(require_node_url(), 1);
 
 // node_modules/@redocly/openapi-core/lib/visitors.js
@@ -53051,7 +52969,7 @@ function walkDocument(opts) {
   }
   walkNode(document.parsed, rootType, new Location(document.source, "#/"), void 0, "");
   function walkNode(node, type, location, parent, key) {
-    const resolve12 = (ref, from = currentLocation.source.absoluteRef) => {
+    const resolve13 = (ref, from = currentLocation.source.absoluteRef) => {
       if (!isRef(ref))
         return { location, node: ref };
       const refId = makeRefId(from, ref.$ref);
@@ -53069,7 +52987,7 @@ function walkDocument(opts) {
     const rawLocation = location;
     let currentLocation = location;
     const nodeIsRef = isRef(node);
-    const { node: resolvedNode, location: resolvedLocation, error, chain: resolvedChain } = resolve12(node);
+    const { node: resolvedNode, location: resolvedLocation, error, chain: resolvedChain } = resolve13(node);
     const enteredContexts = /* @__PURE__ */ new Set();
     const composedRefAlreadyWalked = isRefWithSiblings(node) && walkedComposedRefs.has(composedRefWalkId(type, location));
     if (isRefWithSiblings(node)) {
@@ -53082,7 +53000,7 @@ function walkDocument(opts) {
         const report = (opts2) => reportFn(ruleId, severity, message, opts2);
         visitor(node, {
           report,
-          resolve: resolve12,
+          resolve: resolve13,
           rawNode: node,
           rawLocation,
           location,
@@ -53152,7 +53070,7 @@ function walkDocument(opts) {
               skipped: (context.parent?.activatedOn?.value.skipped || skip?.(resolvedNode, key, {
                 location,
                 rawLocation,
-                resolve: resolve12,
+                resolve: resolve13,
                 rawNode: node
               })) ?? false
             };
@@ -53247,7 +53165,7 @@ function walkDocument(opts) {
           const report = (opts2) => reportFn(ruleId, severity, message, opts2);
           visitor(node, {
             report,
-            resolve: resolve12,
+            resolve: resolve13,
             rawNode: node,
             rawLocation,
             location,
@@ -53266,7 +53184,7 @@ function walkDocument(opts) {
       const report = (opts2) => reportFn(ruleId, severity, customMessage, opts2);
       visit3(resolvedNode2, {
         report,
-        resolve: resolve12,
+        resolve: resolve13,
         rawNode: node2,
         location: currentLocation,
         rawLocation,
@@ -53810,7 +53728,7 @@ async function resolveConfig({ rawConfigDocument, configPath, externalRefResolve
     const instantiatedPlugins = (config?.plugins || []).filter((p2) => !isString(p2));
     resolvedPlugins = [...instantiatedPlugins, defaultPlugin];
   } else {
-    rootConfigDir = path8.dirname(configPath ?? "");
+    rootConfigDir = path9.dirname(configPath ?? "");
     pluginsOrPaths = collectConfigPlugins(rootDocument, resolvedRefMap, rootConfigDir);
     const plugins = await resolvePlugins(pluginsOrPaths.map((p2) => isPluginResolveInfo(p2) ? p2.absolutePath : p2), rootConfigDir, skipPluginEval);
     resolvedPlugins = [...plugins, defaultPlugin];
@@ -53822,7 +53740,7 @@ async function resolveConfig({ rawConfigDocument, configPath, externalRefResolve
       return [key, { ...apiConfig, ...mergedConfig }];
     }));
   }
-  const pluginPaths = pluginsOrPaths.length ? pluginsOrPaths.map((p2) => isPluginResolveInfo(p2) && p2.isModule ? p2.rawPath : p2.absolutePath && path8.relative(rootConfigDir, p2.absolutePath)).filter(isDefined) : void 0;
+  const pluginPaths = pluginsOrPaths.length ? pluginsOrPaths.map((p2) => isPluginResolveInfo(p2) && p2.isModule ? p2.rawPath : p2.absolutePath && path9.relative(rootConfigDir, p2.absolutePath)).filter(isDefined) : void 0;
   return {
     resolvedConfig: {
       ...bundledConfig,
@@ -53834,7 +53752,7 @@ async function resolveConfig({ rawConfigDocument, configPath, externalRefResolve
 }
 function getDefaultPluginPath(configDir) {
   for (const pluginPath of DEFAULT_PROJECT_PLUGIN_PATHS) {
-    const absolutePluginPath = path8.resolve(configDir, pluginPath);
+    const absolutePluginPath = path9.resolve(configDir, pluginPath);
     if (existsSync(absolutePluginPath)) {
       return pluginPath;
     }
@@ -53848,7 +53766,7 @@ var preResolvePluginPath = (plugin, base, rootConfigDir) => {
   if (!isString(plugin)) {
     return plugin;
   }
-  const maybeAbsolutePluginPath = path8.resolve(path8.dirname(base), plugin);
+  const maybeAbsolutePluginPath = path9.resolve(path9.dirname(base), plugin);
   if (existsSync(maybeAbsolutePluginPath)) {
     return { absolutePath: maybeAbsolutePluginPath, rawPath: plugin, isModule: false };
   }
@@ -53859,7 +53777,7 @@ var preResolvePluginPath = (plugin, base, rootConfigDir) => {
           // Plugins imported from the node_modules in the project directory
           rootConfigDir,
           // Plugins imported from the node_modules in the package install directory (for example, npx cache directory)
-          "file:///bundle/redocly-core.mjs" ? path8.dirname((void 0)("file:///bundle/redocly-core.mjs")) : __dirname
+          "file:///bundle/redocly-core.mjs" ? path9.dirname((void 0)("file:///bundle/redocly-core.mjs")) : __dirname
         ]
       }),
       isModule: true,
@@ -53877,7 +53795,7 @@ async function resolvePlugins(plugins, configDir, skipPluginEval = false) {
       return plugin;
     }
     try {
-      const absolutePluginPath = path8.isAbsolute(plugin) ? plugin : preResolvePluginPath(plugin, path8.join(configDir, CONFIG_FILE_NAME), configDir).absolutePath;
+      const absolutePluginPath = path9.isAbsolute(plugin) ? plugin : preResolvePluginPath(plugin, path9.join(configDir, CONFIG_FILE_NAME), configDir).absolutePath;
       if (!hasCachedPlugin(absolutePluginPath)) {
         const mod = await loadPluginModule(absolutePluginPath);
         const requiredPlugin = mod.default || mod;
@@ -53919,7 +53837,7 @@ ${e2.stack}`);
         pluginRefs.push(plugin);
         continue;
       }
-      const absolutePath = path8.isAbsolute(plugin) ? plugin : preResolvePluginPath(plugin, path8.join(configDir, CONFIG_FILE_NAME), configDir).absolutePath;
+      const absolutePath = path9.isAbsolute(plugin) ? plugin : preResolvePluginPath(plugin, path9.join(configDir, CONFIG_FILE_NAME), configDir).absolutePath;
       if (!resolvedPlugins.has(absolutePath)) {
         resolvedPlugins.add(absolutePath);
         pluginRefs.push({ absolutePath });
@@ -54126,18 +54044,18 @@ async function loadConfig(options2 = {}) {
 function findConfig(dir) {
   if (!fs_exports?.existsSync)
     return;
-  const configPath = dir ? path9.resolve(dir, CONFIG_FILE_NAME) : CONFIG_FILE_NAME;
+  const configPath = dir ? path10.resolve(dir, CONFIG_FILE_NAME) : CONFIG_FILE_NAME;
   return existsSync(configPath) ? configPath : void 0;
 }
 function cloneConfigDocument(document) {
   if (!document.parsed) {
     return document;
   }
-  const { plugins, resolve: resolve12, ...rest } = document.parsed;
+  const { plugins, resolve: resolve13, ...rest } = document.parsed;
   const cloned = {
     ...structuredClone(rest),
     plugins: plugins?.slice(),
-    ...resolve12 && { resolve: { ...resolve12 } }
+    ...resolve13 && { resolve: { ...resolve13 } }
   };
   return {
     ...document,
@@ -54312,7 +54230,7 @@ function getAstNodeByPointer(root, pointer, reportOnKey) {
 }
 
 // node_modules/@redocly/openapi-core/lib/format/format.js
-var path10 = __toESM(require_path_browserify(), 1);
+var path11 = __toESM(require_path_browserify(), 1);
 var ERROR_MESSAGE = {
   INVALID_SEVERITY_LEVEL: "Invalid severity level; accepted values: error or warn"
 };
@@ -54357,15 +54275,15 @@ function getTotals(problems) {
   };
 }
 function formatProblems(problems, opts) {
-  const { maxProblems = 100, cwd = isBrowser ? "" : process.cwd(), format = "codeframe", color = colorOptions.enabled, totals = getTotals(problems), version: version2 = "2.0", command } = opts;
+  const { maxProblems = 100, cwd: cwd2 = isBrowser ? "" : process.cwd(), format: format2 = "codeframe", color = colorOptions.enabled, totals = getTotals(problems), version: version2 = "2.0", command } = opts;
   colorOptions.enabled = color;
   const totalProblems = problems.length;
   problems = problems.filter((m2) => !m2.ignored);
   const ignoredProblems = totalProblems - problems.length;
   problems = problems.sort((a2, b2) => severityToNumber(a2.severity) - severityToNumber(b2.severity)).slice(0, maxProblems);
-  if (!totalProblems && format !== "json" && format !== "junit")
+  if (!totalProblems && format2 !== "json" && format2 !== "junit")
     return;
-  switch (format) {
+  switch (format2) {
     case "json":
       outputJSON();
       break;
@@ -54384,7 +54302,7 @@ function formatProblems(problems, opts) {
     case "stylish": {
       const groupedByFile = groupByFiles(problems);
       for (const [file, { ruleIdPad, locationPad: positionPad, fileProblems }] of Object.entries(groupedByFile)) {
-        logger.output(`${colorize.blue(isAbsoluteUrl(file) ? file : path10.relative(cwd, file))}:
+        logger.output(`${colorize.blue(isAbsoluteUrl(file) ? file : path11.relative(cwd2, file))}:
 `);
         for (let i = 0; i < fileProblems.length; i++) {
           const problem = fileProblems[i];
@@ -54398,7 +54316,7 @@ function formatProblems(problems, opts) {
     case "markdown": {
       const groupedByFile = groupByFiles(problems);
       for (const [file, { fileProblems }] of Object.entries(groupedByFile)) {
-        logger.output(`## Lint: ${isAbsoluteUrl(file) ? file : path10.relative(cwd, file)}
+        logger.output(`## Lint: ${isAbsoluteUrl(file) ? file : path11.relative(cwd2, file)}
 
 `);
         logger.output(`| Severity | Location | Problem | Message |
@@ -54431,7 +54349,7 @@ Errors: ${totals.errors}
       logger.output('<?xml version="1.0" encoding="UTF-8"?>\n');
       logger.output('<checkstyle version="4.3">\n');
       for (const [file, { fileProblems }] of Object.entries(groupedByFile)) {
-        logger.output(`<file name="${xmlEscape(isAbsoluteUrl(file) ? file : path10.relative(cwd, file))}">
+        logger.output(`<file name="${xmlEscape(isAbsoluteUrl(file) ? file : path11.relative(cwd2, file))}">
 `);
         fileProblems.forEach(formatCheckstyle);
         logger.output(`</file>
@@ -54456,7 +54374,7 @@ Errors: ${totals.errors}
       logger.output(`<testsuites name="redocly lint" tests="${problems.length}" errors="${totalErrors}" failures="${totalWarnings}" skipped="0">
 `);
       for (const [file, fileProblems] of Object.entries(groupedByFile)) {
-        const relativePath = isAbsoluteUrl(file) ? file : path10.relative(cwd, file);
+        const relativePath = isAbsoluteUrl(file) ? file : path11.relative(cwd2, file);
         const fileErrors = fileProblems.filter((p2) => p2.severity === "error").length;
         const fileWarnings = fileProblems.filter((p2) => p2.severity === "warn").length;
         logger.output(`<testsuite name="${xmlEscape(relativePath)}" tests="${fileProblems.length}" errors="${fileErrors}" failures="${fileWarnings}">
@@ -54476,7 +54394,7 @@ Errors: ${totals.errors}
       formatSummary(problems);
       break;
     case "github-actions":
-      outputForGithubActions(problems, cwd);
+      outputForGithubActions(problems, cwd2);
   }
   if (totalProblems - ignoredProblems > maxProblems) {
     logger.info(`< ... ${totalProblems - maxProblems} more problems hidden > ${colorize.gray("increase with `--max-problems N`")}
@@ -54489,7 +54407,7 @@ Errors: ${totals.errors}
       return {
         description: p2.message,
         location: {
-          path: isAbsoluteUrl(location.source.absoluteRef) ? location.source.absoluteRef : path10.relative(cwd, location.source.absoluteRef),
+          path: isAbsoluteUrl(location.source.absoluteRef) ? location.source.absoluteRef : path11.relative(cwd2, location.source.absoluteRef),
           lines: {
             begin: lineCol.start.line
           }
@@ -54510,13 +54428,13 @@ Errors: ${totals.errors}
           location: p2.location.map((location) => ({
             ...location,
             source: {
-              ref: isAbsoluteUrl(location.source.absoluteRef) ? location.source.absoluteRef : path10.relative(cwd, location.source.absoluteRef)
+              ref: isAbsoluteUrl(location.source.absoluteRef) ? location.source.absoluteRef : path11.relative(cwd2, location.source.absoluteRef)
             }
           })),
           from: p2.from ? {
             ...p2.from,
             source: {
-              ref: isAbsoluteUrl(p2.from?.source.absoluteRef) ? p2.from?.source.absoluteRef : path10.relative(cwd, p2.from?.source.absoluteRef || cwd)
+              ref: isAbsoluteUrl(p2.from?.source.absoluteRef) ? p2.from?.source.absoluteRef : path11.relative(cwd2, p2.from?.source.absoluteRef || cwd2)
             }
           } : void 0
         };
@@ -54540,7 +54458,7 @@ Errors: ${totals.errors}
   function formatCodeframe(problem, idx) {
     const bgColor = getBgColor(problem);
     const location = problem.location[0];
-    const relativePath = isAbsoluteUrl(location.source.absoluteRef) ? location.source.absoluteRef : path10.relative(cwd, location.source.absoluteRef);
+    const relativePath = isAbsoluteUrl(location.source.absoluteRef) ? location.source.absoluteRef : path11.relative(cwd2, location.source.absoluteRef);
     const loc = getLineColLocation(location);
     const atPointer = location.pointer ? colorize.gray(`at ${location.pointer}`) : "";
     const fileWithLoc = `${relativePath}:${loc.start.line}:${loc.start.col}`;
@@ -54548,7 +54466,7 @@ Errors: ${totals.errors}
 
 ${problem.message}
 
-` + formatDidYouMean(problem) + getCodeframe(loc, color) + "\n\n" + formatFrom(cwd, problem.from) + `${SEVERITY_NAMES[problem.severity]} was generated by the ${colorize.blue(problem.ruleId)} rule.
+` + formatDidYouMean(problem) + getCodeframe(loc, color) + "\n\n" + formatFrom(cwd2, problem.from) + `${SEVERITY_NAMES[problem.severity]} was generated by the ${colorize.blue(problem.ruleId)} rule.
 
 ` + (problem.reference ? `Reference: ${colorize.blue(problem.reference)}
 
@@ -54622,10 +54540,10 @@ function formatSummary(problems) {
   }
   logger.output("\n");
 }
-function formatFrom(cwd, location) {
+function formatFrom(cwd2, location) {
   if (!location)
     return "";
-  const relativePath = path10.relative(cwd, location.source.absoluteRef);
+  const relativePath = path11.relative(cwd2, location.source.absoluteRef);
   const loc = getLineColLocation(location);
   const fileWithLoc = `${relativePath}:${loc.start.line}:${loc.start.col}`;
   const atPointer = location.pointer ? colorize.gray(`at ${location.pointer}`) : "";
@@ -54681,7 +54599,7 @@ function xmlEscape(s2) {
     }
   });
 }
-function outputForGithubActions(problems, cwd) {
+function outputForGithubActions(problems, cwd2) {
   for (const problem of problems) {
     for (const location of problem.location.map(getLineColLocation)) {
       let command;
@@ -54700,7 +54618,7 @@ function outputForGithubActions(problems, cwd) {
       const message = problem.message + (suggest !== "" || reference2 !== "" ? "\n\n" : "") + suggest + reference2;
       const properties = {
         title: problem.ruleId,
-        file: isAbsoluteUrl(location.source.absoluteRef) ? location.source.absoluteRef : path10.relative(cwd, location.source.absoluteRef),
+        file: isAbsoluteUrl(location.source.absoluteRef) ? location.source.absoluteRef : path11.relative(cwd2, location.source.absoluteRef),
         line: location.start.line,
         col: location.start.col,
         endLine: location.end?.line,
@@ -54837,45 +54755,58 @@ var HandledError = class extends Error {
 };
 
 // src/api/common.js
-var path11 = __toESM(require_path_browserify(), 1);
+var path12 = __toESM(require_path_browserify(), 1);
 var CommandError = class extends Error {
-  constructor(message, details) {
-    super(message);
+  constructor(message, options2) {
+    super(message, options2);
     this.name = "CommandError";
-    this.details = details;
   }
 };
 async function loadProjectConfig({ configPath, customExtends }) {
+  let config;
   try {
-    return await loadConfig({
+    config = await loadConfig({
       configPath: configPath || void 0,
-      customExtends: customExtends && customExtends.length ? customExtends : void 0
+      customExtends: customExtends?.length ? customExtends : void 0
     });
   } catch (e2) {
-    throw new CommandError(`Error while loading the configuration${configPath ? ` from ${configPath}` : ""}: ${e2.message}`);
+    throw new CommandError(`Error while loading the configuration${configPath ? ` from ${configPath}` : ""}: ${e2.message}`, { cause: e2 });
   }
+  rejectCustomPlugins(config);
+  return config;
 }
-function configDirectory(config, cwd) {
-  return config.configPath ? path11.dirname(config.configPath) : cwd;
+function rejectCustomPlugins(config) {
+  const configured = config.document?.parsed || {};
+  const plugins = (configured.plugins || []).filter((plugin) => typeof plugin === "string");
+  if (!plugins.length) return;
+  const pluginIds = plugins.map((plugin) => path12.basename(plugin).replace(/\.[^.]+$/, ""));
+  const providedBy = (id) => pluginIds.some((pluginId) => id.startsWith(`${pluginId}/`));
+  const uses = ["rules", "preprocessors", "decorators"].flatMap((section) => Object.keys(configured[section] || {}).filter(providedBy));
+  throw new CommandError(
+    `Custom JavaScript plugins are not supported: ${plugins.join(", ")}` + (uses.length ? `. Configured plugin rules/decorators: ${uses.join(", ")}` : "")
+  );
 }
-function resolveApis(config, requested, cwd) {
-  const configDir = configDirectory(config, cwd);
+function configDirectory(config, cwd2) {
+  return config.configPath ? path12.dirname(config.configPath) : cwd2;
+}
+function resolveApis(config, requested, cwd2) {
+  const configDir = configDirectory(config, cwd2);
   const apis = config.resolvedConfig.apis || {};
-  const absolute = (p2) => isAbsoluteUrl(p2) ? p2 : path11.resolve(cwd, p2);
+  const absolute = (p2) => isAbsoluteUrl(p2) ? p2 : path12.resolve(cwd2, p2);
   let entries;
   if (requested && requested.length) {
     entries = requested.map((aliasOrPath) => {
       const aliasApi = apis[aliasOrPath];
       if (aliasApi) {
-        return { path: isAbsoluteUrl(aliasApi.root) ? aliasApi.root : path11.resolve(configDir, aliasApi.root), alias: aliasOrPath };
+        return { path: isAbsoluteUrl(aliasApi.root) ? aliasApi.root : path12.resolve(configDir, aliasApi.root), alias: aliasOrPath };
       }
       const abs = absolute(aliasOrPath);
-      const alias = Object.entries(apis).find(([, api]) => path11.resolve(configDir, api.root) === abs)?.[0];
+      const alias = Object.entries(apis).find(([, api]) => path12.resolve(configDir, api.root) === abs)?.[0];
       return { path: abs, alias };
     });
   } else {
     entries = Object.entries(apis).map(([alias, { root }]) => ({
-      path: isAbsoluteUrl(root) ? root : path11.resolve(configDir, root),
+      path: isAbsoluteUrl(root) ? root : path12.resolve(configDir, root),
       alias
     }));
   }
@@ -54909,13 +54840,9 @@ function checkIfRulesetExist(rules9) {
     throw new CommandError("No rules were configured. Learn how to configure rules: https://redocly.com/docs/cli/rules/");
   }
 }
-function formatToString(problems, opts) {
-  startCapture();
-  try {
-    formatProblems(problems, { color: false, ...opts });
-  } finally {
-    return stopCapture();
-  }
+async function formatToString(problems, opts) {
+  const { output } = await captureOutput(() => formatProblems(problems, { color: false, ...opts }));
+  return output;
 }
 function describeProblem(problem) {
   return {
@@ -54940,7 +54867,7 @@ function unusedWarnings(config) {
   const { preprocessors: preprocessors8, rules: rules9, decorators: decorators8 } = config.getUnusedRules();
   return { rules: rules9, preprocessors: preprocessors8, decorators: decorators8 };
 }
-async function lintConfigFile(config, { severity = "warn", format = "stylish", maxProblems = 100, cwd }) {
+async function lintConfigFile(config, { severity = "warn", format: format2 = "stylish", maxProblems = 100, cwd: cwd2 }) {
   if (severity === "off" || config.document === void 0) {
     return null;
   }
@@ -54949,7 +54876,7 @@ async function lintConfigFile(config, { severity = "warn", format = "stylish", m
   return {
     totals,
     problems: problems.map(describeProblem),
-    output: formatToString(problems, { format, maxProblems, totals, command: "check-config", cwd })
+    output: await formatToString(problems, { format: format2, maxProblems, totals, command: "check-config", cwd: cwd2 })
   };
 }
 var oas2OrderedKeys = ["swagger", "info", "host", "basePath", "schemes", "consumes", "produces", "security", "tags", "externalDocs", "paths", "definitions", "parameters", "responses", "securityDefinitions"];
@@ -54978,32 +54905,33 @@ function dumpBundle(obj, ext, dereference) {
   return stringifyYaml(obj, { noRefs: !dereference, lineWidth: -1 });
 }
 function saveFile(filename, content) {
-  mkdirSync(path11.dirname(filename), { recursive: true });
+  mkdirSync(path12.dirname(filename), { recursive: true });
   writeFileSync(filename, content);
 }
 
 // src/api/lint.js
 async function runLint(opts) {
-  const { cwd, format = "stylish", maxProblems = 100 } = opts;
+  const { cwd: cwd2, format: format2 = "stylish", maxProblems = 100 } = opts;
   const config = await loadProjectConfig({ configPath: opts.configPath, customExtends: opts.extends });
-  const configLint = await lintConfigFile(config, { severity: opts.lintConfig, format, maxProblems, cwd });
-  const apis = resolveApis(config, opts.apis, cwd);
+  const configLint = await lintConfigFile(config, { severity: opts.lintConfig, format: format2, maxProblems, cwd: cwd2 });
+  if (configLint?.totals.errors > 0) return { configLint, apis: [], totals: { errors: 0, warnings: 0, ignored: 0 } };
+  const apis = resolveApis(config, opts.apis, cwd2);
   const totals = { errors: 0, warnings: 0, ignored: 0 };
   const results = [];
   const allProblems = [];
   let totalIgnored = 0;
-  for (const { path: path35, alias } of apis) {
+  for (const { path: path36, alias } of apis) {
     const aliasConfig = config.forAlias(alias);
     checkIfRulesetExist(aliasConfig.rules);
     aliasConfig.skipRules(opts.skipRules);
     const started = performance.now();
-    const problems = await lint({ ref: path35, config: aliasConfig });
+    const problems = await lint({ ref: path36, config: aliasConfig });
     const fileTotals = getTotals(problems);
     totals.errors += fileTotals.errors;
     totals.warnings += fileTotals.warnings;
     totals.ignored += fileTotals.ignored;
     if (opts.generateIgnoreFile) {
-      config.clearIgnoreForRef(path35);
+      config.clearIgnoreForRef(path36);
       for (const p2 of problems) {
         config.addIgnore(p2);
         totalIgnored++;
@@ -55011,12 +54939,12 @@ async function runLint(opts) {
     }
     allProblems.push(...problems);
     results.push({
-      path: path35,
+      path: path36,
       alias,
       totals: fileTotals,
       durationMillis: Math.round(performance.now() - started),
       problems: problems.map(describeProblem),
-      output: formatToString(problems, { format, maxProblems, totals: fileTotals, command: "lint", cwd })
+      output: await formatToString(problems, { format: format2, maxProblems, totals: fileTotals, command: "lint", cwd: cwd2 })
     });
   }
   let ignoreFile = null;
@@ -55024,7 +54952,7 @@ async function runLint(opts) {
     config.saveIgnore();
     ignoreFile = { ignored: totalIgnored };
   }
-  const report = opts.reportFormat ? formatToString(allProblems, { format: opts.reportFormat, maxProblems: Number.MAX_SAFE_INTEGER, totals, command: "lint", cwd }) : null;
+  const report = opts.reportFormat ? await formatToString(allProblems, { format: opts.reportFormat, maxProblems: Number.MAX_SAFE_INTEGER, totals, command: "lint", cwd: cwd2 }) : null;
   return {
     usedDefaultConfig: typeof config.document?.parsed === "undefined" && !(opts.extends && opts.extends.length),
     configLint,
@@ -55037,17 +54965,18 @@ async function runLint(opts) {
 }
 
 // src/api/bundle.js
-var path12 = __toESM(require_path_browserify(), 1);
+var path13 = __toESM(require_path_browserify(), 1);
 var OUTPUT_EXTENSIONS = ["json", "yaml", "yml"];
 async function runBundle(opts) {
-  const { cwd, format = "codeframe", maxProblems = 100 } = opts;
+  const { cwd: cwd2, format: format2 = "codeframe", maxProblems = 100 } = opts;
   const ext = opts.ext || "yaml";
   if (!OUTPUT_EXTENSIONS.includes(ext)) {
     throw new CommandError(`Invalid output extension '${ext}'. Allowed: ${OUTPUT_EXTENSIONS.join(", ")}.`);
   }
   const config = await loadProjectConfig({ configPath: opts.configPath, customExtends: opts.extends });
-  const configLint = await lintConfigFile(config, { severity: opts.lintConfig, format, maxProblems, cwd });
-  const apis = resolveApis(config, opts.apis, cwd);
+  const configLint = await lintConfigFile(config, { severity: opts.lintConfig, format: format2, maxProblems, cwd: cwd2 });
+  if (configLint?.totals.errors > 0) return { configLint, apis: [], totals: { errors: 0, warnings: 0, ignored: 0 } };
+  const apis = resolveApis(config, opts.apis, cwd2);
   if (opts.outputFile && apis.length > 1) {
     throw new CommandError(`<outputFile> can only be used with a single API, but ${apis.length} were selected.`);
   }
@@ -55070,8 +54999,8 @@ async function runBundle(opts) {
     totals.errors += fileTotals.errors;
     totals.warnings += fileTotals.warnings;
     totals.ignored += fileTotals.ignored;
-    const baseName = alias || path12.basename(ref, path12.extname(ref));
-    const outputFile = opts.outputFile ? path12.resolve(cwd, opts.outputFile) : path12.join(path12.resolve(cwd, opts.outputDirectory), `${baseName}.${ext}`);
+    const baseName = alias || path13.basename(ref, path13.extname(ref));
+    const outputFile = opts.outputFile ? path13.resolve(cwd2, opts.outputFile) : path13.join(path13.resolve(cwd2, opts.outputDirectory), `${baseName}.${ext}`);
     let written = false;
     if (fileTotals.errors === 0 || opts.force) {
       const content = dumpBundle(sortTopLevelKeys(result.parsed), ext, opts.dereferenced);
@@ -55087,7 +55016,7 @@ async function runBundle(opts) {
       durationMillis: Math.round(performance.now() - started),
       removedComponents: meta.visitorsData?.["remove-unused-components"]?.removedCount || 0,
       problems: problems.map(describeProblem),
-      output: formatToString(problems, { format, maxProblems, totals: fileTotals, command: "bundle", cwd })
+      output: await formatToString(problems, { format: format2, maxProblems, totals: fileTotals, command: "bundle", cwd: cwd2 })
     });
   }
   return { configLint, apis: results, totals, unused: unusedWarnings(config) };
@@ -55097,7 +55026,7 @@ async function runBundle(opts) {
 async function runCheckConfig(opts) {
   const config = await loadProjectConfig({ configPath: opts.configPath });
   const configLint = await lintConfigFile(config, {
-    severity: opts.severity || "warn",
+    severity: opts.severity || "error",
     format: opts.format || "stylish",
     maxProblems: opts.maxProblems,
     cwd: opts.cwd
@@ -55127,11 +55056,11 @@ ${api}: ${commandName} processed in ${getExecutionTime(startedAt)}
 
 `);
 }
-function pathToFilename(path35, pathSeparator) {
-  if (path35 === "/") {
+function pathToFilename(path36, pathSeparator) {
+  if (path36 === "/") {
     return pathSeparator;
   }
-  return path35.replaceAll("~1", "/").replaceAll("~0", "~").replace(/^\//, "").replaceAll("/", pathSeparator);
+  return path36.replaceAll("~1", "/").replaceAll("~0", "~").replace(/^\//, "").replaceAll("/", pathSeparator);
 }
 function readYaml(filename) {
   return parseYaml(readFileSync(filename, "utf-8"), { filename });
@@ -55234,11 +55163,11 @@ function printStatsStylish(statsAccumulator) {
 }
 
 // vendor/redocly-cli/commands/stats/print-stats/index.ts
-function printStats(statsAccumulator, api, startedAt, format) {
+function printStats(statsAccumulator, api, startedAt, format2) {
   logger.info(`Document: ${magenta(api)} stats:
 
 `);
-  switch (format) {
+  switch (format2) {
     case "stylish":
       printStatsStylish(statsAccumulator);
       break;
@@ -55306,9 +55235,9 @@ function resolveStatsVisitorAndAccumulator(specVersion) {
 
 // vendor/redocly-cli/commands/stats/index.ts
 async function handleStats({ argv, config, collectSpecData }) {
-  const [{ path: path35 }] = await getFallbackApisOrExit(argv.api ? [argv.api] : [], config);
+  const [{ path: path36 }] = await getFallbackApisOrExit(argv.api ? [argv.api] : [], config);
   const externalRefResolver = new BaseResolver(config.resolve);
-  const { bundle: document } = await bundle({ config, ref: path35 });
+  const { bundle: document } = await bundle({ config, ref: path36 });
   collectSpecData?.(document);
   const specVersion = detectSpec(document.parsed);
   const types = normalizeTypes(config.extendTypes(getTypes(specVersion), specVersion), config);
@@ -55342,34 +55271,38 @@ async function handleStats({ argv, config, collectSpecData }) {
     resolvedRefMap,
     ctx
   });
-  printStats(statsAccumulator, path35, startedAt, argv.format);
+  printStats(statsAccumulator, path36, startedAt, argv.format);
 }
 
 // src/api/stats.js
 function stripWrapper(output, command) {
   return output.replace(new RegExp(`^Document: .*? ${command}:\\n+`), "").replace(new RegExp(`\\n*[^\\n]*: ${command} processed in \\d+ms\\n*$`), "\n");
 }
+function parseJsonOutput(body, command, api) {
+  try {
+    return JSON.parse(body);
+  } catch (e2) {
+    throw new Error(`Could not parse the JSON output of ${command} for ${api}: ${e2.message}`, { cause: e2 });
+  }
+}
 async function runStats(opts) {
   const config = await loadProjectConfig({ configPath: opts.configPath });
   const configLint = await lintConfigFile(config, { severity: opts.lintConfig, maxProblems: opts.maxProblems, cwd: opts.cwd });
-  const format = opts.format || "stylish";
-  const results = [];
-  for (const { path: path35, alias } of resolveApis(config, opts.apis, opts.cwd)) {
-    startCapture();
-    let output;
-    try {
-      await handleStats({ argv: { api: path35, format }, config: config.forAlias(alias), version: "" });
-    } finally {
-      output = stopCapture();
-    }
+  const format2 = opts.format || "stylish";
+  if (configLint?.totals.errors > 0) return { configLint, format: format2, apis: [] };
+  const apis = [];
+  for (const { path: path36, alias } of resolveApis(config, opts.apis, opts.cwd)) {
+    const { output } = await captureOutput(
+      () => handleStats({ argv: { api: path36, format: format2 }, config: config.forAlias(alias), version: "" })
+    );
     const body = stripWrapper(output, "stats");
-    results.push({ path: path35, alias, output: body, stats: format === "json" ? JSON.parse(body) : null });
+    apis.push({ path: path36, alias, output: body, stats: format2 === "json" ? parseJsonOutput(body, "stats", path36) : null });
   }
-  return { configLint, format, apis: results };
+  return { configLint, format: format2, apis };
 }
 
 // vendor/redocly-cli/commands/join/index.ts
-var path17 = __toESM(require_path_browserify(), 1);
+var path18 = __toESM(require_path_browserify(), 1);
 
 // vendor/redocly-cli/commands/split/constants.ts
 var COMPONENTS = "components";
@@ -55377,7 +55310,7 @@ var CHANNELS = "channels";
 var OPERATIONS = "operations";
 
 // vendor/redocly-cli/commands/join/utils/replace-$-refs.ts
-var path13 = __toESM(require_path_browserify(), 1);
+var path14 = __toESM(require_path_browserify(), 1);
 
 // vendor/redocly-cli/commands/split/utils/crawl.ts
 function crawl(object, visitor) {
@@ -55402,7 +55335,7 @@ function startsWithComponents(node) {
 function replace$Refs(obj, componentsPrefix) {
   crawl(obj, (node) => {
     if (isRef(node) && startsWithComponents(node.$ref)) {
-      const name = path13.basename(node.$ref);
+      const name = path14.basename(node.$ref);
       node.$ref = node.$ref.replace(name, componentsPrefix + "_" + name);
     } else if (isPlainObject(node.discriminator) && isPlainObject(node.discriminator.mapping)) {
       const { mapping } = node.discriminator;
@@ -55454,10 +55387,10 @@ function addPrefix(tag, tagsPrefix) {
 }
 
 // vendor/redocly-cli/commands/join/utils/add-components-prefix.ts
-var path14 = __toESM(require_path_browserify(), 1);
+var path15 = __toESM(require_path_browserify(), 1);
 function addComponentsPrefix(description, componentsPrefix) {
   return description.replace(/"(#\/components\/.*?)"/g, (match2) => {
-    const componentName = path14.basename(match2);
+    const componentName = path15.basename(match2);
     return match2.replace(componentName, addPrefix(componentName, componentsPrefix));
   });
 }
@@ -55468,9 +55401,9 @@ function formatTags(tags) {
 }
 
 // vendor/redocly-cli/commands/join/utils/get-api-filename.ts
-var path15 = __toESM(require_path_browserify(), 1);
+var path16 = __toESM(require_path_browserify(), 1);
 function getApiFilename(filePath) {
-  return path15.basename(filePath, path15.extname(filePath));
+  return path16.basename(filePath, path16.extname(filePath));
 }
 
 // vendor/redocly-cli/commands/join/utils/filter-conflicts.ts
@@ -55480,8 +55413,8 @@ function filterConflicts(entities) {
 
 // vendor/redocly-cli/commands/join/utils/show-conflicts.ts
 function showConflicts(key, conflicts) {
-  for (const [path35, files] of conflicts) {
-    logger.warn(`Conflict on ${key} : ${red(path35)} in files: ${blue(files)} 
+  for (const [path36, files] of conflicts) {
+    logger.warn(`Conflict on ${key} : ${red(path36)} in files: ${blue(files)} 
 `);
   }
 }
@@ -55652,7 +55585,7 @@ function populateXTagGroups(joinedDef, entrypointTagName, indexGroup) {
 }
 
 // vendor/redocly-cli/commands/join/utils/collect-external-docs.ts
-var path16 = __toESM(require_path_browserify(), 1);
+var path17 = __toESM(require_path_browserify(), 1);
 function collectExternalDocs({
   joinedDef,
   openapi,
@@ -55662,7 +55595,7 @@ function collectExternalDocs({
   const { externalDocs } = openapi;
   if (externalDocs) {
     if (joinedDef.hasOwnProperty("externalDocs")) {
-      logger.warn(`warning: skip externalDocs from ${blue(path16.basename(api))} 
+      logger.warn(`warning: skip externalDocs from ${blue(path17.basename(api))} 
 `);
       return;
     }
@@ -55717,72 +55650,72 @@ function collectPaths({
     if (!joinedDef.hasOwnProperty("paths")) {
       joinedDef["paths"] = {};
     }
-    for (const path35 of keysOf(paths)) {
-      if (!joinedDef.paths.hasOwnProperty(path35)) {
-        joinedDef.paths[path35] = {};
+    for (const path36 of keysOf(paths)) {
+      if (!joinedDef.paths.hasOwnProperty(path36)) {
+        joinedDef.paths[path36] = {};
       }
-      if (!potentialConflicts.paths.hasOwnProperty(path35)) {
-        potentialConflicts.paths[path35] = {};
+      if (!potentialConflicts.paths.hasOwnProperty(path36)) {
+        potentialConflicts.paths[path36] = {};
       }
-      const pathItem = paths[path35];
+      const pathItem = paths[path36];
       const servers = serversAreTheSame ? pathItem.servers : pathItem.servers || rootServers || [];
       if (servers) {
-        collectPathServers(servers, path35);
+        collectPathServers(servers, path36);
       }
       for (const field of keysOf(pathItem)) {
         if (operationsSet.has(field)) {
-          collectPathOperation(pathItem, path35, field);
+          collectPathOperation(pathItem, path36, field);
         }
         if (field === "parameters") {
-          collectPathParameters(pathItem, path35);
+          collectPathParameters(pathItem, path36);
         }
         if (typeof pathItem[field] === "string" || field.startsWith("x-")) {
-          collectPathStringFields(pathItem, path35, field);
+          collectPathStringFields(pathItem, path36, field);
         }
       }
     }
   }
-  function collectPathStringFields(pathItem, path35, field) {
+  function collectPathStringFields(pathItem, path36, field) {
     const fieldValue = pathItem[field];
-    if (joinedDef.paths[path35].hasOwnProperty(field) && !dequal(joinedDef.paths[path35][field], fieldValue)) {
-      logger.warn(`warning: different ${field} values in ${path35}
+    if (joinedDef.paths[path36].hasOwnProperty(field) && !dequal(joinedDef.paths[path36][field], fieldValue)) {
+      logger.warn(`warning: different ${field} values in ${path36}
 `);
       return;
     }
-    joinedDef.paths[path35][field] = fieldValue;
+    joinedDef.paths[path36][field] = fieldValue;
   }
-  function collectPathServers(servers, path35) {
+  function collectPathServers(servers, path36) {
     if (!servers) {
       return;
     }
-    if (!joinedDef.paths[path35].hasOwnProperty("servers")) {
-      joinedDef.paths[path35].servers = [];
+    if (!joinedDef.paths[path36].hasOwnProperty("servers")) {
+      joinedDef.paths[path36].servers = [];
     }
     for (const server of servers) {
       let isFoundServer = false;
-      for (const pathServer of joinedDef.paths[path35].servers) {
+      for (const pathServer of joinedDef.paths[path36].servers) {
         if (pathServer.url === server.url) {
           if (!isServersEqual(pathServer, server)) {
-            exitWithError(`Different server values for (${server.url}) in ${path35}.`);
+            exitWithError(`Different server values for (${server.url}) in ${path36}.`);
           }
           isFoundServer = true;
         }
       }
       if (!isFoundServer) {
-        joinedDef.paths[path35].servers.push(server);
+        joinedDef.paths[path36].servers.push(server);
       }
     }
   }
-  function collectPathParameters(pathItem, path35) {
+  function collectPathParameters(pathItem, path36) {
     if (!pathItem.parameters) {
       return;
     }
-    if (!joinedDef.paths[path35].hasOwnProperty("parameters")) {
-      joinedDef.paths[path35].parameters = [];
+    if (!joinedDef.paths[path36].hasOwnProperty("parameters")) {
+      joinedDef.paths[path36].parameters = [];
     }
     for (const parameter of pathItem.parameters) {
       let isFoundParameter = false;
-      for (const pathParameter of joinedDef.paths[path35].parameters) {
+      for (const pathParameter of joinedDef.paths[path36].parameters) {
         if (isRef(pathParameter) && isRef(parameter)) {
           if (pathParameter["$ref"] === parameter["$ref"]) {
             isFoundParameter = true;
@@ -55791,25 +55724,25 @@ function collectPaths({
         if (!isRef(pathParameter) && !isRef(parameter)) {
           if (pathParameter.name === parameter.name && pathParameter.in === parameter.in) {
             if (!dequal(pathParameter.schema, parameter.schema)) {
-              exitWithError(`Different parameter schemas for (${parameter.name}) in ${path35}.`);
+              exitWithError(`Different parameter schemas for (${parameter.name}) in ${path36}.`);
             }
             isFoundParameter = true;
           }
         }
       }
       if (!isFoundParameter) {
-        joinedDef.paths[path35].parameters.push(parameter);
+        joinedDef.paths[path36].parameters.push(parameter);
       }
     }
   }
-  function collectPathOperation(pathItem, path35, operation) {
+  function collectPathOperation(pathItem, path36, operation) {
     const pathOperation = pathItem[operation];
     if (!pathOperation) {
       return;
     }
-    joinedDef.paths[path35][operation] = pathOperation;
-    potentialConflicts.paths[path35][operation] = [
-      ...potentialConflicts.paths[path35][operation] || [],
+    joinedDef.paths[path36][operation] = pathOperation;
+    potentialConflicts.paths[path36][operation] = [
+      ...potentialConflicts.paths[path36][operation] || [],
       api
     ];
     const { operationId } = pathOperation;
@@ -55822,9 +55755,9 @@ function collectPaths({
         api
       ];
     }
-    const { tags, security } = joinedDef.paths[path35][operation];
+    const { tags, security } = joinedDef.paths[path36][operation];
     if (tags) {
-      joinedDef.paths[path35][operation].tags = tags.map((tag) => addPrefix(tag, tagsPrefix));
+      joinedDef.paths[path36][operation].tags = tags.map((tag) => addPrefix(tag, tagsPrefix));
       populateTags({
         joinedDef,
         withoutXTagGroups,
@@ -55840,7 +55773,7 @@ function collectPaths({
         }
       });
     } else {
-      joinedDef.paths[path35][operation]["tags"] = [addPrefix("other", tagsPrefix || apiFilename)];
+      joinedDef.paths[path36][operation]["tags"] = [addPrefix("other", tagsPrefix || apiFilename)];
       populateTags({
         joinedDef,
         withoutXTagGroups,
@@ -55857,12 +55790,12 @@ function collectPaths({
       });
     }
     if (!security && openapi.hasOwnProperty("security")) {
-      joinedDef.paths[path35][operation]["security"] = addSecurityPrefix(
+      joinedDef.paths[path36][operation]["security"] = addSecurityPrefix(
         openapi.security,
         componentsPrefix
       );
     } else if (pathOperation.security) {
-      joinedDef.paths[path35][operation].security = addSecurityPrefix(
+      joinedDef.paths[path36][operation].security = addSecurityPrefix(
         pathOperation.security,
         componentsPrefix
       );
@@ -56013,7 +55946,7 @@ Please choose only one!`
   const externalRefResolver = new BaseResolver(config.resolve);
   const documents = await Promise.all(
     apis.map(
-      ({ path: path35 }) => externalRefResolver.resolveDocument(null, path35, true)
+      ({ path: path36 }) => externalRefResolver.resolveDocument(null, path36, true)
     )
   );
   const decorators8 = /* @__PURE__ */ new Set([
@@ -56098,7 +56031,7 @@ Please choose only one!`
   for (const document of documents) {
     const openapi = isPlainObject(document.parsed) ? document.parsed : {};
     const { tags, info } = openapi;
-    const api = path17.relative(process.cwd(), document.source.absoluteRef);
+    const api = path18.relative(process.cwd(), document.source.absoluteRef);
     const apiFilename = getApiFilename(api);
     const tagsPrefix = prefixTagsWithFilename ? apiFilename : getInfoPrefix(info, prefixTagsWithInfoProp, "tags");
     const componentsPrefix = getInfoPrefix(info, prefixComponentsWithInfoProp, COMPONENTS);
@@ -56140,19 +56073,18 @@ Please choose only one!`
 }
 
 // src/api/join.js
-var path18 = __toESM(require_path_browserify(), 1);
+var path19 = __toESM(require_path_browserify(), 1);
 async function runJoin(opts) {
   const config = await loadProjectConfig({ configPath: opts.configPath });
   const configLint = await lintConfigFile(config, { severity: opts.lintConfig, maxProblems: opts.maxProblems, cwd: opts.cwd });
-  const apis = resolveApis(config, opts.apis, opts.cwd);
-  const output = path18.resolve(opts.cwd, opts.output);
-  startCapture();
-  let log;
-  try {
-    await handleJoin({
+  const outputFile = path19.resolve(opts.cwd, opts.output);
+  if (configLint?.totals.errors > 0) return { configLint, apis: [], outputFile, output: "" };
+  const apis = resolveApis(config, opts.apis, opts.cwd).map(({ path: p2, alias }) => ({ path: p2, alias }));
+  const { output } = await captureOutput(
+    () => handleJoin({
       argv: {
         apis: opts.apis,
-        output,
+        output: outputFile,
         "prefix-tags-with-info-prop": opts.prefixTagsWithInfoProp,
         "prefix-tags-with-filename": opts.prefixTagsWithFilename,
         "prefix-components-with-info-prop": opts.prefixComponentsWithInfoProp,
@@ -56160,18 +56092,16 @@ async function runJoin(opts) {
       },
       config,
       version: ""
-    });
-  } finally {
-    log = stopCapture();
-  }
-  return { configLint, apis: apis.map(({ path: p2, alias }) => ({ path: p2, alias })), outputFile: output, output: log };
+    })
+  );
+  return { configLint, apis, outputFile, output };
 }
 
 // vendor/redocly-cli/commands/split/asyncapi/split-asyncapi-definition.ts
-var path28 = __toESM(require_path_browserify(), 1);
+var path29 = __toESM(require_path_browserify(), 1);
 
 // vendor/redocly-cli/commands/split/utils/replace-$-refs.ts
-var path19 = __toESM(require_path_browserify(), 1);
+var path20 = __toESM(require_path_browserify(), 1);
 function replace$Refs2(obj, relativeFrom, componentFiles = {}) {
   crawl(obj, (node) => {
     if (isRef(node) && startsWithComponents(node.$ref)) {
@@ -56192,7 +56122,7 @@ function replace$Refs2(obj, relativeFrom, componentFiles = {}) {
     const groupName = splittedNode[2];
     const filesGroupName = componentFiles[groupName];
     if (!filesGroupName || !filesGroupName[name]) return;
-    let filename = slash(path19.relative(relativeFrom, filesGroupName[name].filename));
+    let filename = slash(path20.relative(relativeFrom, filesGroupName[name].filename));
     if (!filename.startsWith(".")) {
       filename = "./" + filename;
     }
@@ -56201,12 +56131,12 @@ function replace$Refs2(obj, relativeFrom, componentFiles = {}) {
 }
 
 // vendor/redocly-cli/commands/split/asyncapi/gather-asyncapi-component-files.ts
-var path21 = __toESM(require_path_browserify(), 1);
+var path22 = __toESM(require_path_browserify(), 1);
 
 // vendor/redocly-cli/commands/split/utils/get-file-name-path.ts
-var path20 = __toESM(require_path_browserify(), 1);
+var path21 = __toESM(require_path_browserify(), 1);
 function getFileNamePath(componentDirPath, componentName, ext) {
-  return path20.join(componentDirPath, componentName) + `.${ext}`;
+  return path21.join(componentDirPath, componentName) + `.${ext}`;
 }
 
 // vendor/redocly-cli/commands/split/asyncapi/constants.ts
@@ -56259,10 +56189,10 @@ function gatherAsyncApiComponentFiles({
 }) {
   const components = asyncapi.components;
   if (!components) return;
-  const componentsDir = path21.join(asyncapiDir, COMPONENTS);
+  const componentsDir = path22.join(asyncapiDir, COMPONENTS);
   const componentTypes = findAsyncApiComponentTypes(components, specVersion);
   for (const componentType of componentTypes) {
-    const componentDirPath = path21.join(componentsDir, componentType);
+    const componentDirPath = path22.join(componentsDir, componentType);
     for (const componentName of Object.keys(components[componentType] || {})) {
       const filename = getFileNamePath(componentDirPath, componentName, ext);
       let inherits = [];
@@ -56276,25 +56206,25 @@ function gatherAsyncApiComponentFiles({
 }
 
 // vendor/redocly-cli/commands/split/asyncapi/iterate-asyncapi-channels.ts
-var path24 = __toESM(require_path_browserify(), 1);
+var path25 = __toESM(require_path_browserify(), 1);
 
 // vendor/redocly-cli/commands/split/utils/assert-within-dir.ts
-var path22 = __toESM(require_path_browserify(), 1);
+var path23 = __toESM(require_path_browserify(), 1);
 function assertWithinDir(baseDir, targetPath, subject) {
-  const base = path22.resolve(baseDir);
-  const target = path22.resolve(targetPath);
-  if (target !== base && !target.startsWith(base + path22.sep)) {
+  const base = path23.resolve(baseDir);
+  const target = path23.resolve(targetPath);
+  if (target !== base && !target.startsWith(base + path23.sep)) {
     exitWithError(`Refusing to write "${subject}" outside the output directory.`);
   }
 }
 
 // vendor/redocly-cli/commands/split/utils/traverse-directory-deep.ts
-var path23 = __toESM(require_path_browserify(), 1);
+var path24 = __toESM(require_path_browserify(), 1);
 function traverseDirectoryDeep(directory, callback, componentsFiles) {
   if (!existsSync(directory) || !statSync(directory).isDirectory()) return;
   const files = readdirSync(directory);
   for (const f2 of files) {
-    const filename = path23.join(directory, f2);
+    const filename = path24.join(directory, f2);
     if (statSync(filename).isDirectory()) {
       traverseDirectoryDeep(filename, callback, componentsFiles);
     } else {
@@ -56322,15 +56252,15 @@ function iterateAsyncApiChannels({
   if (!channels) return channelsFiles;
   mkdirSync(outDir, { recursive: true });
   for (const channelName of Object.keys(channels)) {
-    const channelFile = `${path24.join(outDir, pathToFilename(channelName, pathSeparator))}.${ext}`;
+    const channelFile = `${path25.join(outDir, pathToFilename(channelName, pathSeparator))}.${ext}`;
     const channelData = channels[channelName];
     if (isRef(channelData)) continue;
     assertWithinDir(asyncapiDir, channelFile, channelName);
     channelsFiles[channelName] = channelFile;
-    replace$Refs2(channelData, path24.dirname(channelFile), componentsFiles);
+    replace$Refs2(channelData, path25.dirname(channelFile), componentsFiles);
     writeToFileByExtension(channelData, channelFile);
     channels[channelName] = {
-      $ref: slash(path24.relative(asyncapiDir, channelFile))
+      $ref: slash(path25.relative(asyncapiDir, channelFile))
     };
     traverseDirectoryDeep(outDir, traverseDirectoryDeepCallback, componentsFiles);
   }
@@ -56338,7 +56268,7 @@ function iterateAsyncApiChannels({
 }
 
 // vendor/redocly-cli/commands/split/asyncapi/iterate-asyncapi-components.ts
-var path26 = __toESM(require_path_browserify(), 1);
+var path27 = __toESM(require_path_browserify(), 1);
 
 // vendor/redocly-cli/commands/split/utils/is-not-security-component-type.ts
 function isNotSecurityComponentType(componentType) {
@@ -56358,7 +56288,7 @@ function doesFileDiffer(filename, componentData) {
 }
 
 // vendor/redocly-cli/commands/split/utils/replace-channel-refs.ts
-var path25 = __toESM(require_path_browserify(), 1);
+var path26 = __toESM(require_path_browserify(), 1);
 function replaceChannelRefs(obj, fromDir, channelsFiles) {
   if (!isPlainObject(obj) && !Array.isArray(obj)) return;
   if (Array.isArray(obj)) {
@@ -56376,7 +56306,7 @@ function replaceChannelRefs(obj, fromDir, channelsFiles) {
       const rest = slashIdx === -1 ? "" : afterChannels.slice(slashIdx);
       const channelFile = channelsFiles[channelName];
       if (channelFile) {
-        const relative11 = slash(path25.relative(fromDir, channelFile));
+        const relative11 = slash(path26.relative(fromDir, channelFile));
         obj[key] = rest ? `${relative11}#${rest}` : relative11;
       }
     } else {
@@ -56409,14 +56339,14 @@ function iterateAsyncApiComponents({
   const components = asyncapi.components;
   if (components) {
     let iterateComponentTypes = function(componentType) {
-      const componentDirPath = path26.join(componentsDir, componentType);
+      const componentDirPath = path27.join(componentsDir, componentType);
       createComponentDir(componentDirPath, componentType);
       for (const componentName of Object.keys(components?.[componentType] || {})) {
         const filename = getFileNamePath(componentDirPath, componentName, ext);
         assertWithinDir(asyncapiDir, filename, componentName);
         const componentData = components?.[componentType]?.[componentName];
-        replace$Refs2(componentData, path26.dirname(filename), componentsFiles);
-        replaceChannelRefs(componentData, path26.dirname(filename), channelsFiles);
+        replace$Refs2(componentData, path27.dirname(filename), componentsFiles);
+        replaceChannelRefs(componentData, path27.dirname(filename), channelsFiles);
         if (doesFileDiffer(filename, componentData)) {
           logger.warn(
             `warning: conflict for ${componentName} - file already exists with different content: ${blue(
@@ -56431,7 +56361,7 @@ function iterateAsyncApiComponents({
       }
       removeAsyncApiEmptyComponents(asyncapi, componentType);
     };
-    const componentsDir = path26.join(asyncapiDir, COMPONENTS);
+    const componentsDir = path27.join(asyncapiDir, COMPONENTS);
     mkdirSync(componentsDir, { recursive: true });
     const componentTypes = findAsyncApiComponentTypes(components, specVersion);
     componentTypes.forEach(iterateComponentTypes);
@@ -56439,7 +56369,7 @@ function iterateAsyncApiComponents({
 }
 
 // vendor/redocly-cli/commands/split/asyncapi/iterate-asyncapi-operations.ts
-var path27 = __toESM(require_path_browserify(), 1);
+var path28 = __toESM(require_path_browserify(), 1);
 function iterateAsyncApiOperations({
   operations,
   asyncapiDir,
@@ -56452,18 +56382,18 @@ function iterateAsyncApiOperations({
   if (!operations) return;
   mkdirSync(outDir, { recursive: true });
   for (const operationName of Object.keys(operations)) {
-    const operationFile = `${path27.join(
+    const operationFile = `${path28.join(
       outDir,
       pathToFilename(operationName, pathSeparator)
     )}.${ext}`;
     const operationData = operations[operationName];
     if (isRef(operationData)) continue;
     assertWithinDir(asyncapiDir, operationFile, operationName);
-    replace$Refs2(operationData, path27.dirname(operationFile), componentsFiles);
-    replaceChannelRefs(operationData, path27.dirname(operationFile), channelsFiles);
+    replace$Refs2(operationData, path28.dirname(operationFile), componentsFiles);
+    replaceChannelRefs(operationData, path28.dirname(operationFile), channelsFiles);
     writeToFileByExtension(operationData, operationFile);
     operations[operationName] = {
-      $ref: slash(path27.relative(asyncapiDir, operationFile))
+      $ref: slash(path28.relative(asyncapiDir, operationFile))
     };
     traverseDirectoryDeep(outDir, traverseDirectoryDeepCallback, componentsFiles);
   }
@@ -56484,7 +56414,7 @@ function splitAsyncApiDefinition({
   const channelsFiles = channels ? iterateAsyncApiChannels({
     channels,
     asyncapiDir,
-    outDir: path28.join(asyncapiDir, CHANNELS),
+    outDir: path29.join(asyncapiDir, CHANNELS),
     componentsFiles,
     pathSeparator,
     ext
@@ -56501,7 +56431,7 @@ function splitAsyncApiDefinition({
     iterateAsyncApiOperations({
       operations: asyncapi.operations,
       asyncapiDir,
-      outDir: path28.join(asyncapiDir, OPERATIONS),
+      outDir: path29.join(asyncapiDir, OPERATIONS),
       componentsFiles,
       channelsFiles,
       pathSeparator,
@@ -56509,19 +56439,19 @@ function splitAsyncApiDefinition({
     });
   }
   replace$Refs2(asyncapi, asyncapiDir, componentsFiles);
-  writeToFileByExtension(asyncapi, path28.join(asyncapiDir, `asyncapi.${ext}`));
+  writeToFileByExtension(asyncapi, path29.join(asyncapiDir, `asyncapi.${ext}`));
 }
 
 // vendor/redocly-cli/commands/split/oas/split-oas-definition.ts
-var path33 = __toESM(require_path_browserify(), 1);
+var path34 = __toESM(require_path_browserify(), 1);
 
 // vendor/redocly-cli/commands/split/utils/iterate-components.ts
-var path31 = __toESM(require_path_browserify(), 1);
+var path32 = __toESM(require_path_browserify(), 1);
 
 // vendor/redocly-cli/commands/split/utils/extract-filename-from-path.ts
-var path29 = __toESM(require_path_browserify(), 1);
+var path30 = __toESM(require_path_browserify(), 1);
 function extractFileNameFromPath(filename) {
-  return path29.basename(filename, path29.extname(filename));
+  return path30.basename(filename, path30.extname(filename));
 }
 
 // vendor/redocly-cli/commands/split/utils/find-component-type.ts
@@ -56543,14 +56473,14 @@ function gatherComponentsFiles(components, componentsFiles, componentType, compo
 }
 
 // vendor/redocly-cli/commands/split/utils/implicitly-reference-discriminator.ts
-var path30 = __toESM(require_path_browserify(), 1);
+var path31 = __toESM(require_path_browserify(), 1);
 function implicitlyReferenceDiscriminator(obj, defName, filename, schemaFiles) {
   if (!obj.discriminator) return;
   const defPtr = `#/${COMPONENTS}/${"schemas"}/${defName}`;
   const implicitMapping = {};
   for (const [name, { inherits, filename: parentFilename }] of Object.entries(schemaFiles)) {
     if (inherits.indexOf(defPtr) > -1) {
-      const res = slash(path30.relative(path30.dirname(filename), parentFilename));
+      const res = slash(path31.relative(path31.dirname(filename), parentFilename));
       implicitMapping[name] = res.startsWith(".") ? res : "./" + res;
     }
   }
@@ -56588,19 +56518,19 @@ function iterateComponents(openapi, openapiDir, componentsFiles, ext) {
   const { components } = openapi;
   if (components) {
     let iterateAndGatherComponentsFiles = function(componentType) {
-      const componentDirPath = path31.join(componentsDir, componentType);
+      const componentDirPath = path32.join(componentsDir, componentType);
       for (const componentName of Object.keys(components?.[componentType] || {})) {
         const filename = getFileNamePath(componentDirPath, componentName, ext);
         assertWithinDir(openapiDir, filename, componentName);
         gatherComponentsFiles(components, componentsFiles, componentType, componentName, filename);
       }
     }, iterateComponentTypes = function(componentType) {
-      const componentDirPath = path31.join(componentsDir, componentType);
+      const componentDirPath = path32.join(componentsDir, componentType);
       createComponentDir(componentDirPath, componentType);
       for (const componentName of Object.keys(components?.[componentType] || {})) {
         const filename = getFileNamePath(componentDirPath, componentName, ext);
         const componentData = components?.[componentType]?.[componentName];
-        replace$Refs2(componentData, path31.dirname(filename), componentsFiles);
+        replace$Refs2(componentData, path32.dirname(filename), componentsFiles);
         implicitlyReferenceDiscriminator(
           componentData,
           extractFileNameFromPath(filename),
@@ -56623,7 +56553,7 @@ function iterateComponents(openapi, openapiDir, componentsFiles, ext) {
       }
       removeEmptyComponents(openapi, componentType);
     };
-    const componentsDir = path31.join(openapiDir, COMPONENTS);
+    const componentsDir = path32.join(openapiDir, COMPONENTS);
     mkdirSync(componentsDir, { recursive: true });
     const componentTypes = findComponentTypes(components);
     componentTypes.forEach(iterateAndGatherComponentsFiles);
@@ -56632,12 +56562,12 @@ function iterateComponents(openapi, openapiDir, componentsFiles, ext) {
 }
 
 // vendor/redocly-cli/commands/split/utils/iterate-path-items.ts
-var path32 = __toESM(require_path_browserify(), 1);
+var path33 = __toESM(require_path_browserify(), 1);
 function iteratePathItems(pathItems, openapiDir, outDir, componentsFiles, pathSeparator, codeSamplesPathPrefix = "", ext) {
   if (!pathItems) return;
   mkdirSync(outDir, { recursive: true });
   for (const pathName of Object.keys(pathItems)) {
-    const pathFile = `${path32.join(outDir, pathToFilename(pathName, pathSeparator))}.${ext}`;
+    const pathFile = `${path33.join(outDir, pathToFilename(pathName, pathSeparator))}.${ext}`;
     const pathData = pathItems[pathName];
     if (isRef(pathData)) continue;
     assertWithinDir(openapiDir, pathFile, pathName);
@@ -56649,7 +56579,7 @@ function iteratePathItems(pathItems, openapiDir, outDir, componentsFiles, pathSe
       }
       for (const sample of methodDataXCode) {
         if (sample.source && sample.source.$ref) continue;
-        const sampleFileName = path32.join(
+        const sampleFileName = path33.join(
           openapiDir,
           "code_samples",
           escapeLanguageName(sample.lang),
@@ -56657,16 +56587,16 @@ function iteratePathItems(pathItems, openapiDir, outDir, componentsFiles, pathSe
           method + langToExt(sample.lang)
         );
         assertWithinDir(openapiDir, sampleFileName, sample.lang);
-        mkdirSync(path32.dirname(sampleFileName), { recursive: true });
+        mkdirSync(path33.dirname(sampleFileName), { recursive: true });
         writeFileSync(sampleFileName, sample.source);
         sample.source = {
-          $ref: slash(path32.relative(outDir, sampleFileName))
+          $ref: slash(path33.relative(outDir, sampleFileName))
         };
       }
     }
     writeToFileByExtension(pathData, pathFile);
     pathItems[pathName] = {
-      $ref: slash(path32.relative(openapiDir, pathFile))
+      $ref: slash(path33.relative(openapiDir, pathFile))
     };
     traverseDirectoryDeep(outDir, traverseDirectoryDeepCallback, componentsFiles);
   }
@@ -56680,7 +56610,7 @@ function splitOASDefinition(openapi, openapiDir, pathSeparator, ext) {
   iteratePathItems(
     openapi.paths,
     openapiDir,
-    path33.join(openapiDir, "paths"),
+    path34.join(openapiDir, "paths"),
     componentsFiles,
     pathSeparator,
     void 0,
@@ -56690,14 +56620,14 @@ function splitOASDefinition(openapi, openapiDir, pathSeparator, ext) {
   iteratePathItems(
     webhooks,
     openapiDir,
-    path33.join(openapiDir, "webhooks"),
+    path34.join(openapiDir, "webhooks"),
     componentsFiles,
     pathSeparator,
     "webhook_",
     ext
   );
   replace$Refs2(openapi, openapiDir, componentsFiles);
-  writeToFileByExtension(openapi, path33.join(openapiDir, `openapi.${ext}`));
+  writeToFileByExtension(openapi, path34.join(openapiDir, `openapi.${ext}`));
 }
 
 // vendor/redocly-cli/commands/split/index.ts
@@ -56742,18 +56672,14 @@ async function handleSplit({ argv, collectSpecData }) {
 }
 
 // src/api/split.js
-var path34 = __toESM(require_path_browserify(), 1);
+var path35 = __toESM(require_path_browserify(), 1);
 async function runSplit(opts) {
-  const api = path34.resolve(opts.cwd, opts.api);
-  const outDir = path34.resolve(opts.cwd, opts.outDir);
-  startCapture();
-  let log;
-  try {
-    await handleSplit({ argv: { api, outDir, separator: opts.separator || "_" }, version: "" });
-  } finally {
-    log = stopCapture();
-  }
-  return { api, outDir, output: log };
+  const api = path35.resolve(opts.cwd, opts.api);
+  const outDir = path35.resolve(opts.cwd, opts.outDir);
+  const { output } = await captureOutput(
+    () => handleSplit({ argv: { api, outDir, separator: opts.separator || "_" }, version: "" })
+  );
+  return { api, outDir, output };
 }
 
 // vendor/redocly-cli/commands/score/constants.ts
@@ -57061,9 +56987,9 @@ function createScoreAccumulator(walkSchema, anyOfPenaltyMultiplier, debugOperati
     debugLogs: []
   };
 }
-function createOperationContext(path35, method, operation) {
+function createOperationContext(path36, method, operation) {
   return {
-    path: path35,
+    path: path36,
     method,
     operationId: operation.operationId,
     operationDescriptionPresent: !!operation.description,
@@ -57237,17 +57163,17 @@ function createScoreVisitor(accumulator) {
 function getDocumentMetrics(accumulator) {
   return { operationCount: accumulator.operations.size, operations: accumulator.operations };
 }
-function resolveParam(raw, resolve12) {
-  return resolve12(raw).node;
+function resolveParam(raw, resolve13) {
+  return resolve13(raw).node;
 }
-function mergeParameters(pathLevel, opLevel, resolve12) {
+function mergeParameters(pathLevel, opLevel, resolve13) {
   const merged = /* @__PURE__ */ new Map();
   for (const raw of pathLevel) {
-    const p2 = resolveParam(raw, resolve12);
+    const p2 = resolveParam(raw, resolve13);
     if (p2?.name && p2.in) merged.set(`${p2.in}:${p2.name}`, p2);
   }
   for (const raw of opLevel) {
-    const p2 = resolveParam(raw, resolve12);
+    const p2 = resolveParam(raw, resolve13);
     if (p2?.name && p2.in) merged.set(`${p2.in}:${p2.name}`, p2);
   }
   return merged;
@@ -57813,9 +57739,9 @@ function getHotspotReasons(metrics, dependencyDepth, constants) {
 
 // vendor/redocly-cli/commands/score/index.ts
 async function handleScore({ argv, config, collectSpecData }) {
-  const [{ path: path35 }] = await getFallbackApisOrExit(argv.api ? [argv.api] : [], config);
+  const [{ path: path36 }] = await getFallbackApisOrExit(argv.api ? [argv.api] : [], config);
   const externalRefResolver = new BaseResolver(config.resolve);
-  const { bundle: document } = await bundle({ config, ref: path35 });
+  const { bundle: document } = await bundle({ config, ref: path36 });
   collectSpecData?.(document);
   const specVersion = detectSpec(document.parsed);
   if (getMajorSpecVersion(specVersion) !== "oas3") {
@@ -57854,17 +57780,18 @@ async function handleScore({ argv, config, collectSpecData }) {
   };
   printScore(
     result,
-    path35,
+    path36,
     startedAt,
     argv.format,
     !!argv["operation-details"],
     debugOpId ? { operationId: debugOpId, logs: debugLogs } : void 0
   );
+  return result;
 }
-function printScore(result, api, startedAt, format, operationDetails, debugData) {
+function printScore(result, api, startedAt, format2, operationDetails, debugData) {
   logger.info(`Document: ${magenta(api)} score:
 `);
-  switch (format) {
+  switch (format2) {
     case "json":
       printScoreJson(result);
       break;
@@ -57883,24 +57810,27 @@ function printScore(result, api, startedAt, format, operationDetails, debugData)
 async function runScore(opts) {
   const config = await loadProjectConfig({ configPath: opts.configPath });
   const configLint = await lintConfigFile(config, { severity: opts.lintConfig, maxProblems: opts.maxProblems, cwd: opts.cwd });
-  const format = opts.format || "stylish";
-  const results = [];
-  for (const { path: path35, alias } of resolveApis(config, opts.apis, opts.cwd)) {
-    startCapture();
-    let output;
-    try {
-      await handleScore({
-        argv: { api: path35, format, "operation-details": !!opts.operationDetails },
+  const format2 = opts.format || "stylish";
+  if (configLint?.totals.errors > 0) return { configLint, format: format2, apis: [] };
+  const apis = [];
+  for (const { path: path36, alias } of resolveApis(config, opts.apis, opts.cwd)) {
+    const { output, value: result } = await captureOutput(
+      () => handleScore({
+        argv: { api: path36, format: format2, "operation-details": !!opts.operationDetails },
         config: config.forAlias(alias),
         version: ""
-      });
-    } finally {
-      output = stopCapture();
-    }
+      })
+    );
     const body = stripWrapper(output, "score");
-    results.push({ path: path35, alias, output: body, score: format === "json" ? JSON.parse(body) : null });
+    apis.push({
+      path: path36,
+      alias,
+      output: body,
+      agentReadiness: result.agentReadiness,
+      score: format2 === "json" ? parseJsonOutput(body, "score", path36) : null
+    });
   }
-  return { configLint, format, apis: results };
+  return { configLint, format: format2, apis };
 }
 
 // src/index.js
@@ -57936,7 +57866,6 @@ async function run(command, optionsJson) {
   }
 }
 export {
-  drainTimers,
   run,
   version
 };

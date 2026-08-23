@@ -3,13 +3,15 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "build": "node build.mjs"
   },
   "dependencies": {
     "@redocly/openapi-core": "2.47.0",
     "buffer": "^6.0.3",
-    "outdent": "^0.8.0",
     "path-browserify": "^1.0.1"
   },
   "devDependencies": {

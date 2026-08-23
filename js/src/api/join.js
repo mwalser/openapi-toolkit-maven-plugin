@@ -1,6 +1,6 @@
 import { handleJoin } from '../../vendor/redocly-cli/commands/join/index.js';
 import * as path from 'node:path';
-import { startCapture, stopCapture } from '../polyfills.js';
+import { captureOutput } from '../polyfills.js';
 import { lintConfigFile, loadProjectConfig, resolveApis } from './common.js';
 
 /**
@@ -13,15 +13,15 @@ import { lintConfigFile, loadProjectConfig, resolveApis } from './common.js';
 export async function runJoin(opts) {
   const config = await loadProjectConfig({ configPath: opts.configPath });
   const configLint = await lintConfigFile(config, { severity: opts.lintConfig, maxProblems: opts.maxProblems, cwd: opts.cwd });
-  const apis = resolveApis(config, opts.apis, opts.cwd);
-  const output = path.resolve(opts.cwd, opts.output);
-  startCapture();
-  let log;
-  try {
-    await handleJoin({
+  const outputFile = path.resolve(opts.cwd, opts.output);
+  if (configLint?.totals.errors > 0) return { configLint, apis: [], outputFile, output: '' };
+
+  const apis = resolveApis(config, opts.apis, opts.cwd).map(({ path: p, alias }) => ({ path: p, alias }));
+  const { output } = await captureOutput(() =>
+    handleJoin({
       argv: {
         apis: opts.apis,
-        output,
+        output: outputFile,
         'prefix-tags-with-info-prop': opts.prefixTagsWithInfoProp,
         'prefix-tags-with-filename': opts.prefixTagsWithFilename,
         'prefix-components-with-info-prop': opts.prefixComponentsWithInfoProp,
@@ -29,9 +29,7 @@ export async function runJoin(opts) {
       },
       config,
       version: '',
-    });
-  } finally {
-    log = stopCapture();
-  }
-  return { configLint, apis: apis.map(({ path: p, alias }) => ({ path: p, alias })), outputFile: output, output: log };
+    }),
+  );
+  return { configLint, apis, outputFile, output };
 }

@@ -9,17 +9,19 @@ import org.graalvm.polyglot.Value
 import org.graalvm.polyglot.proxy.ProxyExecutable
 import java.io.InputStreamReader
 import java.nio.charset.StandardCharsets
-import java.nio.file.Path
+import java.util.concurrent.Callable
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.locks.ReentrantLock
-import kotlin.concurrent.withLock
+import java.util.concurrent.ExecutionException
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 
 /**
  * Hosts the embedded Redocly JavaScript bundle in a GraalJS context and runs commands against it.
  *
  * A runtime is expensive to create (the bundle has to be evaluated), so [shared] keeps one instance per
- * [EngineMode] for the lifetime of the JVM. Instances are thread-safe; calls are serialized because a
- * JavaScript context is single-threaded.
+ * [EngineMode] for the lifetime of the JVM. Every interaction with the context happens on one dedicated
+ * thread, which serializes callers (a JavaScript context is single-threaded) and provides the deep stack
+ * that resolving long `$ref` chains needs.
  */
 class RedoclyRuntime private constructor(
     /** The engine that is actually in use after resolving [EngineMode.AUTO]. */
@@ -28,115 +30,140 @@ class RedoclyRuntime private constructor(
     private val context: Context,
     private val bridge: HostBridge,
     module: Value,
+    private val jsThread: ExecutorService,
 ) : AutoCloseable {
 
     enum class EffectiveEngine { JIT, ISOLATE, INTERPRETER }
 
-    private val lock = ReentrantLock()
-    private val drainTimers: Value = module.getMember("drainTimers")
     private val run: Value = module.getMember("run")
 
     /** Version of `@redocly/openapi-core` embedded in the bundle. */
     val redoclyVersion: String = module.getMember("version").execute().asString()
 
     /**
-     * Runs a command of the JavaScript API layer. [options] is serialized to JSON, the result is
-     * deserialized into [resultType]. Logging produced while the command runs goes to [log].
+     * Runs a command of the JavaScript API layer. [options] is serialized to JSON, the result is deserialized
+     * into [resultType]. Relative paths are resolved against [CommandOptions.cwd]; logging produced while the
+     * command runs goes to [log].
      */
-    fun <T> run(command: String, options: Any, resultType: Class<T>, workingDirectory: Path, log: JsLog): T = lock.withLock {
-        bridge.log = log
-        bridge.workingDirectory = workingDirectory.toAbsolutePath().normalize()
-        try {
-            val optionsJson = Json.mapper.writeValueAsString(options)
-            val promise = try {
-                run.execute(command, optionsJson)
-            } catch (e: PolyglotException) {
-                throw toException(e)
+    fun <T> run(command: String, options: CommandOptions, resultType: Class<T>, log: JsLog, network: NetworkConfig = NetworkConfig()): T =
+        jsThread.call {
+            bridge.log = log
+            bridge.workingDirectory = JsPaths.toHostPath(options.cwd).toAbsolutePath().normalize()
+            bridge.network = network
+            try {
+                val promise = guest { run.execute(command, Json.mapper.writeValueAsString(options)) }
+                Json.mapper.readValue(settledValue(promise).asString(), resultType)
+            } finally {
+                bridge.log = JsLog.SILENT
             }
-            val resultJson = await(promise).asString()
-            Json.mapper.readValue(resultJson, resultType)
-        } finally {
-            bridge.log = JsLog.SILENT
         }
-    }
 
-    inline fun <reified T> run(command: String, options: Any, workingDirectory: Path, log: JsLog): T =
-        run(command, options, T::class.java, workingDirectory, log)
+    inline fun <reified T> run(command: String, options: CommandOptions, log: JsLog, network: NetworkConfig = NetworkConfig()): T =
+        run(command, options, T::class.java, log, network)
 
-    /** Blocks until the promise settles. Queued timers are drained between microtask checkpoints. */
-    private fun await(promise: Value): Value {
-        var result: Value? = null
-        var rejection: Value? = null
-        var settled = false
+    /**
+     * Unwraps the promise returned by `run`. It has settled by the time `execute` returns: the bundle has no
+     * event loop, and its only timer — openapi-core's stack-unwinding `setTimeout` — is a microtask (see
+     * `js/src/polyfills.js`), so GraalJS drains every pending callback before control returns to the host.
+     */
+    private fun settledValue(promise: Value): Value {
+        var outcome: Value? = null
+        var rejected = false
         promise.invokeMember(
             "then",
-            ProxyExecutable { args -> result = args[0]; settled = true; null },
-            ProxyExecutable { args -> rejection = args[0]; settled = true; null },
+            ProxyExecutable { args -> outcome = args[0]; null },
+            ProxyExecutable { args -> outcome = args[0]; rejected = true; null },
         )
-        while (!settled) {
-            val ran = try {
-                drainTimers.execute().asInt()
-            } catch (e: PolyglotException) {
-                throw toException(e)
-            }
-            if (ran == 0 && !settled) {
-                throw RedoclyException("Internal error: the JavaScript promise never settled (no pending timers)")
-            }
-        }
-        rejection?.let { throw toException(it) }
-        return result!!
+        val value = outcome ?: throw RedoclyException("Internal error: the JavaScript promise did not settle")
+        if (rejected) throw toException(value)
+        return value
     }
 
-    private fun toException(value: Value): RedoclyException {
-        if (value.isString) return RedoclyException(value.asString())
-        val name = value.takeIf { it.hasMember("name") }?.getMember("name")?.takeIf { it.isString }?.asString()
-        val message = value.takeIf { it.hasMember("message") }?.getMember("message")?.takeIf { it.isString }?.asString()
-        val stack = value.takeIf { it.hasMember("stack") }?.getMember("stack")?.takeIf { it.isString }?.asString()
-        return RedoclyException(message ?: value.toString(), jsName = name, jsStack = stack)
+    private inline fun <T> guest(body: () -> T): T = try {
+        body()
+    } catch (e: PolyglotException) {
+        throw toException(e)
     }
 
-    private fun toException(e: PolyglotException): RedoclyException =
-        if (e.isGuestException && e.guestObject != null) toException(e.guestObject).also { it.initCause(e) }
-        else RedoclyException(e.message ?: "JavaScript error", cause = e)
+    private fun toException(e: PolyglotException): RedoclyException = when {
+        e.isGuestException && e.guestObject != null -> toException(e.guestObject).also { it.initCause(e) }
+        e.isHostException -> RedoclyException(e.message ?: "JavaScript error", cause = e.asHostException())
+        else -> RedoclyException(e.message ?: "JavaScript error", cause = e)
+    }
+
+    /** Converts a rejection value (`{ name, message, stack, details }` from `run`, or anything thrown) to an exception. */
+    private fun toException(error: Value): RedoclyException {
+        if (error.isString) return RedoclyException(error.asString())
+        val message = error.stringMember("message") ?: error.toString()
+        val output = error.member("details")?.stringMember("output")?.trimEnd().orEmpty()
+        return RedoclyException(
+            message = if (output.isEmpty()) message else "$output\n$message",
+            jsName = error.stringMember("name"),
+            jsStack = error.stringMember("stack"),
+        )
+    }
 
     override fun close() {
-        lock.withLock {
+        jsThread.call {
             context.close(true)
             engine.close(true)
         }
+        jsThread.shutdown()
     }
 
     companion object {
         private const val BUNDLE_RESOURCE = "redocly-core.mjs"
+
+        /** GraalJS recursion depth is bounded by the thread stack; Maven's 1 MB main thread allows only ~700 frames. */
+        private const val JS_THREAD_STACK_BYTES = 256L * 1024 * 1024
+
         // Intentionally never closed: the runtime lives as long as the plugin classloader (a shutdown hook cannot
         // run safely because Maven disposes the plugin realm before JVM exit; the OS reclaims the resources).
         private val sharedRuntimes = ConcurrentHashMap<EngineMode, RedoclyRuntime>()
 
         /** Returns the JVM-wide runtime for [mode], creating it on first use. */
+        @JvmStatic
         fun shared(mode: EngineMode, diagnostics: JsLog = JsLog.SILENT): RedoclyRuntime =
             sharedRuntimes.computeIfAbsent(mode) { create(it, diagnostics) }
 
         /** Creates a new, independent runtime. Prefer [shared] unless isolation is required. */
+        @JvmStatic
         fun create(mode: EngineMode, diagnostics: JsLog = JsLog.SILENT): RedoclyRuntime {
-            val (effective, engine) = createEngine(mode, diagnostics)
-            val bridge = HostBridge()
-            val contextBuilder = Context.newBuilder("js")
-                .engine(engine)
-                .option("js.esm-eval-returns-exports", "true")
-            if (effective == EffectiveEngine.ISOLATE) {
-                contextBuilder.allowHostAccess(HostAccess.SCOPED)
+            val jsThread = Executors.newSingleThreadExecutor { task ->
+                Thread(null, task, "openapi-toolkit-js", JS_THREAD_STACK_BYTES).apply { isDaemon = true }
             }
-            val context = contextBuilder.build()
+            val runtime = try {
+                jsThread.call { initialize(mode, diagnostics, jsThread) }
+            } catch (e: Exception) {
+                jsThread.shutdown()
+                throw e
+            }
+            diagnostics.info("Redocly ${runtime.redoclyVersion} - JavaScript engine: ${describe(runtime.effectiveEngine)}")
+            return runtime
+        }
+
+        /** Builds engine and context and evaluates the bundle; runs on the JavaScript thread. */
+        private fun initialize(mode: EngineMode, diagnostics: JsLog, jsThread: ExecutorService): RedoclyRuntime {
+            val effective = resolve(mode)
+            diagnostics.debug("Redocly engine mode $mode resolved to $effective")
+            val engine = buildEngine(effective)
             try {
+                val context = Context.newBuilder("js")
+                    .engine(engine)
+                    .allowHostAccess(HostAccess.NONE)
+                    .option("js.esm-eval-returns-exports", "true")
+                    .option("js.performance", "true")
+                    .option("js.print", "false")
+                    .option("js.load", "false")
+                    .build()
+                val bridge = HostBridge()
                 context.getBindings("js").putMember("__jvm", bridge.asProxy())
                 val module = context.eval(loadBundle())
-                val runtime = RedoclyRuntime(effective, engine, context, bridge, module)
-                diagnostics.info("Redocly ${runtime.redoclyVersion} - JavaScript engine: ${describe(effective)}")
-                return runtime
-            } catch (e: PolyglotException) {
-                context.close(true)
+                return RedoclyRuntime(effective, engine, context, bridge, module, jsThread)
+            } catch (e: Exception) {
                 engine.close(true)
-                throw RedoclyException("Failed to initialize the embedded Redocly bundle: ${e.message}", cause = e)
+                if (e is PolyglotException) throw RedoclyException("Failed to initialize the embedded Redocly bundle: ${e.message}", cause = e)
+                throw e
             }
         }
 
@@ -146,12 +173,11 @@ class RedoclyRuntime private constructor(
          */
         fun isIsolatePresent(): Boolean {
             val loader = RedoclyRuntime::class.java.classLoader ?: ClassLoader.getSystemClassLoader()
-            val services = loader.getResources("META-INF/services/com.oracle.truffle.api.provider.InternalResourceProvider")
-            for (url in services) {
+            val registrations = loader.getResources("META-INF/services/com.oracle.truffle.api.provider.InternalResourceProvider")
+            return registrations.asSequence().any { url ->
                 val providers = url.openStream().bufferedReader(StandardCharsets.UTF_8).use { it.readText() }
-                if (providers.lineSequence().any { it.contains("isolate") && it.contains(".js.") }) return true
+                providers.lineSequence().any { it.contains("isolate") && it.contains(".js.") }
             }
-            return false
         }
 
         /** The platform suffix of the isolate artifact matching this JVM, e.g. `linux-amd64`. */
@@ -162,41 +188,44 @@ class RedoclyRuntime private constructor(
                 osName.contains("mac") || osName.contains("darwin") -> "darwin"
                 else -> "linux"
             }
-            val arch = when (System.getProperty("os.arch", "").lowercase()) {
+            val arch = when (val archName = System.getProperty("os.arch", "unknown").lowercase()) {
                 "amd64", "x86_64" -> "amd64"
                 "aarch64", "arm64" -> "aarch64"
-                else -> System.getProperty("os.arch", "unknown")
+                else -> archName
             }
             return "$os-$arch"
         }
 
-        private fun createEngine(mode: EngineMode, diagnostics: JsLog): Pair<EffectiveEngine, Engine> {
-            val effective = when (mode) {
-                EngineMode.INTERPRETER -> EffectiveEngine.INTERPRETER
-                EngineMode.ISOLATE -> EffectiveEngine.ISOLATE
-                EngineMode.AUTO -> when {
-                    Engine.supportsCompilation() -> EffectiveEngine.JIT
-                    isIsolatePresent() -> EffectiveEngine.ISOLATE
-                    else -> EffectiveEngine.INTERPRETER
-                }
+        private fun resolve(mode: EngineMode): EffectiveEngine = when (mode) {
+            EngineMode.INTERPRETER -> EffectiveEngine.INTERPRETER
+            EngineMode.ISOLATE -> EffectiveEngine.ISOLATE
+            EngineMode.AUTO -> when {
+                Engine.supportsCompilation() -> EffectiveEngine.JIT
+                isIsolatePresent() -> EffectiveEngine.ISOLATE
+                else -> EffectiveEngine.INTERPRETER
             }
-            diagnostics.debug("Redocly engine mode $mode resolved to $effective")
-            val engine = try {
-                newEngineBuilder(isolate = effective == EffectiveEngine.ISOLATE).build()
+        }
+
+        private fun buildEngine(effective: EffectiveEngine): Engine {
+            val builder = Engine.newBuilder("js").option("engine.WarnInterpreterOnly", "false")
+            if (effective == EffectiveEngine.ISOLATE) builder.spawnIsolate(true)
+            return try {
+                builder.build()
             } catch (e: Exception) {
-                if (effective == EffectiveEngine.ISOLATE) {
-                    val hint = if (isIsolatePresent()) {
-                        "A JavaScript polyglot isolate is on the classpath but could not be started. Check that the artifact matches " +
-                            "this platform (expected org.graalvm.polyglot:js-isolate-${isolatePlatform()}-community) or remove it to fall back to the interpreter."
-                    } else {
-                        "No JavaScript polyglot isolate is on the classpath. Add org.graalvm.polyglot:js-isolate-${isolatePlatform()}-community " +
-                            "as a dependency of the plugin."
-                    }
-                    throw RedoclyException("$hint Cause: ${e.message}", cause = e)
-                }
-                throw RedoclyException("Failed to create the JavaScript engine: ${e.message}", cause = e)
+                throw RedoclyException(engineFailureMessage(effective, e), cause = e)
             }
-            return effective to engine
+        }
+
+        private fun engineFailureMessage(effective: EffectiveEngine, failure: Exception): String {
+            val artifact = "org.graalvm.polyglot:js-isolate-${isolatePlatform()}-community"
+            val problem = when {
+                effective != EffectiveEngine.ISOLATE -> "Failed to create the JavaScript engine."
+                isIsolatePresent() ->
+                    "A JavaScript polyglot isolate is on the classpath but could not be started. Check that the artifact matches " +
+                        "this platform (expected $artifact) or remove it to fall back to the interpreter."
+                else -> "No JavaScript polyglot isolate is on the classpath. Add $artifact as a dependency of the plugin."
+            }
+            return "$problem Cause: ${failure.message}"
         }
 
         private fun describe(engine: EffectiveEngine): String = when (engine) {
@@ -206,24 +235,11 @@ class RedoclyRuntime private constructor(
                 "GraalJS interpreter (add org.graalvm.polyglot:js-isolate-${isolatePlatform()}-community to the plugin dependencies for faster runs)"
         }
 
-        private fun newEngineBuilder(isolate: Boolean): Engine.Builder {
-            val builder = Engine.newBuilder("js")
-                .option("engine.WarnInterpreterOnly", "false")
-            if (isolate) {
-                builder.spawnIsolate(true)
-            }
-            if (isolate || Engine.supportsCompilation()) {
-                // one-shot workloads: favor fast warm-up over peak performance
-                builder.option("engine.Mode", "latency")
-            }
-            return builder
-        }
-
         private fun loadBundle(): Source {
             val stream = RedoclyRuntime::class.java.getResourceAsStream(BUNDLE_RESOURCE)
                 ?: throw RedoclyException("Embedded bundle $BUNDLE_RESOURCE not found on the classpath")
-            InputStreamReader(stream, StandardCharsets.UTF_8).use { reader ->
-                return Source.newBuilder("js", reader, BUNDLE_RESOURCE)
+            return InputStreamReader(stream, StandardCharsets.UTF_8).use { reader ->
+                Source.newBuilder("js", reader, BUNDLE_RESOURCE)
                     .mimeType("application/javascript+module")
                     .cached(true)
                     .build()
@@ -231,3 +247,14 @@ class RedoclyRuntime private constructor(
         }
     }
 }
+
+/** Runs [action] on this executor and rethrows its failure unwrapped. */
+private fun <T> ExecutorService.call(action: () -> T): T = try {
+    submit(Callable(action)).get()
+} catch (e: ExecutionException) {
+    throw e.cause ?: e
+}
+
+private fun Value.member(name: String): Value? = if (hasMember(name)) getMember(name) else null
+
+private fun Value.stringMember(name: String): String? = member(name)?.takeIf { it.isString }?.asString()

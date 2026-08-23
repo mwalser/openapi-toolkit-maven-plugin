@@ -1,0 +1,4 @@
+extends: [minimal]
+apis:
+  bundled:
+    root: openapi.yaml

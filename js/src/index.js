@@ -1,5 +1,4 @@
-import './polyfills.js';
-import { setCwd, drainTimers } from './polyfills.js';
+import { setCwd } from './polyfills.js';
 import { runLint } from './api/lint.js';
 import { runBundle } from './api/bundle.js';
 import { runCheckConfig } from './api/check-config.js';
@@ -17,8 +16,6 @@ const COMMANDS = {
   split: runSplit,
   score: runScore,
 };
-
-export { drainTimers };
 
 export function version() {
   return __REDOCLY_VERSION__;

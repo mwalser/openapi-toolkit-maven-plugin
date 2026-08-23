@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lifecycleMappingMetadata>
+  <pluginExecutions>
+    <pluginExecution>
+      <pluginExecutionFilter>
+        <goals>
+          <goal>lint</goal>
+          <goal>check-config</goal>
+          <goal>stats</goal>
+          <goal>score</goal>
+        </goals>
+      </pluginExecutionFilter>
+      <action><ignore/></action>
+    </pluginExecution>
+    <pluginExecution>
+      <pluginExecutionFilter><goals><goal>bundle</goal></goals></pluginExecutionFilter>
+      <action><execute><runOnIncremental>false</runOnIncremental></execute></action>
+    </pluginExecution>
+  </pluginExecutions>
+</lifecycleMappingMetadata>
