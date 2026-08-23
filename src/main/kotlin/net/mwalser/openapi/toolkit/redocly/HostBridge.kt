@@ -89,7 +89,7 @@ internal class HostBridge(
         val request = HttpRequest.newBuilder(URI(url))
             .timeout(Duration.ofSeconds(60))
             .method(method, if (body == null) HttpRequest.BodyPublishers.noBody() else HttpRequest.BodyPublishers.ofString(body))
-        Json.mapper.readTree(headersJson).fields().forEach { (name, value) -> request.header(name, value.asText()) }
+        Json.mapper.readTree(headersJson).properties().forEach { (name, value) -> request.header(name, value.asText()) }
         val response = httpClient.send(request.build(), HttpResponse.BodyHandlers.ofString())
         val headers = response.headers().map().mapValues { (_, v) -> v.joinToString(", ") }
         return ProxyObject.fromMap(

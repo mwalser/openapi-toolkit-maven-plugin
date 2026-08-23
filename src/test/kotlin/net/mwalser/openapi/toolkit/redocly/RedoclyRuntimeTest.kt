@@ -90,8 +90,9 @@ class RedoclyRuntimeTest {
         assertNull(result.configLint)
         assertNull(result.apis.single().alias)
         assertTrue(result.totals.errors + result.totals.warnings > 0)
-        assertContains(result.report!!, "<checkstyle")
-        assertContains(result.report!!, "<file name=\"openapi.json\">")
+        val report = assertNotNull(result.report)
+        assertContains(report, "<checkstyle")
+        assertContains(report, "<file name=\"openapi.json\">")
     }
 
     @Test
@@ -103,8 +104,9 @@ class RedoclyRuntimeTest {
         assertTrue(api.totals.errors + api.totals.warnings > 3)
         // stylish output: one line per problem after the file header
         assertEquals(3, api.output.lines().count { it.contains("  warning  ") || it.contains("  error  ") })
-        assertContains(result.report!!, "\"errors\": ${api.totals.errors}")
-        assertEquals(api.totals.errors + api.totals.warnings, Regex("\"ruleId\"").findAll(result.report!!).count())
+        val report = assertNotNull(result.report)
+        assertContains(report, "\"errors\": ${api.totals.errors}")
+        assertEquals(api.totals.errors + api.totals.warnings, Regex("\"ruleId\"").findAll(report).count())
     }
 
     @Test

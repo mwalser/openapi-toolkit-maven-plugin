@@ -8,7 +8,7 @@ import com.fasterxml.jackson.module.kotlin.kotlinModule
 internal object Json {
     val mapper: JsonMapper = JsonMapper.builder()
         .addModule(kotlinModule())
-        .serializationInclusion(JsonInclude.Include.NON_NULL)
+        .defaultPropertyInclusion(JsonInclude.Value.construct(JsonInclude.Include.NON_NULL, JsonInclude.Include.ALWAYS))
         .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
         .build()
 }

@@ -4,12 +4,12 @@ import net.mwalser.openapi.toolkit.redocly.BundleOptions
 import net.mwalser.openapi.toolkit.redocly.JsPaths
 import org.apache.maven.plugin.MojoExecutionException
 import org.apache.maven.plugin.MojoFailureException
-import org.apache.maven.plugins.annotations.Component
 import org.apache.maven.plugins.annotations.LifecyclePhase
 import org.apache.maven.plugins.annotations.Mojo
 import org.apache.maven.plugins.annotations.Parameter
 import org.apache.maven.project.MavenProjectHelper
 import java.io.File
+import javax.inject.Inject
 
 /**
  * Bundles multi-file API descriptions into single files (`redocly bundle`), applying the decorators
@@ -18,7 +18,7 @@ import java.io.File
 @Mojo(name = "bundle", defaultPhase = LifecyclePhase.GENERATE_RESOURCES, threadSafe = true)
 class BundleMojo : AbstractApiMojo() {
 
-    @Component
+    @Inject
     lateinit var projectHelper: MavenProjectHelper
 
     /** Overrides the `extends` list of the configuration, e.g. `recommended`, `minimal`, `recommended-strict`. */
