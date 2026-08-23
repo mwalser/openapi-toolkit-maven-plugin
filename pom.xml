@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>net.mwalser</groupId>
+  <artifactId>openapi-toolkit-maven-plugin</artifactId>
+  <version>0.1.0-SNAPSHOT</version>
+  <packaging>maven-plugin</packaging>
+
+  <name>OpenAPI Toolkit Maven Plugin</name>
+  <description>Lint, bundle and transform OpenAPI descriptions with Redocly inside the JVM (GraalJS) - no Node.js required.</description>
+  <url>https://github.com/mwalser/openapi-toolkit-maven-plugin</url>
+  <inceptionYear>2026</inceptionYear>
+
+  <licenses>
+    <license>
+      <name>Apache License, Version 2.0</name>
+      <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+    </license>
+  </licenses>
+
+  <prerequisites>
+    <maven>3.9.0</maven>
+  </prerequisites>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.release>21</maven.compiler.release>
+    <kotlin.version>2.4.10</kotlin.version>
+    <kotlin.compiler.jvmTarget>21</kotlin.compiler.jvmTarget>
+    <graalvm.version>25.2.4</graalvm.version>
+    <maven.version>3.9.16</maven.version>
+    <maven-plugin-tools.version>3.15.2</maven-plugin-tools.version>
+    <jackson.version>2.22.2</jackson.version>
+    <junit.version>5.14.4</junit.version>
+    <!-- version of @redocly/openapi-core embedded in src/main/resources (see js/package.json) -->
+    <redocly.version>2.47.0</redocly.version>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.jetbrains.kotlin</groupId>
+      <artifactId>kotlin-stdlib</artifactId>
+      <version>${kotlin.version}</version>
+    </dependency>
+
+    <!-- JavaScript engine (interpreter mode on any JDK 21+; see README for the optional native isolate) -->
+    <dependency>
+      <groupId>org.graalvm.polyglot</groupId>
+      <artifactId>polyglot</artifactId>
+      <version>${graalvm.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.graalvm.polyglot</groupId>
+      <artifactId>js-community</artifactId>
+      <version>${graalvm.version}</version>
+      <type>pom</type>
+    </dependency>
+
+    <dependency>
+      <groupId>com.fasterxml.jackson.module</groupId>
+      <artifactId>jackson-module-kotlin</artifactId>
+      <version>${jackson.version}</version>
+    </dependency>
+
+    <!-- Maven -->
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-plugin-api</artifactId>
+      <version>${maven.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-core</artifactId>
+      <version>${maven.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.plugin-tools</groupId>
+      <artifactId>maven-plugin-annotations</artifactId>
+      <version>${maven-plugin-tools.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- Tests -->
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <version>${junit.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.platform</groupId>
+      <artifactId>junit-platform-launcher</artifactId>
+      <version>1.14.4</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jetbrains.kotlin</groupId>
+      <artifactId>kotlin-test-junit5</artifactId>
+      <version>${kotlin.version}</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <sourceDirectory>src/main/kotlin</sourceDirectory>
+    <testSourceDirectory>src/test/kotlin</testSourceDirectory>
+    <plugins>
+      <plugin>
+        <groupId>org.jetbrains.kotlin</groupId>
+        <artifactId>kotlin-maven-plugin</artifactId>
+        <version>${kotlin.version}</version>
+        <executions>
+          <execution>
+            <id>compile</id>
+            <goals><goal>compile</goal></goals>
+          </execution>
+          <execution>
+            <id>test-compile</id>
+            <goals><goal>test-compile</goal></goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-plugin-plugin</artifactId>
+        <version>${maven-plugin-tools.version}</version>
+        <configuration>
+          <goalPrefix>openapi</goalPrefix>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>3.5.6</version>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>3.5.1</version>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>3.5.0</version>
+      </plugin>
+    </plugins>
+  </build>
+
+  <profiles>
+    <!-- Rebuilds the embedded JavaScript bundle from js/ (requires Node.js + npm; only needed when upgrading Redocly). -->
+    <profile>
+      <id>build-js</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <version>3.6.3</version>
+            <executions>
+              <execution>
+                <id>npm-ci</id>
+                <phase>generate-resources</phase>
+                <goals><goal>exec</goal></goals>
+                <configuration>
+                  <executable>npm</executable>
+                  <workingDirectory>${project.basedir}/js</workingDirectory>
+                  <arguments><argument>ci</argument></arguments>
+                </configuration>
+              </execution>
+              <execution>
+                <id>npm-build</id>
+                <phase>generate-resources</phase>
+                <goals><goal>exec</goal></goals>
+                <configuration>
+                  <executable>npm</executable>
+                  <workingDirectory>${project.basedir}/js</workingDirectory>
+                  <arguments>
+                    <argument>run</argument>
+                    <argument>build</argument>
+                    <argument>--</argument>
+                    <argument>${project.basedir}/src/main/resources/net/mwalser/openapi/toolkit/redocly/redocly-core.mjs</argument>
+                  </arguments>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <!-- Runs the unit tests with the native JavaScript isolate for this platform: mvn test -Pisolate-tests -->
+    <profile>
+      <id>isolate-tests</id>
+      <dependencies>
+        <dependency>
+          <groupId>org.graalvm.polyglot</groupId>
+          <artifactId>js-isolate-${isolate.platform}-community</artifactId>
+          <version>${graalvm.version}</version>
+          <type>pom</type>
+          <scope>test</scope>
+        </dependency>
+      </dependencies>
+    </profile>
+    <profile>
+      <id>isolate-platform-linux-amd64</id>
+      <activation><os><family>unix</family><name>Linux</name><arch>amd64</arch></os></activation>
+      <properties><isolate.platform>linux-amd64</isolate.platform></properties>
+    </profile>
+    <profile>
+      <id>isolate-platform-linux-aarch64</id>
+      <activation><os><family>unix</family><name>Linux</name><arch>aarch64</arch></os></activation>
+      <properties><isolate.platform>linux-aarch64</isolate.platform></properties>
+    </profile>
+    <profile>
+      <id>isolate-platform-darwin-aarch64</id>
+      <activation><os><family>mac</family><arch>aarch64</arch></os></activation>
+      <properties><isolate.platform>darwin-aarch64</isolate.platform></properties>
+    </profile>
+    <profile>
+      <id>isolate-platform-windows-amd64</id>
+      <activation><os><family>windows</family><arch>amd64</arch></os></activation>
+      <properties><isolate.platform>windows-amd64</isolate.platform></properties>
+    </profile>
+
+    <!-- Integration tests: mvn verify -Prun-its -->
+    <profile>
+      <id>run-its</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-invoker-plugin</artifactId>
+            <version>3.10.1</version>
+            <configuration>
+              <cloneProjectsTo>${project.build.directory}/it</cloneProjectsTo>
+              <postBuildHookScript>verify</postBuildHookScript>
+              <streamLogs>false</streamLogs>
+              <showErrors>true</showErrors>
+            </configuration>
+            <dependencies>
+              <dependency>
+                <groupId>org.apache.groovy</groupId>
+                <artifactId>groovy</artifactId>
+                <version>4.0.30</version>
+              </dependency>
+            </dependencies>
+            <executions>
+              <execution>
+                <id>integration-test</id>
+                <goals>
+                  <goal>install</goal>
+                  <goal>run</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+</project>

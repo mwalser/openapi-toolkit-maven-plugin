@@ -1,0 +1,50 @@
+openapi: 3.0.3
+info:
+  title: Petstore
+  version: 1.0.0
+  description: A sample petstore API.
+servers:
+  - url: https://petstore.example.com/v1
+tags:
+  - name: pets
+    description: Pet operations
+paths:
+  /pets:
+    get:
+      operationId: listPets
+      summary: List pets
+      tags: [pets]
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: A list of pets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: './schemas/pet.yaml'
+  /pets/{petId}:
+    get:
+      operationId: getPet
+      summary: Get a pet
+      tags: [pets]
+      parameters:
+        - name: petId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A pet
+          content:
+            application/json:
+              schema:
+                $ref: './schemas/pet.yaml'
+        '404':
+          description: Not found

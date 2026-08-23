@@ -1,0 +1,5 @@
+extends:
+  - recommended
+apis:
+  petstore:
+    root: openapi.yaml

@@ -1,0 +1,4 @@
+extends:
+  - recommended
+rules:
+  no-unknown-rule: error

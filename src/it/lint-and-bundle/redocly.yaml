@@ -1,0 +1,14 @@
+extends:
+  - recommended
+apis:
+  petstore:
+    root: api/openapi.yaml
+rules:
+  security-defined: off
+  info-license: off
+  operation-description: off
+  operation-4xx-response: off
+  no-server-example.com: warn
+decorators:
+  info-description-override:
+    filePath: api/description.md
