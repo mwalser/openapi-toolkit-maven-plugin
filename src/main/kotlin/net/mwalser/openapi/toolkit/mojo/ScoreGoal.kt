@@ -7,6 +7,8 @@ import org.apache.maven.plugin.MojoFailureException
 
 internal class ScoreGoal(mojo: ScoreMojo) : ApiGoal<ScoreMojo>(mojo) {
 
+    override val skipGoal get() = SkipParameter("openapi.score.skip", mojo.skipScore)
+
     override fun validate() {
         super.validate()
         requireOneOf("openapi.score.format", mojo.format, listOf("stylish", "json"))

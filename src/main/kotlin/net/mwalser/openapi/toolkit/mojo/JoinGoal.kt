@@ -5,6 +5,8 @@ import org.apache.maven.plugin.MojoExecutionException
 
 internal class JoinGoal(mojo: JoinMojo) : ApiGoal<JoinMojo>(mojo) {
 
+    override val skipGoal get() = SkipParameter("openapi.join.skip", mojo.skipJoin)
+
     override fun validate() {
         super.validate()
         if (BundleGoal.extension(mojo.outputFile) !in BundleGoal.EXTENSIONS) {

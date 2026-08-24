@@ -15,6 +15,10 @@ public final class CheckConfigMojo extends AbstractConfiguredMojo {
     @Parameter(property = "openapi.checkConfig.format", defaultValue = "stylish")
     String format = "stylish";
 
+    /** Skip this goal only; {@code openapi.skip} skips every goal of the plugin. */
+    @Parameter(property = "openapi.checkConfig.skip", defaultValue = "false")
+    boolean skipCheckConfig;
+
     @Override
     Goal<?> goal() {
         return new CheckConfigGoal(this);

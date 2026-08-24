@@ -46,6 +46,5 @@ public abstract class AbstractRedoclyMojo extends AbstractMojo {
         goal().execute();
     }
 
-    /** The implementation of this goal. */
     abstract Goal<?> goal();
 }

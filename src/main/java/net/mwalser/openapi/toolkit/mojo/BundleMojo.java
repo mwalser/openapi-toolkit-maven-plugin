@@ -32,7 +32,7 @@ public final class BundleMojo extends AbstractApiMojo {
 
     /**
      * Output format: {@code yaml}, {@code yml} or {@code json}. Defaults to the extension of {@code outputFile}
-     * when that is set, otherwise {@code yaml}.
+     * when that is set, otherwise to the extension of the input description (JSON stays JSON), otherwise {@code yaml}.
      */
     @Parameter(property = "openapi.bundle.ext")
     String ext;
@@ -82,6 +82,10 @@ public final class BundleMojo extends AbstractApiMojo {
     /** Classifier used when attaching a bundle without an alias. Defaults to {@code openapi}. */
     @Parameter(property = "openapi.bundle.classifier", defaultValue = "openapi")
     String classifier = "openapi";
+
+    /** Skip this goal only; {@code openapi.skip} skips every goal of the plugin. */
+    @Parameter(property = "openapi.bundle.skip", defaultValue = "false")
+    boolean skipBundle;
 
     @Override
     Goal<?> goal() {

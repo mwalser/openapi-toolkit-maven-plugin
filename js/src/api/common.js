@@ -63,24 +63,18 @@ export function configDirectory(config, cwd) {
 export function resolveApis(config, requested, cwd) {
   const configDir = configDirectory(config, cwd);
   const apis = config.resolvedConfig.apis || {};
-  const absolute = (p) => (isAbsoluteUrl(p) ? p : path.resolve(cwd, p));
+  const resolveRoot = (root, from) => (isAbsoluteUrl(root) ? root : path.resolve(from, root));
 
   let entries;
-  if (requested && requested.length) {
+  if (requested?.length) {
     entries = requested.map((aliasOrPath) => {
-      const aliasApi = apis[aliasOrPath];
-      if (aliasApi) {
-        return { path: isAbsoluteUrl(aliasApi.root) ? aliasApi.root : path.resolve(configDir, aliasApi.root), alias: aliasOrPath };
-      }
-      const abs = absolute(aliasOrPath);
-      const alias = Object.entries(apis).find(([, api]) => path.resolve(configDir, api.root) === abs)?.[0];
-      return { path: abs, alias };
+      if (apis[aliasOrPath]) return { path: resolveRoot(apis[aliasOrPath].root, configDir), alias: aliasOrPath };
+      const root = resolveRoot(aliasOrPath, cwd);
+      const alias = Object.keys(apis).find((candidate) => resolveRoot(apis[candidate].root, configDir) === root);
+      return { path: root, alias };
     });
   } else {
-    entries = Object.entries(apis).map(([alias, { root }]) => ({
-      path: isAbsoluteUrl(root) ? root : path.resolve(configDir, root),
-      alias,
-    }));
+    entries = Object.entries(apis).map(([alias, api]) => ({ path: resolveRoot(api.root, configDir), alias }));
   }
 
   const invalid = entries.filter(({ path: p }) => !isAbsoluteUrl(p) && !fs.existsSync(p));
@@ -107,10 +101,10 @@ export function checkIfRulesetExist(rules) {
   }
 }
 
-/** Runs formatProblems and returns what it would have printed. */
+/** Runs formatProblems and returns what it would have printed, with the CLI's hints rephrased for Maven. */
 export async function formatToString(problems, opts) {
-  const { output } = await captureOutput(() => formatProblems(problems, { color: false, ...opts }));
-  return output;
+  const { transcript } = await captureOutput(() => formatProblems(problems, { color: false, version: __REDOCLY_VERSION__, ...opts }));
+  return transcript.replace('increase with `--max-problems N`', 'increase with openapi.maxProblems');
 }
 
 /** Compact, JSON-friendly view of a problem (the raw objects reference whole source documents). */

@@ -9,8 +9,7 @@ import java.nio.file.Path
 
 internal class BundleGoal(mojo: BundleMojo) : ApiGoal<BundleMojo>(mojo) {
 
-    /** The output format actually used. */
-    private val ext: String get() = mojo.ext ?: mojo.outputFile?.let(::extension) ?: "yaml"
+    override val skipGoal get() = SkipParameter("openapi.bundle.skip", mojo.skipBundle)
 
     override fun validate() {
         super.validate()
@@ -41,7 +40,7 @@ internal class BundleGoal(mojo: BundleMojo) : ApiGoal<BundleMojo>(mojo) {
                 extends = mojo.extendsRulesets,
                 outputDirectory = jsPath(outputDirectory),
                 outputFile = outputFile?.let(::jsPath),
-                ext = ext,
+                ext = mojo.ext,
                 dereferenced = mojo.dereferenced,
                 force = mojo.force,
                 removeUnusedComponents = mojo.removeUnusedComponents,
@@ -89,8 +88,8 @@ internal class BundleGoal(mojo: BundleMojo) : ApiGoal<BundleMojo>(mojo) {
 
     private fun attach(api: ApiBundleResult) {
         val classifier = api.alias ?: mojo.classifier
-        mojo.projectHelper.attachArtifact(mojo.project, ext, classifier, hostPath(api.outputFile).toFile())
-        log.info("Attached ${display(api.outputFile)} as artifact (type=$ext, classifier=$classifier)")
+        mojo.projectHelper.attachArtifact(mojo.project, api.ext, classifier, hostPath(api.outputFile).toFile())
+        log.info("Attached ${display(api.outputFile)} as artifact (type=${api.ext}, classifier=$classifier)")
     }
 
     /** Adds only the written bundles, not everything in [directory] (which may be the module itself). */
@@ -103,7 +102,6 @@ internal class BundleGoal(mojo: BundleMojo) : ApiGoal<BundleMojo>(mojo) {
     companion object {
         val EXTENSIONS: List<String> = listOf("yaml", "yml", "json")
 
-        /** The lower-cased extension of a file name, or an empty string. */
         fun extension(file: File): String = file.extension.lowercase()
     }
 }

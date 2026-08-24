@@ -23,6 +23,10 @@ public final class SplitMojo extends AbstractRedoclyMojo {
     @Parameter(property = "openapi.split.separator", defaultValue = "_")
     String separator = "_";
 
+    /** Skip this goal only; {@code openapi.skip} skips every goal of the plugin. */
+    @Parameter(property = "openapi.split.skip", defaultValue = "false")
+    boolean skipSplit;
+
     @Override
     Goal<?> goal() {
         return new SplitGoal(this);

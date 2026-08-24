@@ -28,6 +28,10 @@ public final class ScoreMojo extends AbstractApiMojo {
     @Parameter(property = "openapi.score.minScore")
     Double minScore;
 
+    /** Skip this goal only; {@code openapi.skip} skips every goal of the plugin. */
+    @Parameter(property = "openapi.score.skip", defaultValue = "false")
+    boolean skipScore;
+
     @Override
     Goal<?> goal() {
         return new ScoreGoal(this);

@@ -4,7 +4,7 @@ package net.mwalser.openapi.toolkit.redocly
 
 /** Options of every command; paths are JS paths (see [JsPaths]). */
 interface CommandOptions {
-    /** Directory that relative paths — in options, configuration and API descriptions — are resolved against. */
+    /** Directory that relative paths are resolved against. */
     val cwd: String
 }
 
@@ -82,7 +82,7 @@ data class BundleOptions(
     val extends: List<String>? = null,
     val outputDirectory: String,
     val outputFile: String? = null,
-    val ext: String = "yaml",
+    val ext: String? = null,
     val dereferenced: Boolean = false,
     val force: Boolean = false,
     val removeUnusedComponents: Boolean = false,
@@ -99,6 +99,8 @@ data class ApiBundleResult(
     val path: String,
     val alias: String? = null,
     val outputFile: String,
+    /** The output format actually used, after defaulting. */
+    val ext: String,
     val written: Boolean,
     val totals: Totals,
     val durationMillis: Long = 0,
@@ -140,7 +142,6 @@ data class StatsOptions(
 data class ApiStatsResult(
     val path: String,
     val alias: String? = null,
-    /** The statistics formatted as requested. */
     val output: String = "",
     /** The statistics as structured data; only available for `format = json`. */
     val stats: Map<String, Any?>? = null,

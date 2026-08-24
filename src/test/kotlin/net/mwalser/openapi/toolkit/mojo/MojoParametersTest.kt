@@ -18,6 +18,7 @@ import kotlin.test.assertTrue
 class MojoParametersTest {
 
     private class OutputGoal(mojo: LintMojo) : Goal<LintMojo>(mojo) {
+        override val skipGoal get() = SkipParameter("openapi.lint.skip", mojo.skipLint)
         override fun run() {}
         fun write(file: File) = writeOutput(file, "content")
     }
@@ -56,6 +57,12 @@ class MojoParametersTest {
     }
 
     @Test
+    fun `the goal-specific skip parameter skips before validation`() {
+        LintMojo().apply { format = "typo"; skipLint = true }.execute()
+        BundleMojo().apply { ext = "xml"; skipBundle = true }.execute()
+    }
+
+    @Test
     fun `output io failures become actionable mojo errors`(@TempDir dir: Path) {
         val target = dir.resolve("existing-directory")
         Files.createDirectory(target)
@@ -82,16 +89,16 @@ class MojoParametersTest {
         val configured = runtime + setOf("configFile", "maxProblems")
         val api = configured + setOf("apis", "lintConfig")
 
-        assertEquals(api + setOf("extends", "format", "reportFile", "reportFormat", "failOnErrors", "failOnWarnings", "skipRules", "generateIgnoreFile"), parameters("lint"))
+        assertEquals(api + setOf("skipLint", "extends", "format", "reportFile", "reportFormat", "failOnErrors", "failOnWarnings", "skipRules", "generateIgnoreFile"), parameters("lint"))
         assertEquals(
-            api + setOf("extends", "outputDirectory", "outputFile", "ext", "dereferenced", "force", "removeUnusedComponents", "keepUrlReferences", "componentNamesStrategy", "componentRenamingConflicts", "skipDecorators", "addResource", "attach", "classifier"),
+            api + setOf("skipBundle", "extends", "outputDirectory", "outputFile", "ext", "dereferenced", "force", "removeUnusedComponents", "keepUrlReferences", "componentNamesStrategy", "componentRenamingConflicts", "skipDecorators", "addResource", "attach", "classifier"),
             parameters("bundle"),
         )
-        assertEquals(configured + setOf("severity", "format"), parameters("check-config"))
-        assertEquals(api + setOf("format", "outputFile"), parameters("stats"))
-        assertEquals(api + setOf("format", "operationDetails", "outputFile", "minScore"), parameters("score"))
-        assertEquals(api + setOf("outputFile", "prefixTagsWithInfoProp", "prefixTagsWithFilename", "prefixComponentsWithInfoProp", "withoutXTagGroups"), parameters("join"))
-        assertEquals(runtime + setOf("api", "outputDirectory", "separator"), parameters("split"))
+        assertEquals(configured + setOf("skipCheckConfig", "severity", "format"), parameters("check-config"))
+        assertEquals(api + setOf("skipStats", "format", "outputFile"), parameters("stats"))
+        assertEquals(api + setOf("skipScore", "format", "operationDetails", "outputFile", "minScore"), parameters("score"))
+        assertEquals(api + setOf("skipJoin", "outputFile", "prefixTagsWithInfoProp", "prefixTagsWithFilename", "prefixComponentsWithInfoProp", "withoutXTagGroups"), parameters("join"))
+        assertEquals(runtime + setOf("skipSplit", "api", "outputDirectory", "separator"), parameters("split"))
 
         for (goal in listOf("lint", "bundle", "check-config", "stats", "score", "join", "split", "help")) {
             val mojo = Regex("<goal>$goal</goal>.*?</mojo>", RegexOption.DOT_MATCHES_ALL).find(descriptor)!!.value

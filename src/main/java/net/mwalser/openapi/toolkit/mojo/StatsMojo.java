@@ -19,6 +19,10 @@ public final class StatsMojo extends AbstractApiMojo {
     @Parameter(property = "openapi.stats.outputFile")
     File outputFile;
 
+    /** Skip this goal only; {@code openapi.skip} skips every goal of the plugin. */
+    @Parameter(property = "openapi.stats.skip", defaultValue = "false")
+    boolean skipStats;
+
     @Override
     Goal<?> goal() {
         return new StatsGoal(this);

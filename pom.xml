@@ -9,7 +9,7 @@
   <packaging>maven-plugin</packaging>
 
   <name>OpenAPI Toolkit Maven Plugin</name>
-  <description>Lint, bundle and transform OpenAPI descriptions with Redocly inside the JVM (GraalJS) - no Node.js required.</description>
+  <description>Lint, bundle and transform OpenAPI descriptions. Powered by Redocly.</description>
   <url>https://github.com/mwalser/openapi-toolkit-maven-plugin</url>
   <inceptionYear>2026</inceptionYear>
   <scm>

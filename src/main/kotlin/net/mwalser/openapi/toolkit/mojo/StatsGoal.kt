@@ -4,6 +4,8 @@ import net.mwalser.openapi.toolkit.redocly.StatsOptions
 
 internal class StatsGoal(mojo: StatsMojo) : ApiGoal<StatsMojo>(mojo) {
 
+    override val skipGoal get() = SkipParameter("openapi.stats.skip", mojo.skipStats)
+
     override fun validate() {
         super.validate()
         requireOneOf("openapi.stats.format", mojo.format, listOf("stylish", "json", "markdown"))

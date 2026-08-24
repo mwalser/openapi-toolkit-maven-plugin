@@ -29,10 +29,14 @@ abstract class Goal<M : AbstractRedoclyMojo>(protected val mojo: M) {
 
     protected val log: Log get() = mojo.log
 
+    /** The goal's own skip parameter; `openapi.skip` additionally skips every goal. */
+    protected abstract val skipGoal: SkipParameter
+
     @Throws(MojoExecutionException::class, MojoFailureException::class)
     fun execute() {
-        if (mojo.skip) {
-            log.info("Skipping (openapi.skip=true)")
+        val skippedBy = if (mojo.skip) "openapi.skip" else skipGoal.property.takeIf { skipGoal.enabled }
+        if (skippedBy != null) {
+            log.info("Skipping ($skippedBy=true)")
             return
         }
         validate()
@@ -52,27 +56,21 @@ abstract class Goal<M : AbstractRedoclyMojo>(protected val mojo: M) {
 
     protected abstract fun run()
 
-    // ---- parameter validation helpers -----------------------------------------------------------
-
     protected fun requireOneOf(property: String, value: String, allowed: Collection<String>) {
         if (value !in allowed) {
             throw MojoExecutionException("Invalid value '$value' for $property; expected one of: ${allowed.joinToString(", ")}")
         }
     }
 
-    // ---- path helpers -----------------------------------------------------------------------------
-
     protected val basedir: Path get() = mojo.project.basedir.toPath()
 
     /** The base directory as a JS path (what the JS side uses as `cwd`). */
     protected val jsCwd: String get() = JsPaths.toJs(basedir)
 
-    /** Resolves a possibly relative file against the base directory. */
     protected fun resolve(file: File): Path = basedir.resolve(file.toPath()).normalize()
 
     protected fun jsPath(path: Path): String = JsPaths.toJs(path)
 
-    /** Converts a path reported by the JS side back to a host path. */
     protected fun hostPath(jsPath: String): Path = JsPaths.toHostPath(jsPath)
 
     /** Displays a path reported by the JS side relative to the base directory when possible. */
@@ -83,8 +81,6 @@ abstract class Goal<M : AbstractRedoclyMojo>(protected val mojo: M) {
 
     protected fun display(path: Path): String =
         if (path.startsWith(basedir)) basedir.relativize(path).toString() else path.toString()
-
-    // ---- Redocly runtime and reporting ----------------------------------------------------------
 
     /** Redocly bound to this goal's log and to the build's offline flag and proxy. The runtime is shared JVM-wide. */
     protected fun redocly(): Redocly {
@@ -130,7 +126,6 @@ abstract class Goal<M : AbstractRedoclyMojo>(protected val mojo: M) {
 
     protected fun plural(count: Int, noun: String): String = "$count $noun${if (count == 1) "" else "s"}"
 
-    /** Writes text to a (possibly relative) file, creating parent directories. */
     protected fun writeOutput(file: File, content: String): Path {
         val target = resolve(file)
         try {
@@ -166,6 +161,8 @@ abstract class Goal<M : AbstractRedoclyMojo>(protected val mojo: M) {
         val SEVERITIES: List<String> = listOf("warn", "error", "off")
     }
 }
+
+class SkipParameter(val property: String, val enabled: Boolean)
 
 /** Goals that read the Redocly configuration file. */
 abstract class ConfiguredGoal<M : AbstractConfiguredMojo>(mojo: M) : Goal<M>(mojo) {
@@ -203,7 +200,6 @@ abstract class ApiGoal<M : AbstractApiMojo>(mojo: M) : ConfiguredGoal<M>(mojo) {
         requireOneOf("openapi.lintConfig", mojo.lintConfig, SEVERITIES)
     }
 
-    /** Fails when a single-output parameter is combined with more than one selected API. */
     protected fun requireSingleApi(parameter: String, selected: Int) {
         if (selected > 1) {
             throw MojoExecutionException("$parameter can only be used with a single API, but $selected were selected; use <apis> to select one.")

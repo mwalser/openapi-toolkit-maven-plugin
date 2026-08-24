@@ -33511,10 +33511,10 @@ function stringify(value) {
     return String(value);
   }
 }
-function emit(level, args) {
+function emit(channel, args) {
   const text = format(args);
-  if (captured) captured.push(text);
-  else host.log(level, text);
+  if (captured) captured.push({ channel, text });
+  else host.log(channel, text);
 }
 globalThis.console = {
   log: (...args) => emit("output", args),
@@ -33526,12 +33526,13 @@ globalThis.console = {
 };
 async function captureOutput(fn) {
   const outer = captured;
-  captured = [];
+  const entries = captured = [];
+  const text = (channel) => entries.filter((entry) => !channel || entry.channel === channel).map((entry) => entry.text).join("");
   try {
     const value = await fn();
-    return { value, output: captured.join("") };
+    return { value, output: text("output"), transcript: text() };
   } catch (error) {
-    if (error && typeof error === "object") error.details = { ...error.details, output: captured.join("") };
+    if (error && typeof error === "object") error.details = { ...error.details, output: text() };
     throw error;
   } finally {
     captured = outer;
@@ -54792,23 +54793,17 @@ function configDirectory(config, cwd2) {
 function resolveApis(config, requested, cwd2) {
   const configDir = configDirectory(config, cwd2);
   const apis = config.resolvedConfig.apis || {};
-  const absolute = (p2) => isAbsoluteUrl(p2) ? p2 : path12.resolve(cwd2, p2);
+  const resolveRoot = (root, from) => isAbsoluteUrl(root) ? root : path12.resolve(from, root);
   let entries;
-  if (requested && requested.length) {
+  if (requested?.length) {
     entries = requested.map((aliasOrPath) => {
-      const aliasApi = apis[aliasOrPath];
-      if (aliasApi) {
-        return { path: isAbsoluteUrl(aliasApi.root) ? aliasApi.root : path12.resolve(configDir, aliasApi.root), alias: aliasOrPath };
-      }
-      const abs = absolute(aliasOrPath);
-      const alias = Object.entries(apis).find(([, api]) => path12.resolve(configDir, api.root) === abs)?.[0];
-      return { path: abs, alias };
+      if (apis[aliasOrPath]) return { path: resolveRoot(apis[aliasOrPath].root, configDir), alias: aliasOrPath };
+      const root = resolveRoot(aliasOrPath, cwd2);
+      const alias = Object.keys(apis).find((candidate) => resolveRoot(apis[candidate].root, configDir) === root);
+      return { path: root, alias };
     });
   } else {
-    entries = Object.entries(apis).map(([alias, { root }]) => ({
-      path: isAbsoluteUrl(root) ? root : path12.resolve(configDir, root),
-      alias
-    }));
+    entries = Object.entries(apis).map(([alias, api]) => ({ path: resolveRoot(api.root, configDir), alias }));
   }
   const invalid = entries.filter(({ path: p2 }) => !isAbsoluteUrl(p2) && !existsSync(p2));
   if (invalid.length) {
@@ -54841,8 +54836,8 @@ function checkIfRulesetExist(rules9) {
   }
 }
 async function formatToString(problems, opts) {
-  const { output } = await captureOutput(() => formatProblems(problems, { color: false, ...opts }));
-  return output;
+  const { transcript } = await captureOutput(() => formatProblems(problems, { color: false, version: "2.47.0", ...opts }));
+  return transcript.replace("increase with `--max-problems N`", "increase with openapi.maxProblems");
 }
 function describeProblem(problem) {
   return {
@@ -54969,9 +54964,8 @@ var path13 = __toESM(require_path_browserify(), 1);
 var OUTPUT_EXTENSIONS = ["json", "yaml", "yml"];
 async function runBundle(opts) {
   const { cwd: cwd2, format: format2 = "codeframe", maxProblems = 100 } = opts;
-  const ext = opts.ext || "yaml";
-  if (!OUTPUT_EXTENSIONS.includes(ext)) {
-    throw new CommandError(`Invalid output extension '${ext}'. Allowed: ${OUTPUT_EXTENSIONS.join(", ")}.`);
+  if (opts.ext && !OUTPUT_EXTENSIONS.includes(opts.ext)) {
+    throw new CommandError(`Invalid output extension '${opts.ext}'. Allowed: ${OUTPUT_EXTENSIONS.join(", ")}.`);
   }
   const config = await loadProjectConfig({ configPath: opts.configPath, customExtends: opts.extends });
   const configLint = await lintConfigFile(config, { severity: opts.lintConfig, format: format2, maxProblems, cwd: cwd2 });
@@ -54980,11 +54974,17 @@ async function runBundle(opts) {
   if (opts.outputFile && apis.length > 1) {
     throw new CommandError(`<outputFile> can only be used with a single API, but ${apis.length} were selected.`);
   }
+  const targets = apis.map((api) => ({ ...api, ...outputTarget(api, opts) }));
+  rejectCollidingOutputs(targets);
   const totals = { errors: 0, warnings: 0, ignored: 0 };
   const results = [];
-  for (const { path: ref, alias } of apis) {
+  for (const { path: ref, alias, outputFile, ext } of targets) {
     const aliasConfig = config.forAlias(alias);
     aliasConfig.skipDecorators(opts.skipDecorators);
+    const configuredOutput = alias && config.resolvedConfig.apis?.[alias]?.output;
+    if (configuredOutput) {
+      console.warn(`Ignoring output '${configuredOutput}' of api '${alias}' in redocly.yaml: the bundle goal writes to ${outputFile}`);
+    }
     const started = performance.now();
     const { bundle: result, problems, ...meta } = await bundle({
       ref,
@@ -54999,18 +54999,13 @@ async function runBundle(opts) {
     totals.errors += fileTotals.errors;
     totals.warnings += fileTotals.warnings;
     totals.ignored += fileTotals.ignored;
-    const baseName = alias || path13.basename(ref, path13.extname(ref));
-    const outputFile = opts.outputFile ? path13.resolve(cwd2, opts.outputFile) : path13.join(path13.resolve(cwd2, opts.outputDirectory), `${baseName}.${ext}`);
-    let written = false;
-    if (fileTotals.errors === 0 || opts.force) {
-      const content = dumpBundle(sortTopLevelKeys(result.parsed), ext, opts.dereferenced);
-      saveFile(outputFile, content);
-      written = true;
-    }
+    const written = fileTotals.errors === 0 || !!opts.force;
+    if (written) saveFile(outputFile, dumpBundle(sortTopLevelKeys(result.parsed), ext, opts.dereferenced));
     results.push({
       path: ref,
       alias,
       outputFile,
+      ext,
       written,
       totals: fileTotals,
       durationMillis: Math.round(performance.now() - started),
@@ -55020,6 +55015,24 @@ async function runBundle(opts) {
     });
   }
   return { configLint, apis: results, totals, unused: unusedWarnings(config) };
+}
+function outputTarget({ path: ref, alias }, { cwd: cwd2, outputDirectory, outputFile, ext: requestedExt }) {
+  const extensionOf = (file2) => path13.extname(file2).slice(1).toLowerCase();
+  const explicitFile = outputFile && path13.resolve(cwd2, outputFile);
+  const ext = requestedExt || [explicitFile, ref].filter(Boolean).map(extensionOf).find((e2) => OUTPUT_EXTENSIONS.includes(e2)) || "yaml";
+  const file = explicitFile || path13.join(path13.resolve(cwd2, outputDirectory), `${alias || path13.basename(ref, path13.extname(ref))}.${ext}`);
+  return { outputFile: file, ext };
+}
+function rejectCollidingOutputs(targets) {
+  const inputsByOutput = /* @__PURE__ */ new Map();
+  for (const { path: ref, outputFile } of targets) {
+    inputsByOutput.set(outputFile, [...inputsByOutput.get(outputFile) || [], ref]);
+  }
+  const collisions = [...inputsByOutput].filter(([, inputs]) => inputs.length > 1);
+  if (collisions.length) {
+    const described = collisions.map(([outputFile, inputs]) => `${outputFile} (from ${inputs.join(", ")})`).join("; ");
+    throw new CommandError(`Several APIs would be bundled to the same file: ${described}. Give them aliases in redocly.yaml or select them separately.`);
+  }
 }
 
 // src/api/check-config.js
@@ -55275,9 +55288,6 @@ async function handleStats({ argv, config, collectSpecData }) {
 }
 
 // src/api/stats.js
-function stripWrapper(output, command) {
-  return output.replace(new RegExp(`^Document: .*? ${command}:\\n+`), "").replace(new RegExp(`\\n*[^\\n]*: ${command} processed in \\d+ms\\n*$`), "\n");
-}
 function parseJsonOutput(body, command, api) {
   try {
     return JSON.parse(body);
@@ -55295,8 +55305,7 @@ async function runStats(opts) {
     const { output } = await captureOutput(
       () => handleStats({ argv: { api: path36, format: format2 }, config: config.forAlias(alias), version: "" })
     );
-    const body = stripWrapper(output, "stats");
-    apis.push({ path: path36, alias, output: body, stats: format2 === "json" ? parseJsonOutput(body, "stats", path36) : null });
+    apis.push({ path: path36, alias, output, stats: format2 === "json" ? parseJsonOutput(output, "stats", path36) : null });
   }
   return { configLint, format: format2, apis };
 }
@@ -56080,7 +56089,7 @@ async function runJoin(opts) {
   const outputFile = path19.resolve(opts.cwd, opts.output);
   if (configLint?.totals.errors > 0) return { configLint, apis: [], outputFile, output: "" };
   const apis = resolveApis(config, opts.apis, opts.cwd).map(({ path: p2, alias }) => ({ path: p2, alias }));
-  const { output } = await captureOutput(
+  const { transcript: output } = await captureOutput(
     () => handleJoin({
       argv: {
         apis: opts.apis,
@@ -56676,7 +56685,7 @@ var path35 = __toESM(require_path_browserify(), 1);
 async function runSplit(opts) {
   const api = path35.resolve(opts.cwd, opts.api);
   const outDir = path35.resolve(opts.cwd, opts.outDir);
-  const { output } = await captureOutput(
+  const { transcript: output } = await captureOutput(
     () => handleSplit({ argv: { api, outDir, separator: opts.separator || "_" }, version: "" })
   );
   return { api, outDir, output };
@@ -57821,13 +57830,12 @@ async function runScore(opts) {
         version: ""
       })
     );
-    const body = stripWrapper(output, "score");
     apis.push({
       path: path36,
       alias,
-      output: body,
+      output,
       agentReadiness: result.agentReadiness,
-      score: format2 === "json" ? parseJsonOutput(body, "score", path36) : null
+      score: format2 === "json" ? parseJsonOutput(output, "score", path36) : null
     });
   }
   return { configLint, format: format2, apis };

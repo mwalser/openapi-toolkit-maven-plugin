@@ -100,8 +100,10 @@ class RedoclyRuntimeTest {
         assertTrue(api.totals.errors + api.totals.warnings > 3)
         // stylish output: one line per problem after the file header
         assertEquals(3, api.output.lines().count { it.contains("  warning  ") || it.contains("  error  ") })
+        assertContains(api.output, "increase with openapi.maxProblems")
         val report = assertNotNull(result.report)
         assertContains(report, "\"errors\": ${api.totals.errors}")
+        assertContains(report, "\"version\": \"${runtime.redoclyVersion}\"")
         assertEquals(api.totals.errors + api.totals.warnings, Regex("\"ruleId\"").findAll(report).count())
     }
 
@@ -381,6 +383,57 @@ class RedoclyRuntimeTest {
             assertTrue(result.configLint!!.totals.errors > 0)
             assertTrue(result.apis.isEmpty())
             assertEquals(0, requests)
+        } finally {
+            server.stop(0)
+        }
+    }
+
+    @Test
+    fun `bundle format follows the input when neither ext nor outputFile decide`(@TempDir dir: Path) {
+        val project = fixture("petstore3", dir)
+        val api = redocly().bundle(BundleOptions(cwd = project.toString(), apis = listOf("openapi.json"), outputDirectory = "out")).apis.single()
+        assertEquals("json", api.ext)
+        assertEquals(project.resolve("out/openapi.json"), Path.of(api.outputFile))
+        assertTrue(Path.of(api.outputFile).readText().startsWith("{"))
+    }
+
+    @Test
+    fun `rejects apis that would be bundled to the same file`(@TempDir dir: Path) {
+        Files.createDirectories(dir.resolve("a"))
+        Files.createDirectories(dir.resolve("b"))
+        for (sub in listOf("a", "b")) Files.writeString(dir.resolve("$sub/openapi.yaml"), "openapi: 3.0.3\ninfo: { title: $sub, version: '1' }\npaths: {}\n")
+
+        val error = assertFailsWith<RedoclyException> {
+            redocly().bundle(BundleOptions(cwd = dir.toString(), apis = listOf("a/openapi.yaml", "b/openapi.yaml"), outputDirectory = "out"))
+        }
+        assertContains(error.message!!, "openapi.yaml")
+        assertContains(error.message!!, "aliases")
+    }
+
+    @Test
+    fun `warns about a configured output it does not honor`(@TempDir dir: Path) {
+        val project = fixture("petstore", dir)
+        Files.writeString(project.resolve("redocly.yaml"), "extends: [minimal]\napis:\n  petstore:\n    root: openapi.yaml\n    output: dist/petstore.yaml\n")
+        logs.clear()
+        val api = redocly().bundle(BundleOptions(cwd = project.toString(), configPath = project.resolve("redocly.yaml").toString(), outputDirectory = "out")).apis.single()
+        assertEquals(project.resolve("out/petstore.yaml"), Path.of(api.outputFile))
+        assertFalse(Files.exists(project.resolve("dist")))
+        assertTrue(logs.any { it.startsWith("warn: Ignoring output 'dist/petstore.yaml' of api 'petstore'") }, logs.toString())
+    }
+
+    @Test
+    fun `an api requested by url is matched to its alias`(@TempDir dir: Path) {
+        val spec = "openapi: 3.0.3\ninfo: { title: Remote, version: '1' }\nservers: [{ url: https://api.example.test }]\npaths: {}\n".toByteArray()
+        val server = httpServer { exchange ->
+            exchange.sendResponseHeaders(200, spec.size.toLong())
+            exchange.responseBody.use { it.write(spec) }
+        }
+        try {
+            val url = "http://127.0.0.1:${server.address.port}/openapi.yaml"
+            Files.writeString(dir.resolve("redocly.yaml"), "extends: [minimal]\napis:\n  remote:\n    root: $url\n")
+            val api = redocly().lint(LintOptions(cwd = dir.toString(), configPath = dir.resolve("redocly.yaml").toString(), apis = listOf(url))).apis.single()
+            assertEquals("remote", api.alias)
+            assertEquals(url, api.path)
         } finally {
             server.stop(0)
         }

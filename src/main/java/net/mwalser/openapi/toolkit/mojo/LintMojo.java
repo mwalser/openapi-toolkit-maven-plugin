@@ -52,6 +52,10 @@ public final class LintMojo extends AbstractApiMojo {
     @Parameter(property = "openapi.lint.generateIgnoreFile", defaultValue = "false")
     boolean generateIgnoreFile;
 
+    /** Skip this goal only; {@code openapi.skip} skips every goal of the plugin. */
+    @Parameter(property = "openapi.lint.skip", defaultValue = "false")
+    boolean skipLint;
+
     @Override
     Goal<?> goal() {
         return new LintGoal(this);

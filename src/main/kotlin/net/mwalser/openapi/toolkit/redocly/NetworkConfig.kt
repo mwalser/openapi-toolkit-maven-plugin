@@ -17,7 +17,6 @@ import java.time.Duration
  */
 data class NetworkConfig(val offline: Boolean = false, val proxy: ProxyConfig? = null) {
 
-    /** An HTTP client following this configuration. */
     fun newHttpClient(): HttpClient {
         val builder = HttpClient.newBuilder()
             .followRedirects(HttpClient.Redirect.NORMAL)
@@ -55,7 +54,7 @@ data class ProxyConfig(
         override fun connectFailed(uri: URI, address: SocketAddress, failure: IOException) = Unit
     }
 
-    /** Answers the proxy's own authentication challenges, or null when no credentials are configured. */
+    /** Answers only the proxy's own authentication challenges, never a server's. */
     fun authenticator(): Authenticator? = username?.let { user ->
         object : Authenticator() {
             override fun getPasswordAuthentication(): PasswordAuthentication? =

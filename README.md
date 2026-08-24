@@ -64,7 +64,8 @@ shows exactly what a goal accepts):
 
 | Parameter | Property | Default | Description | Goals |
 |---|---|---|---|---|
-| `skip` | `openapi.skip` | `false` | Skip execution. | all |
+| `skip` | `openapi.skip` | `false` | Skip every goal of the plugin. | all |
+| `skipLint`, `skipBundle`, … | `openapi.lint.skip`, `openapi.bundle.skip`, `openapi.checkConfig.skip`, `openapi.stats.skip`, `openapi.score.skip`, `openapi.join.skip`, `openapi.split.skip` | `false` | Skip one goal only, e.g. `mvn package -Dopenapi.lint.skip`. | each its own |
 | `configFile` | `openapi.configFile` | `redocly.yaml` if it exists | Redocly configuration file. | all except `split` |
 | `maxProblems` | `openapi.maxProblems` | `100` | Maximum number of problems printed per API and for the configuration file. | all except `split` |
 | `apis` | `openapi.apis` | all APIs of the config | Aliases from `apis:` or paths/URLs to process. | `lint`, `bundle`, `stats`, `score`, `join` |
@@ -111,7 +112,7 @@ Runs `redocly bundle`: resolves all `$ref`s into one file and applies the config
 |---|---|---|---|
 | `outputDirectory` | `openapi.bundle.outputDirectory` | `${project.build.directory}/generated-resources/openapi` | Output directory; files are named `<alias>.<ext>` (or `<basename>.<ext>`). |
 | `outputFile` | `openapi.bundle.outputFile` | – | Explicit output file (single API only). |
-| `ext` | `openapi.bundle.ext` | extension of `outputFile`, else `yaml` | `yaml`, `yml` or `json`. |
+| `ext` | `openapi.bundle.ext` | extension of `outputFile`, else of the input, else `yaml` | `yaml`, `yml` or `json`. |
 | `dereferenced` | `openapi.bundle.dereferenced` | `false` | Inline everything, leave no `$ref`. |
 | `force` | `openapi.bundle.force` | `false` | Write the bundle even if there are errors. |
 | `removeUnusedComponents` | `openapi.bundle.removeUnusedComponents` | `false` | Drop unreferenced components. |
@@ -124,8 +125,10 @@ Runs `redocly bundle`: resolves all `$ref`s into one file and applies the config
 | `classifier` | `openapi.bundle.classifier` | `openapi` | Classifier used when an API has no alias. |
 
 `outputFile` overrides `outputDirectory` and is valid only for one API; its extension determines the format unless
-`ext` is set (a conflicting `ext` is an error). `ext` also becomes the type of attached artifacts. The `output` field of `apis.<alias>` in `redocly.yaml` is ignored because
-Maven controls where bundles go. With `addResource=true`, bundles are added at the artifact's resource root.
+`ext` is set (a conflicting `ext` is an error). The format also becomes the type of attached artifacts. Two APIs
+without aliases that would produce the same file name are rejected. The `output` field of `apis.<alias>` in
+`redocly.yaml` is ignored with a warning because Maven controls where bundles go. With `addResource=true`, the
+written bundles are added at the artifact's resource root.
 
 ### `openapi:check-config`
 

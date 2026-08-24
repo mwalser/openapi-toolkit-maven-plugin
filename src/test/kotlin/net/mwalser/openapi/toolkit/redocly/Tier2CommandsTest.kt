@@ -11,6 +11,7 @@ import kotlin.io.path.readText
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
@@ -39,6 +40,8 @@ class Tier2CommandsTest {
         assertContains(stylish.output, "Path Items: 2")
         assertContains(stylish.output, "Operations: 2")
         assertContains(stylish.output, "Schemas: 1")
+        assertFalse(stylish.output.contains("Document:"), stylish.output)
+        assertFalse(stylish.output.contains("processed in"), stylish.output)
 
         val json = redocly().stats(StatsOptions(cwd = project.toString(), configPath = configPath, apis = listOf("openapi.yaml"), format = "json"))
         val stats = assertNotNull(json.apis.single().stats)

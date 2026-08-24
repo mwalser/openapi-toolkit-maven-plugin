@@ -17,7 +17,7 @@ export async function runJoin(opts) {
   if (configLint?.totals.errors > 0) return { configLint, apis: [], outputFile, output: '' };
 
   const apis = resolveApis(config, opts.apis, opts.cwd).map(({ path: p, alias }) => ({ path: p, alias }));
-  const { output } = await captureOutput(() =>
+  const { transcript: output } = await captureOutput(() =>
     handleJoin({
       argv: {
         apis: opts.apis,

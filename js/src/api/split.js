@@ -6,7 +6,7 @@ import { captureOutput } from '../polyfills.js';
 export async function runSplit(opts) {
   const api = path.resolve(opts.cwd, opts.api);
   const outDir = path.resolve(opts.cwd, opts.outDir);
-  const { output } = await captureOutput(() =>
+  const { transcript: output } = await captureOutput(() =>
     handleSplit({ argv: { api, outDir, separator: opts.separator || '_' }, version: '' }),
   );
   return { api, outDir, output };

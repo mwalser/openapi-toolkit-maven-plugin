@@ -26,8 +26,8 @@ globalThis.process = {
 
 // --- console -----------------------------------------------------------------------------------
 // openapi-core's logger writes through console.* in browser mode. Everything goes to the host, except that
-// `log`/`info` output can be captured while a command runs (formatProblems and the CLI commands print their
-// results instead of returning them).
+// `log` (the logger's `output` channel) and `info` can be captured while a command runs: formatProblems and the
+// CLI commands print their results instead of returning them.
 let captured = null;
 
 function format(args) {
@@ -43,10 +43,10 @@ function stringify(value) {
   }
 }
 
-function emit(level, args) {
+function emit(channel, args) {
   const text = format(args);
-  if (captured) captured.push(text);
-  else host.log(level, text);
+  if (captured) captured.push({ channel, text });
+  else host.log(channel, text);
 }
 
 globalThis.console = {
@@ -59,17 +59,19 @@ globalThis.console = {
 };
 
 /**
- * Runs `fn` and returns its value together with everything it printed. When `fn` throws, the captured text is
- * attached to the error as `details.output` so that the host can still show it.
+ * Runs `fn` and returns its value together with what it printed: `output` is the payload channel alone (what the
+ * CLI writes to stdout), `transcript` is everything in order. When `fn` throws, the transcript is attached to the
+ * error as `details.output` so that the host can still show it.
  */
 export async function captureOutput(fn) {
   const outer = captured;
-  captured = [];
+  const entries = (captured = []);
+  const text = (channel) => entries.filter((entry) => !channel || entry.channel === channel).map((entry) => entry.text).join('');
   try {
     const value = await fn();
-    return { value, output: captured.join('') };
+    return { value, output: text('output'), transcript: text() };
   } catch (error) {
-    if (error && typeof error === 'object') error.details = { ...error.details, output: captured.join('') };
+    if (error && typeof error === 'object') error.details = { ...error.details, output: text() };
     throw error;
   } finally {
     captured = outer;

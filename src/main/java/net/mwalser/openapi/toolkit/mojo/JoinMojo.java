@@ -31,6 +31,10 @@ public final class JoinMojo extends AbstractApiMojo {
     @Parameter(property = "openapi.join.withoutXTagGroups", defaultValue = "false")
     boolean withoutXTagGroups;
 
+    /** Skip this goal only; {@code openapi.skip} skips every goal of the plugin. */
+    @Parameter(property = "openapi.join.skip", defaultValue = "false")
+    boolean skipJoin;
+
     @Override
     Goal<?> goal() {
         return new JoinGoal(this);
