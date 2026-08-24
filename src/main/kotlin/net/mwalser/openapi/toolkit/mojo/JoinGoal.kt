@@ -9,8 +9,8 @@ internal class JoinGoal(mojo: JoinMojo) : ApiGoal<JoinMojo>(mojo) {
 
     override fun validate() {
         super.validate()
-        if (BundleGoal.extension(mojo.outputFile) !in BundleGoal.EXTENSIONS) {
-            throw MojoExecutionException("Invalid extension of openapi.join.outputFile '${mojo.outputFile.name}'; expected one of: ${BundleGoal.EXTENSIONS.joinToString(", ")}")
+        if (extension(mojo.outputFile) !in EXTENSIONS) {
+            throw MojoExecutionException("Invalid extension of openapi.join.outputFile '${mojo.outputFile.name}'; expected one of: ${EXTENSIONS.joinToString(", ")}")
         }
         if (mojo.prefixTagsWithInfoProp != null && mojo.prefixTagsWithFilename) {
             throw MojoExecutionException("openapi.join.prefixTagsWithInfoProp and openapi.join.prefixTagsWithFilename cannot be used together")

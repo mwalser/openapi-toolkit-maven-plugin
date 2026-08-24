@@ -36,7 +36,8 @@ object JsPaths {
     @JvmStatic
     fun toHost(jsPath: String): String {
         if (!windows || urlScheme.containsMatchIn(jsPath)) return jsPath
-        return if (jsWindowsDrive.containsMatchIn(jsPath)) jsPath.substring(1).replace('/', '\\') else jsPath.replace('/', '\\')
+        val withoutLeadingSlash = if (jsWindowsDrive.containsMatchIn(jsPath)) jsPath.drop(1) else jsPath
+        return withoutLeadingSlash.replace('/', '\\')
     }
 
     @JvmStatic

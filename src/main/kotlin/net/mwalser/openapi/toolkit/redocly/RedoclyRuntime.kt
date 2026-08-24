@@ -35,7 +35,7 @@ class RedoclyRuntime private constructor(
 
     enum class EffectiveEngine { JIT, ISOLATE, INTERPRETER }
 
-    private val run: Value = module.getMember("run")
+    private val jsRun: Value = module.getMember("run")
 
     /** Version of `@redocly/openapi-core` embedded in the bundle. */
     val redoclyVersion: String = module.getMember("version").execute().asString()
@@ -51,7 +51,7 @@ class RedoclyRuntime private constructor(
             bridge.workingDirectory = JsPaths.toHostPath(options.cwd).toAbsolutePath().normalize()
             bridge.network = network
             try {
-                val promise = guest { run.execute(command, Json.mapper.writeValueAsString(options)) }
+                val promise = guest { jsRun.execute(command, Json.mapper.writeValueAsString(options)) }
                 Json.mapper.readValue(settledValue(promise).asString(), resultType)
             } finally {
                 bridge.log = JsLog.SILENT

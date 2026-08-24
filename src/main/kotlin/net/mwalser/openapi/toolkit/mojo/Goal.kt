@@ -34,7 +34,11 @@ abstract class Goal<M : AbstractRedoclyMojo>(protected val mojo: M) {
 
     @Throws(MojoExecutionException::class, MojoFailureException::class)
     fun execute() {
-        val skippedBy = if (mojo.skip) "openapi.skip" else skipGoal.property.takeIf { skipGoal.enabled }
+        val skippedBy = when {
+            mojo.skip -> "openapi.skip"
+            skipGoal.enabled -> skipGoal.property
+            else -> null
+        }
         if (skippedBy != null) {
             log.info("Skipping ($skippedBy=true)")
             return
@@ -159,6 +163,11 @@ abstract class Goal<M : AbstractRedoclyMojo>(protected val mojo: M) {
         val REPORT_FORMATS: List<String> = CONSOLE_FORMATS + listOf("json", "checkstyle", "codeclimate", "junit")
 
         val SEVERITIES: List<String> = listOf("warn", "error", "off")
+
+        /** Output formats a bundled or joined description can be written in. */
+        val EXTENSIONS: List<String> = listOf("yaml", "yml", "json")
+
+        fun extension(file: File): String = file.extension.lowercase()
     }
 }
 

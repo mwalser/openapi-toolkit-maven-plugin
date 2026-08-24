@@ -43,7 +43,7 @@ data class ProxyConfig(
 ) {
     private val bypassed: List<Regex> = nonProxyHosts.orEmpty().split('|')
         .filter { it.isNotBlank() }
-        .map { pattern -> Regex(pattern.split('*').joinToString(".*") { Regex.escape(it) }, RegexOption.IGNORE_CASE) }
+        .map(::wildcardRegex)
 
     fun selector(): ProxySelector = object : ProxySelector() {
         private val viaProxy = listOf(Proxy(Proxy.Type.HTTP, InetSocketAddress.createUnresolved(host, port)))
@@ -69,3 +69,6 @@ data class ProxyConfig(
     /** Leaves the password out. */
     override fun toString(): String = "ProxyConfig(host=$host, port=$port, username=$username, nonProxyHosts=$nonProxyHosts)"
 }
+
+private fun wildcardRegex(pattern: String): Regex =
+    Regex(pattern.split('*').joinToString(".*") { Regex.escape(it) }, RegexOption.IGNORE_CASE)

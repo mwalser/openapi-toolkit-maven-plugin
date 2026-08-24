@@ -65,8 +65,8 @@ internal class BundleGoal(mojo: BundleMojo) : ApiGoal<BundleMojo>(mojo) {
             if (api.written && mojo.attach) attach(api)
         }
 
-        val written = result.apis.filter { it.written }.map { hostPath(it.outputFile) }
-        if (mojo.addResource && written.isNotEmpty()) addResources(outputFile?.parent ?: outputDirectory, written)
+        val writtenFiles = result.apis.filter { it.written }.map { hostPath(it.outputFile) }
+        if (mojo.addResource && writtenFiles.isNotEmpty()) addResources(outputFile?.parent ?: outputDirectory, writtenFiles)
         reportUnused(result.unused, configFile)
 
         if (result.totals.errors > 0 && !mojo.force) {
@@ -97,11 +97,5 @@ internal class BundleGoal(mojo: BundleMojo) : ApiGoal<BundleMojo>(mojo) {
         val includes = files.map { directory.relativize(it).toString() }
         mojo.projectHelper.addResource(mojo.project, directory.toString(), includes, emptyList<String>())
         log.info("Added ${includes.joinToString(", ")} in ${display(directory)} as resources")
-    }
-
-    companion object {
-        val EXTENSIONS: List<String> = listOf("yaml", "yml", "json")
-
-        fun extension(file: File): String = file.extension.lowercase()
     }
 }

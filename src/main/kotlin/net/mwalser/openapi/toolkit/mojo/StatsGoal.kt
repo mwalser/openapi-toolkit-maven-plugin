@@ -24,11 +24,11 @@ internal class StatsGoal(mojo: StatsMojo) : ApiGoal<StatsMojo>(mojo) {
             val api = result.apis.single()
             val written = writeOutput(outputFile, api.output)
             log.info("Statistics for ${display(api.path)} (${mojo.format}) written to ${display(written)}")
-            return
-        }
-        for (api in result.apis) {
-            log.info("Statistics for ${display(api.path)}:")
-            MavenJsLog.block(log, api.output, MavenJsLog.Level.INFO)
+        } else {
+            for (api in result.apis) {
+                log.info("Statistics for ${display(api.path)}:")
+                MavenJsLog.block(log, api.output, MavenJsLog.Level.INFO)
+            }
         }
     }
 }

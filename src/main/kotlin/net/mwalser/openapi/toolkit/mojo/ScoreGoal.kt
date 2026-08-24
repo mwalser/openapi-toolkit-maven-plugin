@@ -50,10 +50,11 @@ internal class ScoreGoal(mojo: ScoreMojo) : ApiGoal<ScoreMojo>(mojo) {
     private fun enforceMinScore(minScore: Double, apis: List<ApiScoreResult>) {
         val failing = apis.filter { it.agentReadiness < minScore }
         if (failing.isNotEmpty()) {
-            val scores = failing.joinToString(", ") { "${display(it.path)} (${it.agentReadiness})" }
-            throw MojoFailureException("Agent-readiness score below the required minimum of $minScore: $scores")
+            val failures = failing.joinToString(", ") { "${display(it.path)} (${it.agentReadiness})" }
+            throw MojoFailureException("Agent-readiness score below the required minimum of $minScore: $failures")
         }
         val scores = apis.joinToString(", ") { it.agentReadiness.toString() }
-        log.info("Agent-readiness ${if (apis.size == 1) "score" else "scores"} $scores meet the required minimum of $minScore.")
+        val summary = if (apis.size == 1) "score $scores meets" else "scores $scores meet"
+        log.info("Agent-readiness $summary the required minimum of $minScore.")
     }
 }

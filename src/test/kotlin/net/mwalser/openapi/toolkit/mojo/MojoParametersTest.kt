@@ -1,10 +1,10 @@
 package net.mwalser.openapi.toolkit.mojo
 
 import org.apache.maven.plugin.MojoExecutionException
+import org.apache.maven.project.MavenProject
 import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
-import org.apache.maven.project.MavenProject
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
@@ -77,14 +77,16 @@ class MojoParametersTest {
         val descriptorFile = Path.of("target/classes/META-INF/maven/plugin.xml")
         assumeTrue(Files.exists(descriptorFile), "plugin descriptor not generated (run via Maven)")
         val descriptor = descriptorFile.readText()
-        fun parameters(goal: String): Set<String> {
-            val mojo = Regex("<goal>$goal</goal>.*?</mojo>", RegexOption.DOT_MATCHES_ALL).find(descriptor)!!.value
-            return Regex("<parameter>(.*?)</parameter>", RegexOption.DOT_MATCHES_ALL).findAll(mojo).map {
+        val parameterTag = Regex("<parameter>(.*?)</parameter>", RegexOption.DOT_MATCHES_ALL)
+        fun mojoXml(goal: String): String =
+            Regex("<goal>$goal</goal>.*?</mojo>", RegexOption.DOT_MATCHES_ALL).find(descriptor)!!.value
+        fun parameters(goal: String): Set<String> =
+            parameterTag.findAll(mojoXml(goal)).map {
                 val parameter = it.groupValues[1]
                 Regex("<alias>([^<]+)</alias>").find(parameter)?.groupValues?.get(1)
                     ?: Regex("<name>([^<]+)</name>").find(parameter)!!.groupValues[1]
             }.toSet() - setOf("project", "session")
-        }
+
         val runtime = setOf("skip")
         val configured = runtime + setOf("configFile", "maxProblems")
         val api = configured + setOf("apis", "lintConfig")
@@ -101,10 +103,10 @@ class MojoParametersTest {
         assertEquals(runtime + setOf("skipSplit", "api", "outputDirectory", "separator"), parameters("split"))
 
         for (goal in listOf("lint", "bundle", "check-config", "stats", "score", "join", "split", "help")) {
-            val mojo = Regex("<goal>$goal</goal>.*?</mojo>", RegexOption.DOT_MATCHES_ALL).find(descriptor)!!.value
-            val description = Regex("<description>(.*?)</description>", RegexOption.DOT_MATCHES_ALL).find(mojo)?.groupValues?.get(1).orEmpty()
+            val xml = mojoXml(goal)
+            val description = Regex("<description>(.*?)</description>", RegexOption.DOT_MATCHES_ALL).find(xml)?.groupValues?.get(1).orEmpty()
             assertTrue(description.isNotBlank(), "goal $goal has no description")
-            for (parameter in Regex("<parameter>(.*?)</parameter>", RegexOption.DOT_MATCHES_ALL).findAll(mojo)) {
+            for (parameter in parameterTag.findAll(xml)) {
                 val body = parameter.groupValues[1]
                 val name = Regex("<name>([^<]+)</name>").find(body)!!.groupValues[1]
                 val parameterDescription = Regex("<description>(.*?)</description>", RegexOption.DOT_MATCHES_ALL).find(body)?.groupValues?.get(1).orEmpty()

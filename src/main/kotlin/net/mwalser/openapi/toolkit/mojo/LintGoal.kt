@@ -22,7 +22,7 @@ internal class LintGoal(mojo: LintMojo) : ApiGoal<LintMojo>(mojo) {
                 apis = jsApis,
                 extends = mojo.extendsRulesets,
                 format = mojo.format,
-                reportFormat = mojo.reportFormat.takeIf { mojo.reportFile != null },
+                reportFormat = if (mojo.reportFile != null) mojo.reportFormat else null,
                 maxProblems = maxProblems,
                 skipRules = mojo.skipRules,
                 generateIgnoreFile = mojo.generateIgnoreFile,

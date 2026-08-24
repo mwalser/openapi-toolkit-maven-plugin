@@ -5,6 +5,7 @@ import com.sun.net.httpserver.HttpServer
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.io.TempDir
@@ -42,6 +43,9 @@ class RedoclyRuntimeTest {
 
     @AfterAll
     fun stop() = runtime.close()
+
+    @BeforeEach
+    fun clearLogs() = logs.clear()
 
     private fun redocly(network: NetworkConfig = NetworkConfig()) = Redocly(runtime, log, network)
 
@@ -221,18 +225,15 @@ class RedoclyRuntimeTest {
 
     @Test
     fun `resolves http refs through the host`(@TempDir dir: Path) {
-        val server = HttpServer.create(InetSocketAddress("127.0.0.1", 0), 0)
         val requests = mutableListOf<Pair<String, String>>()
-        server.createContext("/schemas/pet.yaml") { exchange ->
+        val serveSchema = { exchange: HttpExchange ->
             requests += (exchange.requestHeaders.getFirst("X-Token") ?: "<none>") to (exchange.requestHeaders.getFirst("X-Env") ?: "<none>")
             val body = "type: object\nproperties:\n  name:\n    type: string\n".toByteArray()
             exchange.responseHeaders.add("Content-Type", "application/yaml")
             exchange.sendResponseHeaders(200, body.size.toLong())
             exchange.responseBody.use { it.write(body) }
         }
-        server.start()
-        try {
-            val base = "http://127.0.0.1:${server.address.port}"
+        withHttpServer(serveSchema) { base ->
             Files.writeString(
                 dir.resolve("openapi.yaml"),
                 """
@@ -271,25 +272,19 @@ class RedoclyRuntimeTest {
             assertEquals(Totals(), result.totals)
             assertContains(Path.of(result.apis.single().outputFile).readText(), "components:\n  schemas:\n    pet:")
             assertEquals(listOf("secret" to System.getenv("PATH")), requests)
-        } finally {
-            server.stop(0)
         }
     }
 
     @Test
     fun `offline mode refuses remote refs without making a request`(@TempDir dir: Path) {
         var requests = 0
-        val server = httpServer { requests++; it.sendResponseHeaders(500, -1); it.close() }
-        try {
-            val url = "http://127.0.0.1:${server.address.port}/schema.yaml"
-            writeApiWithRef(dir, url)
+        withHttpServer({ requests++; it.sendResponseHeaders(500, -1); it.close() }) { base ->
+            writeApiWithRef(dir, "$base/schema.yaml")
             val result = redocly(NetworkConfig(offline = true)).bundle(BundleOptions(cwd = dir.toString(), apis = listOf("openapi.yaml"), outputDirectory = "out"))
             val message = result.apis.single().problems.joinToString { it.message }
             assertContains(message, "Maven is offline (-o)")
-            assertContains(message, url)
+            assertContains(message, "$base/schema.yaml")
             assertEquals(0, requests)
-        } finally {
-            server.stop(0)
         }
     }
 
@@ -314,16 +309,12 @@ class RedoclyRuntimeTest {
 
     @Test
     fun `an http error status is reported with the url`(@TempDir dir: Path) {
-        val server = httpServer { it.sendResponseHeaders(404, -1); it.close() }
-        try {
-            val url = "http://127.0.0.1:${server.address.port}/missing.yaml"
-            writeApiWithRef(dir, url)
+        withHttpServer({ it.sendResponseHeaders(404, -1); it.close() }) { base ->
+            writeApiWithRef(dir, "$base/missing.yaml")
             val result = redocly().bundle(BundleOptions(cwd = dir.toString(), apis = listOf("openapi.yaml"), outputDirectory = "out"))
             val message = result.apis.single().problems.joinToString { it.message }
-            assertContains(message, url)
+            assertContains(message, "$base/missing.yaml")
             assertContains(message, "404")
-        } finally {
-            server.stop(0)
         }
     }
 
@@ -337,13 +328,6 @@ class RedoclyRuntimeTest {
         val error = assertFailsWith<RedoclyException> { redocly().lint(LintOptions(cwd = dir.toString(), apis = listOf("unreadable.yaml"))) }
         assertContains(error.message!!, "EACCES")
         assertContains(error.message!!, unreadable.toString())
-    }
-
-    private fun httpServer(handler: (HttpExchange) -> Unit): HttpServer {
-        val server = HttpServer.create(InetSocketAddress("127.0.0.1", 0), 0)
-        server.createContext("/", handler)
-        server.start()
-        return server
     }
 
     @Test
@@ -375,16 +359,12 @@ class RedoclyRuntimeTest {
     @Test
     fun `configuration errors abort before any api is processed`(@TempDir dir: Path) {
         var requests = 0
-        val server = httpServer { requests++; it.sendResponseHeaders(200, 0); it.close() }
-        try {
-            val remote = "http://127.0.0.1:${server.address.port}/openapi.yaml"
-            Files.writeString(dir.resolve("redocly.yaml"), "rules:\n  info-license: loud\napis:\n  remote:\n    root: $remote\n")
+        withHttpServer({ requests++; it.sendResponseHeaders(200, 0); it.close() }) { base ->
+            Files.writeString(dir.resolve("redocly.yaml"), "rules:\n  info-license: loud\napis:\n  remote:\n    root: $base/openapi.yaml\n")
             val result = redocly().lint(LintOptions(cwd = dir.toString(), configPath = dir.resolve("redocly.yaml").toString(), lintConfig = "error"))
             assertTrue(result.configLint!!.totals.errors > 0)
             assertTrue(result.apis.isEmpty())
             assertEquals(0, requests)
-        } finally {
-            server.stop(0)
         }
     }
 
@@ -414,7 +394,6 @@ class RedoclyRuntimeTest {
     fun `warns about a configured output it does not honor`(@TempDir dir: Path) {
         val project = fixture("petstore", dir)
         Files.writeString(project.resolve("redocly.yaml"), "extends: [minimal]\napis:\n  petstore:\n    root: openapi.yaml\n    output: dist/petstore.yaml\n")
-        logs.clear()
         val api = redocly().bundle(BundleOptions(cwd = project.toString(), configPath = project.resolve("redocly.yaml").toString(), outputDirectory = "out")).apis.single()
         assertEquals(project.resolve("out/petstore.yaml"), Path.of(api.outputFile))
         assertFalse(Files.exists(project.resolve("dist")))
@@ -424,27 +403,37 @@ class RedoclyRuntimeTest {
     @Test
     fun `an api requested by url is matched to its alias`(@TempDir dir: Path) {
         val spec = "openapi: 3.0.3\ninfo: { title: Remote, version: '1' }\nservers: [{ url: https://api.example.test }]\npaths: {}\n".toByteArray()
-        val server = httpServer { exchange ->
+        val serveSpec = { exchange: HttpExchange ->
             exchange.sendResponseHeaders(200, spec.size.toLong())
             exchange.responseBody.use { it.write(spec) }
         }
-        try {
-            val url = "http://127.0.0.1:${server.address.port}/openapi.yaml"
+        withHttpServer(serveSpec) { base ->
+            val url = "$base/openapi.yaml"
             Files.writeString(dir.resolve("redocly.yaml"), "extends: [minimal]\napis:\n  remote:\n    root: $url\n")
             val api = redocly().lint(LintOptions(cwd = dir.toString(), configPath = dir.resolve("redocly.yaml").toString(), apis = listOf(url))).apis.single()
             assertEquals("remote", api.alias)
             assertEquals(url, api.path)
-        } finally {
-            server.stop(0)
         }
     }
 
     @Test
     fun `routes redocly logging to the host`(@TempDir dir: Path) {
-        logs.clear()
         val project = fixture("petstore", dir)
         redocly().lint(LintOptions(cwd = project.toString(), configPath = project.resolve("redocly.yaml").toString()))
         // nothing is printed by the JS side during a normal lint: all output is returned as data
         assertEquals(emptyList(), logs.filter { !it.startsWith("debug:") })
+    }
+
+    /** Serves every request with [handler] on an ephemeral port and hands the base URL to [test]. */
+    private fun withHttpServer(handler: (HttpExchange) -> Unit, test: (baseUrl: String) -> Unit) {
+        val server = HttpServer.create(InetSocketAddress("127.0.0.1", 0), 0).apply {
+            createContext("/", handler)
+            start()
+        }
+        try {
+            test("http://127.0.0.1:${server.address.port}")
+        } finally {
+            server.stop(0)
+        }
     }
 }
