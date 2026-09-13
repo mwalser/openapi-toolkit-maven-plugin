@@ -1,0 +1,4 @@
+/* Align benchmark headings with the values underneath them. */
+#Benchmarks ~ table th {
+  text-align: left;
+}

@@ -10,7 +10,7 @@
 
   <name>OpenAPI Toolkit Maven Plugin</name>
   <description>Lint, bundle and transform OpenAPI descriptions. Powered by Redocly.</description>
-  <url>https://github.com/mwalser/openapi-toolkit-maven-plugin</url>
+  <url>https://mwalser.github.io/openapi-toolkit-maven-plugin/</url>
   <inceptionYear>2026</inceptionYear>
   <scm>
     <connection>scm:git:https://github.com/mwalser/openapi-toolkit-maven-plugin.git</connection>
@@ -260,6 +260,23 @@
       </plugin>
     </plugins>
   </build>
+
+  <reporting>
+    <excludeDefaults>true</excludeDefaults>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-plugin-report-plugin</artifactId>
+        <version>${maven-plugin-tools.version}</version>
+        <reportSets>
+          <reportSet>
+            <!-- Compiles and generates the descriptor, so mvn site also works from a clean checkout. -->
+            <reports><report>report</report></reports>
+          </reportSet>
+        </reportSets>
+      </plugin>
+    </plugins>
+  </reporting>
 
   <profiles>
     <!-- Signs and attaches sources/javadoc for publishing to Maven Central. -->

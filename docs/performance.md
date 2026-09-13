@@ -1,36 +1,5 @@
 # Performance and runtime
 
-The plugin runs Redocly inside the JVM using GraalJS. For large API descriptions, the optional native isolate
-can reduce processing time. See the [README](../README.md#performance) for the dependency configuration.
+This guide has moved to the [documentation website](https://mwalser.github.io/openapi-toolkit-maven-plugin/performance.html).
 
-## Benchmarks
-
-These measurements compare cold lint runs on four cores:
-
-| Description | Size | Node | Interpreter | Native isolate |
-|---|---|---|---|---|
-| Petstore | 17 KB | 0.06 s | 1.1 s | 0.4 s |
-| Twilio API | 1.9 MB | 1.1 s | 18 s | 7 s |
-| GitHub REST API | 12.9 MB | 6 s | 90 s | 44 s |
-
-The Maven runs also incur one-time HotSpot warm-up of roughly 4 s for the interpreter or 1.4 s for the isolate
-per build. Problem counts were identical across engines.
-
-## Engine selection
-
-The build log reports the selected engine. Selection is automatic, in this order:
-
-1. Runtime compilation in-process when Maven runs on a GraalVM JDK 25 matching GraalJS 25.
-2. Native isolate when its platform-specific dependency is present. This runs GraalJS as a precompiled native
-   image inside the JVM and adds roughly 60 MB of dependencies. Community isolates are available since GraalVM 25.1.
-3. Interpreter otherwise, using the default `js-community` dependency (roughly 30 MB) on JDK 21+.
-
-The JavaScript runtime is created once per JVM and reused across goals and modules.
-
-## Troubleshooting
-
-- If the isolate dependency is present but cannot start, the build fails. Check that the artifact matches your
-  platform and the GraalJS version in the plugin's [POM](../pom.xml).
-- On JDK 24+, add `--enable-native-access=ALL-UNNAMED` to `.mvn/jvm.config` to suppress the Truffle native-access warning.
-- The isolate extracts roughly 140 MB into `~/.cache/org.graalvm.polyglot/`. If the home directory is read-only,
-  set `-Dpolyglot.engine.userResourceCache=<writable-directory>` in `.mvn/jvm.config`.
+The source is maintained under [src/site/markdown](../src/site/markdown/).
