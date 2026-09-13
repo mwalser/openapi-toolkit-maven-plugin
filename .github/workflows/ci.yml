@@ -31,8 +31,11 @@ jobs:
       - run: cmp target/THIRD-PARTY-NOTICES.txt src/main/resources/META-INF/THIRD-PARTY-NOTICES.txt
   isolate:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        distribution: [temurin, graalvm]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
-        with: { distribution: graalvm, java-version: '25' }
+        with: { distribution: '${{ matrix.distribution }}', java-version: '25' }
       - run: mvn --batch-mode test -Pisolate-tests

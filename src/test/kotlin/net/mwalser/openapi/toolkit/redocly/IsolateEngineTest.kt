@@ -26,7 +26,8 @@ class IsolateEngineTest {
             assertEquals(0, deepResult.totals.errors, deepResult.apis.single().problems.toString())
         }
         RedoclyRuntime.create(EngineMode.AUTO).use { runtime ->
-            assertEquals(RedoclyRuntime.EffectiveEngine.ISOLATE, runtime.effectiveEngine)
+            val expected = if (Engine.supportsCompilation()) RedoclyRuntime.EffectiveEngine.JIT else RedoclyRuntime.EffectiveEngine.ISOLATE
+            assertEquals(expected, runtime.effectiveEngine)
         }
     }
 

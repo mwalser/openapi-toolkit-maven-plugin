@@ -1,0 +1,4 @@
+extends: [minimal]
+apis:
+  openapi:
+    root: one.yaml

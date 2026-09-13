@@ -423,6 +423,31 @@ class RedoclyRuntimeTest {
         }
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = ["root", "api", "inline-api", "command-line"])
+    fun `rejects plugins in inherited and api configurations`(scope: String, @TempDir dir: Path) {
+        Files.writeString(dir.resolve("base.yaml"), "extends: [minimal]\nplugins: [./acme.js]\nrules:\n  acme/required: error\n")
+        Files.writeString(dir.resolve("parent.yaml"), "extends: [./base.yaml]\n")
+        val config = when (scope) {
+            "root" -> "extends: [./parent.yaml]\n"
+            "api" -> "apis:\n  test:\n    root: missing.yaml\n    extends: [./parent.yaml]\n"
+            "inline-api" -> "apis:\n  test:\n    root: missing.yaml\n    plugins: [./acme.js]\n    rules:\n      acme/required: error\n"
+            else -> null
+        }
+        config?.let { Files.writeString(dir.resolve("redocly.yaml"), it) }
+        val error = assertFailsWith<RedoclyException> {
+            redocly().lint(
+                LintOptions(
+                    cwd = dir.toString(), apis = listOf("missing.yaml"), lintConfig = "off",
+                    extends = if (scope == "command-line") listOf("./parent.yaml") else null,
+                ),
+            )
+        }
+        assertContains(error.message!!, "Custom JavaScript plugins are not supported")
+        assertContains(error.message!!, "./acme.js")
+        assertContains(error.message!!, "acme/required")
+    }
+
     @Test
     fun `bundle format follows the input when neither ext nor outputFile decide`(@TempDir dir: Path) {
         val project = fixture("petstore3", dir)
@@ -453,6 +478,35 @@ class RedoclyRuntimeTest {
         assertEquals(project.resolve("out/petstore.yaml"), Path.of(api.outputFile))
         assertFalse(Files.exists(project.resolve("dist")))
         assertTrue(logs.any { it.startsWith("warn: Ignoring output 'dist/petstore.yaml' of api 'petstore'") }, logs.toString())
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["../escaped", "..\\escaped", "/escaped", "C:\\escaped", "\\\\server\\share\\escaped", "../out-other/escaped"])
+    fun `rejects bundle aliases that escape the output directory before writing`(alias: String, @TempDir dir: Path) {
+        Files.writeString(dir.resolve("openapi.yaml"), "openapi: 3.0.3\ninfo: { title: Test, version: '1' }\npaths: {}\n")
+        Files.writeString(dir.resolve("redocly.yaml"), "extends: [minimal]\napis:\n  safe:\n    root: openapi.yaml\n  '$alias':\n    root: openapi.yaml\n")
+        Files.writeString(dir.resolve("escaped.yaml"), "existing content")
+
+        val error = assertFailsWith<RedoclyException> {
+            redocly().bundle(BundleOptions(cwd = dir.toString(), outputDirectory = "out"))
+        }
+        assertContains(error.message!!, "outside the bundle output directory")
+        assertFalse(Files.exists(dir.resolve("out")))
+        assertEquals("existing content", dir.resolve("escaped.yaml").readText())
+    }
+
+    @Test
+    fun `allows nested bundle aliases and explicit output files`(@TempDir dir: Path) {
+        Files.writeString(dir.resolve("openapi.yaml"), "openapi: 3.0.3\ninfo: { title: Test, version: '1' }\npaths: {}\n")
+        Files.writeString(dir.resolve("redocly.yaml"), "extends: [minimal]\napis:\n  nested/api:\n    root: openapi.yaml\n")
+        val options = BundleOptions(cwd = dir.toString(), outputDirectory = "out")
+        val nested = redocly().bundle(options).apis.single()
+        assertEquals(dir.resolve("out/nested/api.yaml"), Path.of(nested.outputFile))
+        assertTrue(nested.written)
+
+        val explicit = redocly().bundle(options.copy(outputFile = "chosen.yaml")).apis.single()
+        assertEquals(dir.resolve("chosen.yaml"), Path.of(explicit.outputFile))
+        assertTrue(explicit.written)
     }
 
     @Test

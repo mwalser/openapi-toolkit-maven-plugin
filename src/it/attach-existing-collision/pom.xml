@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>net.mwalser.it</groupId>
+  <artifactId>attach-existing-collision</artifactId>
+  <version>1.0-SNAPSHOT</version>
+  <packaging>jar</packaging>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>@project.groupId@</groupId>
+        <artifactId>@project.artifactId@</artifactId>
+        <version>@project.version@</version>
+        <executions>
+          <execution>
+            <id>first</id>
+            <goals><goal>bundle</goal></goals>
+            <configuration>
+              <apis>
+                <api>one.yaml</api>
+              </apis>
+              <attach>true</attach>
+            </configuration>
+          </execution>
+          <execution>
+            <id>second</id>
+            <goals><goal>bundle</goal></goals>
+            <configuration>
+              <apis>
+                <api>two.yaml</api>
+              </apis>
+              <attach>true</attach>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

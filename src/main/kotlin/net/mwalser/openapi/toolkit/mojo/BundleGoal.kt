@@ -54,12 +54,7 @@ internal class BundleGoal(mojo: BundleMojo) : ApiGoal<BundleMojo>(mojo) {
         )
 
         reportConfigLint(result.configLint, configFile)
-        if (mojo.attach && result.apis.count { it.alias == null } > 1) {
-            throw MojoExecutionException(
-                "openapi.bundle.attach cannot attach more than one API without an alias because classifier '${mojo.classifier}' would collide; " +
-                    "assign aliases in redocly.yaml or select one API.",
-            )
-        }
+        if (mojo.attach) validateAttachments(result.apis.filter { it.written })
         for (api in result.apis) {
             report(api)
             if (api.written && mojo.attach) attach(api)
@@ -84,6 +79,26 @@ internal class BundleGoal(mojo: BundleMojo) : ApiGoal<BundleMojo>(mojo) {
             else -> log.info("Created bundle for $source at ${display(api.outputFile)} (${api.durationMillis} ms)")
         }
         if (api.removedComponents > 0) log.info("Removed ${plural(api.removedComponents, "unused component")}")
+    }
+
+    /** Check the whole batch before attaching anything, including artifacts from earlier executions or plugins. */
+    private fun validateAttachments(apis: List<ApiBundleResult>) {
+        val occupied = mojo.project.attachedArtifacts.associateTo(mutableMapOf()) {
+            (it.type to it.classifier.orEmpty()) to (it.file?.toString() ?: it.id)
+        }
+        for (api in apis) {
+            val classifier = api.alias ?: mojo.classifier
+            if (classifier.isBlank() || classifier.contains('/') || classifier.contains('\\')) {
+                throw MojoExecutionException("Invalid bundle artifact classifier '$classifier'; use a nonblank alias or classifier without path separators.")
+            }
+            val previous = occupied.putIfAbsent(api.ext to classifier, api.outputFile)
+            if (previous != null) {
+                throw MojoExecutionException(
+                    "openapi.bundle.attach would overwrite artifact (type=${api.ext}, classifier=$classifier): " +
+                        "${display(previous)} and ${display(api.outputFile)}; use distinct aliases or classifiers.",
+                )
+            }
+        }
     }
 
     private fun attach(api: ApiBundleResult) {

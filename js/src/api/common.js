@@ -54,19 +54,44 @@ export async function loadProjectConfig({ configPath, customExtends }) {
 
 /**
  * The bundle runs openapi-core in browser mode, which silently ignores `plugins:` — and with them every rule and
- * decorator they provide. Failing is better than linting with a ruleset the user did not configure.
+ * decorator they provide. Failing is better than linting with a ruleset the user did not configure. Browser mode
+ * drops the declarations while merging, so they are collected from the raw nodes of every resolved configuration
+ * document: the root file, everything reachable through `extends`, and per-API overrides.
  */
 function rejectCustomPlugins(config) {
-  const configured = config.document?.parsed || {};
-  const plugins = (configured.plugins || []).filter((plugin) => typeof plugin === 'string');
+  const nodes = configNodes(config);
+  const declared = (node) => (Array.isArray(node.plugins) ? node.plugins.filter((plugin) => typeof plugin === 'string') : []);
+  const plugins = distinct(nodes.flatMap(declared));
   if (!plugins.length) return;
+
   const pluginIds = plugins.map((plugin) => path.basename(plugin).replace(/\.[^.]+$/, ''));
   const providedBy = (id) => pluginIds.some((pluginId) => id.startsWith(`${pluginId}/`));
-  const uses = ['rules', 'preprocessors', 'decorators'].flatMap((section) => Object.keys(configured[section] || {}).filter(providedBy));
+  const configuredIds = (node) => ['rules', 'preprocessors', 'decorators'].flatMap((section) => Object.keys(node[section] || {}));
+  const uses = distinct(nodes.flatMap(configuredIds).filter(providedBy));
   throw new CommandError(
     `Custom JavaScript plugins are not supported: ${plugins.join(', ')}` +
       (uses.length ? `. Configured plugin rules/decorators: ${uses.join(', ')}` : ''),
   );
+}
+
+/** Every object of a resolved configuration that can declare plugins or rules (same shapes as openapi-core's own plugin collector). */
+function configNodes(config) {
+  const nodes = new Set();
+  const collect = (node) => {
+    if (!node || typeof node !== 'object' || nodes.has(node)) return;
+    nodes.add(node);
+    collect(node.governance);
+    for (const api of Object.values(node.apis || {})) collect(api);
+    for (const level of node.scorecardClassic?.levels || []) collect(level);
+    for (const level of node.scorecard?.levels || []) collect(level);
+  };
+  collect(config.document?.parsed);
+  for (const ref of config.resolvedRefMap?.values() || []) collect(ref.node);
+  return [...nodes];
+}
+
+function distinct(values) {
+  return [...new Set(values)];
 }
 
 export function configDirectory(config, cwd) {

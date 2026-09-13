@@ -130,6 +130,10 @@ without aliases that would produce the same file name are rejected. The `output`
 `redocly.yaml` is ignored with a warning because Maven controls where bundles go. With `addResource=true`, the
 written bundles are added at the artifact's resource root.
 
+Aliases must keep generated files inside `outputDirectory`; use `outputFile` for an explicit destination elsewhere.
+With `attach=true`, each type/classifier pair must be unique, including artifacts attached by earlier executions.
+Artifact classifiers must be nonblank and contain no path separators.
+
 ### `openapi:check-config`
 
 Lints `redocly.yaml` (`redocly check-config`).
@@ -175,6 +179,8 @@ Joins two or more OpenAPI 3 descriptions (`redocly join`, experimental upstream)
 | `prefixTagsWithFilename` | `openapi.join.prefixTagsWithFilename` | `false` | Prefix tags with each source filename. |
 | `prefixComponentsWithInfoProp` | `openapi.join.prefixComponentsWithInfoProp` | – | Prefix component names with an `info` property. |
 | `withoutXTagGroups` | `openapi.join.withoutXTagGroups` | `false` | Do not generate `x-tagGroups`. |
+
+`prefixTagsWithInfoProp`, `prefixTagsWithFilename` and `withoutXTagGroups` are mutually exclusive; set at most one.
 
 ### `openapi:split`
 
@@ -236,7 +242,8 @@ decrypted proxy configuration. For `resolve.http.headers`, prefer explicit patte
 ## Limitations
 
 - **Custom JavaScript plugins** (`plugins:` in `redocly.yaml`) are not supported: the bundle runs in Redocly's
-  "browser" mode, which cannot load plugin files. Built-in rulesets, rule configuration and built-in decorators all
+  "browser" mode, which cannot load plugin files. Plugin declarations are rejected, including those inherited
+  through `extends` or declared in API configurations. Built-in rulesets, rule configuration and built-in decorators all
   work; preprocessors only exist in custom plugins, so there is no `skipPreprocessors` parameter.
 - Not included (they need a Node process, the Redocly cloud or live HTTP): `build-docs`, `preview`, `push`,
   `login`, `respect`, `translate`, `eject`, `generate-*`, `drift`, `proxy`, `scorecard-classic`.

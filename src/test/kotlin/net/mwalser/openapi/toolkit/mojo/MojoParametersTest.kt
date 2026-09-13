@@ -23,6 +23,9 @@ class MojoParametersTest {
         fun write(file: File) = writeOutput(file, "content")
     }
 
+    /** A JoinMojo as Maven would configure it: `outputFile` has a default value and is never null. */
+    private fun join() = JoinMojo().apply { outputFile = File("joined.yaml") }
+
     private fun assertRejected(property: String, mojo: AbstractRedoclyMojo) {
         val error = assertFailsWith<MojoExecutionException>("$property should be rejected") { mojo.execute() }
         assertContains(error.message!!, property)
@@ -47,6 +50,9 @@ class MojoParametersTest {
         assertRejected("openapi.score.minScore", ScoreMojo().apply { minScore = Double.NaN })
         assertRejected("openapi.score.minScore", ScoreMojo().apply { minScore = 101.0 })
         assertRejected("openapi.split.separator", SplitMojo().apply { separator = " " })
+        assertRejected("openapi.join.prefixTagsWithFilename", join().apply { prefixTagsWithInfoProp = "title"; prefixTagsWithFilename = true })
+        assertRejected("openapi.join.withoutXTagGroups", join().apply { prefixTagsWithInfoProp = "title"; withoutXTagGroups = true })
+        assertRejected("openapi.join.withoutXTagGroups", join().apply { prefixTagsWithFilename = true; withoutXTagGroups = true })
     }
 
     @Test

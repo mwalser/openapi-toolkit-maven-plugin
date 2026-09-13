@@ -96,7 +96,15 @@ function outputTarget({ path: ref, alias }, { cwd, outputDirectory, outputFile, 
   const extensionOf = (file) => path.extname(file).slice(1).toLowerCase();
   const explicitFile = outputFile && path.resolve(cwd, outputFile);
   const ext = requestedExt || [explicitFile, ref].filter(Boolean).map(extensionOf).find((e) => OUTPUT_EXTENSIONS.includes(e)) || 'yaml';
-  const file = explicitFile || path.join(path.resolve(cwd, outputDirectory), `${alias || path.basename(ref, path.extname(ref))}.${ext}`);
+  if (explicitFile) return { outputFile: explicitFile, ext };
+  const directory = path.resolve(cwd, outputDirectory);
+  // Treat both separator styles consistently, including when checking Windows aliases on a POSIX host.
+  const name = (alias || path.basename(ref, path.extname(ref))).replaceAll('\\', '/');
+  const file = path.resolve(directory, `${name}.${ext}`);
+  const relative = path.relative(directory, file);
+  if (/^[A-Za-z]:/.test(name) || relative === '..' || relative.startsWith('../') || path.isAbsolute(relative)) {
+    throw new CommandError(`API '${alias || ref}' would write outside the bundle output directory: ${file}. Choose another alias or set outputFile explicitly.`);
+  }
   return { outputFile: file, ext };
 }
 

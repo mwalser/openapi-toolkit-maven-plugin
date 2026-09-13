@@ -157,19 +157,19 @@ var require_path_browserify = __commonJS({
       normalize: function normalize(path36) {
         assertPath(path36);
         if (path36.length === 0) return ".";
-        var isAbsolute2 = path36.charCodeAt(0) === 47;
+        var isAbsolute3 = path36.charCodeAt(0) === 47;
         var trailingSeparator = path36.charCodeAt(path36.length - 1) === 47;
-        path36 = normalizeStringPosix(path36, !isAbsolute2);
-        if (path36.length === 0 && !isAbsolute2) path36 = ".";
+        path36 = normalizeStringPosix(path36, !isAbsolute3);
+        if (path36.length === 0 && !isAbsolute3) path36 = ".";
         if (path36.length > 0 && trailingSeparator) path36 += "/";
-        if (isAbsolute2) return "/" + path36;
+        if (isAbsolute3) return "/" + path36;
         return path36;
       },
-      isAbsolute: function isAbsolute2(path36) {
+      isAbsolute: function isAbsolute3(path36) {
         assertPath(path36);
         return path36.length > 0 && path36.charCodeAt(0) === 47;
       },
-      join: function join15() {
+      join: function join14() {
         if (arguments.length === 0)
           return ".";
         var joined;
@@ -187,7 +187,7 @@ var require_path_browserify = __commonJS({
           return ".";
         return posix.normalize(joined);
       },
-      relative: function relative11(from, to2) {
+      relative: function relative12(from, to2) {
         assertPath(from);
         assertPath(to2);
         if (from === to2) return "";
@@ -379,9 +379,9 @@ var require_path_browserify = __commonJS({
         var ret = { root: "", dir: "", base: "", ext: "", name: "" };
         if (path36.length === 0) return ret;
         var code = path36.charCodeAt(0);
-        var isAbsolute2 = code === 47;
+        var isAbsolute3 = code === 47;
         var start;
-        if (isAbsolute2) {
+        if (isAbsolute3) {
           ret.root = "/";
           start = 1;
         } else {
@@ -417,11 +417,11 @@ var require_path_browserify = __commonJS({
         preDotState === 0 || // The (right-most) trimmed path component is exactly '..'
         preDotState === 1 && startDot === end - 1 && startDot === startPart + 1) {
           if (end !== -1) {
-            if (startPart === 0 && isAbsolute2) ret.base = ret.name = path36.slice(1, end);
+            if (startPart === 0 && isAbsolute3) ret.base = ret.name = path36.slice(1, end);
             else ret.base = ret.name = path36.slice(startPart, end);
           }
         } else {
-          if (startPart === 0 && isAbsolute2) {
+          if (startPart === 0 && isAbsolute3) {
             ret.name = path36.slice(1, startDot);
             ret.base = path36.slice(1, end);
           } else {
@@ -431,7 +431,7 @@ var require_path_browserify = __commonJS({
           ret.ext = path36.slice(startDot, end);
         }
         if (startPart > 0) ret.dir = path36.slice(0, startPart - 1);
-        else if (isAbsolute2) ret.dir = "/";
+        else if (isAbsolute3) ret.dir = "/";
         return ret;
       },
       sep: "/",
@@ -6240,49 +6240,49 @@ var require_fast_uri = __commonJS({
       schemelessOptions.skipEscape = true;
       return serialize(resolved, schemelessOptions);
     }
-    function resolveComponent(base, relative11, options2, skipNormalization) {
+    function resolveComponent(base, relative12, options2, skipNormalization) {
       const target = {};
       if (!skipNormalization) {
         base = parse2(serialize(base, options2), options2);
-        relative11 = parse2(serialize(relative11, options2), options2);
+        relative12 = parse2(serialize(relative12, options2), options2);
       }
       options2 = options2 || {};
-      if (!options2.tolerant && relative11.scheme) {
-        target.scheme = relative11.scheme;
-        target.userinfo = relative11.userinfo;
-        target.host = relative11.host;
-        target.port = relative11.port;
-        target.path = removeDotSegments(relative11.path || "");
-        target.query = relative11.query;
+      if (!options2.tolerant && relative12.scheme) {
+        target.scheme = relative12.scheme;
+        target.userinfo = relative12.userinfo;
+        target.host = relative12.host;
+        target.port = relative12.port;
+        target.path = removeDotSegments(relative12.path || "");
+        target.query = relative12.query;
       } else {
-        if (relative11.userinfo !== void 0 || relative11.host !== void 0 || relative11.port !== void 0) {
-          target.userinfo = relative11.userinfo;
-          target.host = relative11.host;
-          target.port = relative11.port;
-          target.path = removeDotSegments(relative11.path || "");
-          target.query = relative11.query;
+        if (relative12.userinfo !== void 0 || relative12.host !== void 0 || relative12.port !== void 0) {
+          target.userinfo = relative12.userinfo;
+          target.host = relative12.host;
+          target.port = relative12.port;
+          target.path = removeDotSegments(relative12.path || "");
+          target.query = relative12.query;
         } else {
-          if (!relative11.path) {
+          if (!relative12.path) {
             target.path = base.path;
-            if (relative11.query !== void 0) {
-              target.query = relative11.query;
+            if (relative12.query !== void 0) {
+              target.query = relative12.query;
             } else {
               target.query = base.query;
             }
           } else {
-            if (relative11.path[0] === "/") {
-              target.path = removeDotSegments(relative11.path);
+            if (relative12.path[0] === "/") {
+              target.path = removeDotSegments(relative12.path);
             } else {
               if ((base.userinfo !== void 0 || base.host !== void 0 || base.port !== void 0) && !base.path) {
-                target.path = "/" + relative11.path;
+                target.path = "/" + relative12.path;
               } else if (!base.path) {
-                target.path = relative11.path;
+                target.path = relative12.path;
               } else {
-                target.path = base.path.slice(0, base.path.lastIndexOf("/") + 1) + relative11.path;
+                target.path = base.path.slice(0, base.path.lastIndexOf("/") + 1) + relative12.path;
               }
               target.path = removeDotSegments(target.path);
             }
-            target.query = relative11.query;
+            target.query = relative12.query;
           }
           target.userinfo = base.userinfo;
           target.host = base.host;
@@ -6290,7 +6290,7 @@ var require_fast_uri = __commonJS({
         }
         target.scheme = base.scheme;
       }
-      target.fragment = relative11.fragment;
+      target.fragment = relative12.fragment;
       return target;
     }
     function equal(uriA, uriB, options2) {
@@ -34422,11 +34422,11 @@ function getDir(filePath) {
   }
   return isAbsoluteUrl(filePath) ? filePath.substring(0, filePath.lastIndexOf("/")) : path3.dirname(filePath);
 }
-function resolvePath(base, relative11) {
+function resolvePath(base, relative12) {
   if (isAbsoluteUrl(base)) {
-    return new URL(relative11, base.endsWith("/") ? base : `${base}/`).href;
+    return new URL(relative12, base.endsWith("/") ? base : `${base}/`).href;
   }
-  return path3.resolve(base, relative11);
+  return path3.resolve(base, relative12);
 }
 function isMappingRef(mapping) {
   return typeof mapping === "string" && (mapping.startsWith("#") || isAbsoluteUrl(mapping) || mapping.startsWith("./") || mapping.startsWith("../") || mapping.indexOf("/") > -1 || /\.(ya?ml|json)$/i.test(mapping));
@@ -54820,15 +54820,34 @@ async function loadProjectConfig({ configPath, customExtends }) {
   return config;
 }
 function rejectCustomPlugins(config) {
-  const configured = config.document?.parsed || {};
-  const plugins = (configured.plugins || []).filter((plugin) => typeof plugin === "string");
+  const nodes = configNodes(config);
+  const declared = (node) => Array.isArray(node.plugins) ? node.plugins.filter((plugin) => typeof plugin === "string") : [];
+  const plugins = distinct(nodes.flatMap(declared));
   if (!plugins.length) return;
   const pluginIds = plugins.map((plugin) => path12.basename(plugin).replace(/\.[^.]+$/, ""));
   const providedBy = (id) => pluginIds.some((pluginId) => id.startsWith(`${pluginId}/`));
-  const uses = ["rules", "preprocessors", "decorators"].flatMap((section) => Object.keys(configured[section] || {}).filter(providedBy));
+  const configuredIds = (node) => ["rules", "preprocessors", "decorators"].flatMap((section) => Object.keys(node[section] || {}));
+  const uses = distinct(nodes.flatMap(configuredIds).filter(providedBy));
   throw new CommandError(
     `Custom JavaScript plugins are not supported: ${plugins.join(", ")}` + (uses.length ? `. Configured plugin rules/decorators: ${uses.join(", ")}` : "")
   );
+}
+function configNodes(config) {
+  const nodes = /* @__PURE__ */ new Set();
+  const collect = (node) => {
+    if (!node || typeof node !== "object" || nodes.has(node)) return;
+    nodes.add(node);
+    collect(node.governance);
+    for (const api of Object.values(node.apis || {})) collect(api);
+    for (const level of node.scorecardClassic?.levels || []) collect(level);
+    for (const level of node.scorecard?.levels || []) collect(level);
+  };
+  collect(config.document?.parsed);
+  for (const ref of config.resolvedRefMap?.values() || []) collect(ref.node);
+  return [...nodes];
+}
+function distinct(values) {
+  return [...new Set(values)];
 }
 function configDirectory(config, cwd2) {
   return config.configPath ? path12.dirname(config.configPath) : cwd2;
@@ -55063,7 +55082,14 @@ function outputTarget({ path: ref, alias }, { cwd: cwd2, outputDirectory, output
   const extensionOf = (file2) => path13.extname(file2).slice(1).toLowerCase();
   const explicitFile = outputFile && path13.resolve(cwd2, outputFile);
   const ext = requestedExt || [explicitFile, ref].filter(Boolean).map(extensionOf).find((e2) => OUTPUT_EXTENSIONS.includes(e2)) || "yaml";
-  const file = explicitFile || path13.join(path13.resolve(cwd2, outputDirectory), `${alias || path13.basename(ref, path13.extname(ref))}.${ext}`);
+  if (explicitFile) return { outputFile: explicitFile, ext };
+  const directory = path13.resolve(cwd2, outputDirectory);
+  const name = (alias || path13.basename(ref, path13.extname(ref))).replaceAll("\\", "/");
+  const file = path13.resolve(directory, `${name}.${ext}`);
+  const relative12 = path13.relative(directory, file);
+  if (/^[A-Za-z]:/.test(name) || relative12 === ".." || relative12.startsWith("../") || path13.isAbsolute(relative12)) {
+    throw new CommandError(`API '${alias || ref}' would write outside the bundle output directory: ${file}. Choose another alias or set outputFile explicitly.`);
+  }
   return { outputFile: file, ext };
 }
 function rejectCollidingOutputs(targets) {
@@ -56358,8 +56384,8 @@ function replaceChannelRefs(obj, fromDir, channelsFiles) {
       const rest = slashIdx === -1 ? "" : afterChannels.slice(slashIdx);
       const channelFile = channelsFiles[channelName];
       if (channelFile) {
-        const relative11 = slash(path26.relative(fromDir, channelFile));
-        obj[key] = rest ? `${relative11}#${rest}` : relative11;
+        const relative12 = slash(path26.relative(fromDir, channelFile));
+        obj[key] = rest ? `${relative12}#${rest}` : relative12;
       }
     } else {
       replaceChannelRefs(value, fromDir, channelsFiles);

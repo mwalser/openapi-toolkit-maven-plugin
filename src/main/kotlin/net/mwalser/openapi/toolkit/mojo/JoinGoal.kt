@@ -12,8 +12,14 @@ internal class JoinGoal(mojo: JoinMojo) : ApiGoal<JoinMojo>(mojo) {
         if (extension(mojo.outputFile) !in EXTENSIONS) {
             throw MojoExecutionException("Invalid extension of openapi.join.outputFile '${mojo.outputFile.name}'; expected one of: ${EXTENSIONS.joinToString(", ")}")
         }
-        if (mojo.prefixTagsWithInfoProp != null && mojo.prefixTagsWithFilename) {
-            throw MojoExecutionException("openapi.join.prefixTagsWithInfoProp and openapi.join.prefixTagsWithFilename cannot be used together")
+        // handleJoin accepts at most one of the three tag-shaping options; failing here names the properties before anything runs
+        val tagOptions = buildList {
+            if (mojo.prefixTagsWithInfoProp != null) add("openapi.join.prefixTagsWithInfoProp")
+            if (mojo.prefixTagsWithFilename) add("openapi.join.prefixTagsWithFilename")
+            if (mojo.withoutXTagGroups) add("openapi.join.withoutXTagGroups")
+        }
+        if (tagOptions.size > 1) {
+            throw MojoExecutionException("${tagOptions.joinToString(" and ")} cannot be used together; set at most one of them.")
         }
     }
 
