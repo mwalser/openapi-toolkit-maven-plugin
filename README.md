@@ -1,14 +1,9 @@
 # OpenAPI Toolkit Maven Plugin
 
-Lint, bundle and transform OpenAPI / AsyncAPI descriptions with [Redocly](https://redocly.com/docs/cli) from
-Maven — **without Node.js**. The plugin embeds `@redocly/openapi-core` (plus the relevant commands of
-`@redocly/cli`) as a JavaScript bundle and runs it inside the JVM with [GraalJS](https://www.graalvm.org/javascript/).
-Nothing is downloaded at build time except ordinary Maven dependencies.
+Lint, bundle and transform OpenAPI / AsyncAPI descriptions from Maven, powered by
+[Redocly](https://redocly.com/docs/cli).
 
-- Requirements: JDK 21+, Maven 3.9+. Works on any JDK (GraalVM not required).
-- Embedded Redocly version: see `redocly.version` in `pom.xml` (currently 2.47.0).
-- Configuration is the usual `redocly.yaml`: `extends`, `rules`, `apis`, `decorators`, `preprocessors`,
-  `resolve.http.headers`, `.redocly.lint-ignore.yaml` — all handled by Redocly's own code.
+Requires JDK 21+ and Maven 3.9+.
 
 ## Quick start
 
@@ -35,7 +30,7 @@ This project is currently unreleased. Run `mvn install` in this repository befor
 </plugin>
 ```
 
-With a `redocly.yaml` in the project base directory:
+Add a `redocly.yaml` in the project base directory:
 
 ```yaml
 extends:
@@ -59,24 +54,20 @@ mvn openapi:lint -Dopenapi.apis=src/main/openapi/openapi.yaml
 
 ## Goals
 
-Common parameters are only offered by the goals they actually affect (`mvn help:describe -Dplugin=openapi -Ddetail`
-shows exactly what a goal accepts):
+Common parameters are listed below. For the full Maven reference, run
+`mvn help:describe -Dplugin=openapi -Ddetail`.
 
 | Parameter | Property | Default | Description | Goals |
 |---|---|---|---|---|
 | `skip` | `openapi.skip` | `false` | Skip every goal of the plugin. | all |
-| `skipLint`, `skipBundle`, … | `openapi.lint.skip`, `openapi.bundle.skip`, `openapi.checkConfig.skip`, `openapi.stats.skip`, `openapi.score.skip`, `openapi.join.skip`, `openapi.split.skip` | `false` | Skip one goal only, e.g. `mvn package -Dopenapi.lint.skip`. | each its own |
+| `skipLint`, `skipBundle`, … | `openapi.<goal>.skip` | `false` | Skip one goal, e.g. `-Dopenapi.lint.skip`. For `check-config`, use `openapi.checkConfig.skip`. | each its own |
 | `configFile` | `openapi.configFile` | `redocly.yaml` if it exists | Redocly configuration file. | all except `split` |
 | `maxProblems` | `openapi.maxProblems` | `100` | Maximum number of problems printed per API and for the configuration file. | all except `split` |
 | `apis` | `openapi.apis` | all APIs of the config | Aliases from `apis:` or paths/URLs to process. | `lint`, `bundle`, `stats`, `score`, `join` |
 | `lintConfig` | `openapi.lintConfig` | `warn` | Lint the configuration file first: `warn`, `error`, `off`. | `lint`, `bundle`, `stats`, `score`, `join` |
 | `extends` | `openapi.extends` | – | Overrides the `extends` list (`recommended`, `minimal`, `recommended-strict`, …). | `lint`, `bundle` |
 
-Enumerated values (formats, severities, …) are validated before anything runs; an invalid value fails the build
-with a message naming the property.
-
-List parameters use normal Maven collection syntax (Sisu also splits comma-separated command-line values such as
-`-Dopenapi.apis=petstore,admin`):
+List parameters accept comma-separated command-line values (`-Dopenapi.apis=petstore,admin`) or Maven XML:
 
 ```xml
 <apis>
@@ -85,33 +76,31 @@ List parameters use normal Maven collection syntax (Sisu also splits comma-separ
 </apis>
 ```
 
-For a single value on the command line, use `-Dopenapi.apis=petstore`.
-
 ### `openapi:lint` (default phase: `validate`)
 
-Runs `redocly lint`. Fails the build when errors are found.
+Lints API descriptions and fails the build on errors. If descriptions are generated during `generate-sources`,
+bind this execution to a later phase so the files exist before linting.
 
 | Parameter | Property | Default | Description |
 |---|---|---|---|
-| `format` | `openapi.lint.format` | `stylish` | Build log format: `stylish`, `codeframe`, `summary`, `markdown` or `github-actions` (annotations, printed unprefixed so GitHub picks them up). |
-| `reportFile` | `openapi.lint.reportFile` | – | Additionally write *all* problems (not limited by `maxProblems`) to this file … |
-| `reportFormat` | `openapi.lint.reportFormat` | `checkstyle` | … in this format: `checkstyle`, `junit`, `json`, `codeclimate` or any build log format. |
+| `format` | `openapi.lint.format` | `stylish` | Build log format: `stylish`, `codeframe`, `summary`, `markdown` or `github-actions` (GitHub Actions annotations). |
+| `reportFile` | `openapi.lint.reportFile` | – | Write all API problems to a report, without the `maxProblems` limit. |
+| `reportFormat` | `openapi.lint.reportFormat` | `checkstyle` | Report format: `checkstyle`, `junit`, `json`, `codeclimate` or any build log format. |
 | `failOnErrors` | `openapi.lint.failOnErrors` | `true` | Fail the build on `error` problems. |
 | `failOnWarnings` | `openapi.lint.failOnWarnings` | `false` | Fail the build on `warn` problems. |
 | `skipRules` | `openapi.lint.skipRules` | – | Rule ids to skip. |
 | `generateIgnoreFile` | `openapi.lint.generateIgnoreFile` | `false` | Write problems to `.redocly.lint-ignore.yaml`; this baseline-generation mode does not fail on API problems. |
 
-`reportFormat` has an effect only when `reportFile` is set. Configuration errors are checked independently and
-still fail when `failOnErrors` is `false`; use `lintConfig=off` to disable that check explicitly.
+Configuration lint errors fail independently of `failOnErrors`; use `lintConfig=off` to disable configuration linting.
 
 ### `openapi:bundle` (default phase: `generate-resources`)
 
-Runs `redocly bundle`: resolves all `$ref`s into one file and applies the configured decorators.
+Resolves `$ref`s into one file and applies the configured decorators.
 
 | Parameter | Property | Default | Description |
 |---|---|---|---|
 | `outputDirectory` | `openapi.bundle.outputDirectory` | `${project.build.directory}/generated-resources/openapi` | Output directory; files are named `<alias>.<ext>` (or `<basename>.<ext>`). |
-| `outputFile` | `openapi.bundle.outputFile` | – | Explicit output file (single API only). |
+| `outputFile` | `openapi.bundle.outputFile` | – | Explicit output file; overrides `outputDirectory` (single API only). |
 | `ext` | `openapi.bundle.ext` | extension of `outputFile`, else of the input, else `yaml` | `yaml`, `yml` or `json`. |
 | `dereferenced` | `openapi.bundle.dereferenced` | `false` | Inline everything, leave no `$ref`. |
 | `force` | `openapi.bundle.force` | `false` | Write the bundle even if there are errors. |
@@ -120,23 +109,15 @@ Runs `redocly bundle`: resolves all `$ref`s into one file and applies the config
 | `componentNamesStrategy` | `openapi.bundle.componentNamesStrategy` | `basename` | Naming of components pulled in from other files: `basename` (file name) or `title` (schema title). |
 | `componentRenamingConflicts` | `openapi.bundle.componentRenamingConflicts` | `warn` | Report component renaming conflicts as `warn`, `error` or `off`. |
 | `skipDecorators` | `openapi.bundle.skipDecorators` | – | Decorator ids to skip. |
-| `addResource` | `openapi.bundle.addResource` | `false` | Add the output directory as a project resource (bundle ends up in the jar). |
+| `addResource` | `openapi.bundle.addResource` | `false` | Include the written bundles as project resources (packaged in the JAR). |
 | `attach` | `openapi.bundle.attach` | `false` | Attach each bundle as a build artifact (`type` = `ext`, `classifier` = alias). |
 | `classifier` | `openapi.bundle.classifier` | `openapi` | Classifier used when an API has no alias. |
 
-`outputFile` overrides `outputDirectory` and is valid only for one API; its extension determines the format unless
-`ext` is set (a conflicting `ext` is an error). The format also becomes the type of attached artifacts. Two APIs
-without aliases that would produce the same file name are rejected. The `output` field of `apis.<alias>` in
-`redocly.yaml` is ignored with a warning because Maven controls where bundles go. With `addResource=true`, the
-written bundles are added at the artifact's resource root.
-
-Aliases must keep generated files inside `outputDirectory`; use `outputFile` for an explicit destination elsewhere.
-With `attach=true`, each type/classifier pair must be unique, including artifacts attached by earlier executions.
-Artifact classifiers must be nonblank and contain no path separators.
+Maven controls bundle destinations; `apis.<alias>.output` in `redocly.yaml` is ignored.
 
 ### `openapi:check-config`
 
-Lints `redocly.yaml` (`redocly check-config`).
+Lints the Redocly configuration file.
 
 | Parameter | Property | Default | Description |
 |---|---|---|---|
@@ -147,7 +128,7 @@ If no implicit `redocly.yaml` exists, the goal warns and succeeds. An explicitly
 
 ### `openapi:stats`
 
-Prints `redocly stats` for every selected API (`apis`).
+Prints statistics for each selected API.
 
 | Parameter | Property | Default | Description |
 |---|---|---|---|
@@ -156,7 +137,7 @@ Prints `redocly stats` for every selected API (`apis`).
 
 ### `openapi:score`
 
-Runs `redocly score` (integration simplicity / agent readiness, OpenAPI 3 only) for every selected API (`apis`).
+Scores each selected OpenAPI 3 description for integration simplicity and agent readiness.
 
 | Parameter | Property | Default | Description |
 |---|---|---|---|
@@ -169,8 +150,7 @@ For example, `mvn openapi:score -Dopenapi.apis=petstore -Dopenapi.score.minScore
 
 ### `openapi:join`
 
-Joins two or more OpenAPI 3 descriptions (`redocly join`, experimental upstream). Select them with `apis`, or omit
-`apis` to use all APIs from `redocly.yaml`.
+Joins two or more OpenAPI 3 descriptions. This command is experimental upstream.
 
 | Parameter | Property | Default | Description |
 |---|---|---|---|
@@ -184,7 +164,7 @@ Joins two or more OpenAPI 3 descriptions (`redocly join`, experimental upstream)
 
 ### `openapi:split`
 
-Splits a single-file description into a multi-file tree (`redocly split`). Meant to be run by hand once:
+Splits a single-file description into a multi-file tree:
 
 ```
 mvn openapi:split -Dopenapi.split.api=openapi.yaml -Dopenapi.split.outputDirectory=src/main/openapi
@@ -193,80 +173,46 @@ mvn openapi:split -Dopenapi.split.api=openapi.yaml -Dopenapi.split.outputDirecto
 `api` and `outputDirectory` are required. `separator` (`openapi.split.separator`, default `_`) controls generated
 path filenames. This goal does not read `redocly.yaml`.
 
+## Remote references
+
+Maven offline mode (`-o`) applies to remote `$ref` and `extends` URLs. Online requests use Maven's active proxy
+configuration, including encrypted credentials. Header patterns in `resolve.http.headers` match the full URL;
+use patterns such as `https://api.example.com/**`.
+
 ## Performance
 
-GraalJS is not V8. By default the plugin runs the GraalJS **interpreter** (plain `js-community` dependency, ~30 MB,
-works on every JDK 21+), which is fine for typical API descriptions but noticeably slower than Node on very large ones:
+For faster processing of large descriptions, add the native GraalJS isolate to the **plugin's dependencies**:
 
-| Description | Size | Node | interpreter | isolate |
-|---|---|---|---|---|
-| Petstore | 17 KB | 0.06 s | 1.1 s | 0.4 s |
-| Twilio API | 1.9 MB | 1.1 s | 18 s | 7 s |
-| GitHub REST API | 12.9 MB | 6 s | 90 s | 44 s |
+```xml
+<plugin>
+  <groupId>net.mwalser</groupId>
+  <artifactId>openapi-toolkit-maven-plugin</artifactId>
+  <version>…</version>
+  <dependencies>
+    <dependency>
+      <groupId>org.graalvm.polyglot</groupId>
+      <artifactId>js-isolate-linux-amd64-community</artifactId>
+      <version>25.2.4</version>
+      <type>pom</type>
+    </dependency>
+  </dependencies>
+</plugin>
+```
 
-(lint, cold, 4 cores; plus one-time HotSpot warm-up of roughly 4 s / 1.4 s per Maven build. Problem counts are identical.)
-
-The engine is chosen from what is available — there is nothing to configure, and the build log states which one is
-used (`Redocly 2.47.0 - JavaScript engine: …`):
-
-1. **Runtime compilation in-process** when Maven itself runs on a GraalVM JDK 25 matching GraalJS 25.
-2. **Native isolate** — GraalJS as a pre-compiled native image inside the JVM (Community license since GraalVM 25.1).
-   Opt in by adding the artifact for your platform to the *plugin's* dependencies (~60 MB download); if it is present
-   but cannot start (e.g. wrong platform), the build fails with a clear message instead of silently running slower:
-   ```xml
-   <plugin>
-     <groupId>net.mwalser</groupId>
-     <artifactId>openapi-toolkit-maven-plugin</artifactId>
-     <version>…</version>
-     <dependencies>
-       <dependency>
-         <groupId>org.graalvm.polyglot</groupId>
-         <artifactId>js-isolate-linux-amd64-community</artifactId>   <!-- linux-aarch64, darwin-aarch64, windows-amd64 -->
-         <version>25.2.4</version>
-         <type>pom</type>
-       </dependency>
-     </dependencies>
-   </plugin>
-   ```
-3. **Interpreter** otherwise.
-
-The JavaScript runtime is created once per JVM and reused by every goal and module of the build. On JDK 24+, add
-`--enable-native-access=ALL-UNNAMED` to `.mvn/jvm.config` to suppress the JDK's Truffle native-access warning.
-The optional isolate extracts resources into `~/.cache/org.graalvm.polyglot/` (roughly 140 MB); set
-`-Dpolyglot.engine.userResourceCache=<dir>` when the home directory is read-only.
-
-Maven offline mode (`-o`) also applies to remote `$ref` and `extends` URLs. Online requests honor Maven's active,
-decrypted proxy configuration. For `resolve.http.headers`, prefer explicit patterns such as
-`https://api.example.com/**`; matching is performed against the complete URL string.
+Replace `linux-amd64` with `linux-aarch64`, `darwin-aarch64` or `windows-amd64` for your platform.
+See [performance and runtime details](docs/performance.md) for benchmarks, engine selection and troubleshooting.
 
 ## Limitations
 
-- **Custom JavaScript plugins** (`plugins:` in `redocly.yaml`) are not supported: the bundle runs in Redocly's
-  "browser" mode, which cannot load plugin files. Plugin declarations are rejected, including those inherited
-  through `extends` or declared in API configurations. Built-in rulesets, rule configuration and built-in decorators all
-  work; preprocessors only exist in custom plugins, so there is no `skipPreprocessors` parameter.
-- Not included (they need a Node process, the Redocly cloud or live HTTP): `build-docs`, `preview`, `push`,
-  `login`, `respect`, `translate`, `eject`, `generate-*`, `drift`, `proxy`, `scorecard-classic`.
-- Windows: paths are mapped for the POSIX `path` implementation used by the bundle; this is covered by unit tests
-  but has not been exercised on a real Windows machine yet.
+- Custom JavaScript plugins are unsupported, including those inherited through `extends` or declared per API.
+  Built-in rulesets, rules and decorators are supported.
+- Windows path handling is covered by unit tests; the plugin has not yet been tested on a Windows machine.
 
 ## Development
 
-```
-mvn verify                      # unit tests
-mvn verify -Prun-its            # + integration tests (real Maven builds under target/it)
-mvn test -Pisolate-tests        # unit tests with the native isolate for this platform
-mvn generate-resources -Pbuild-js   # rebuild the embedded JS bundle (needs Node.js + npm)
-```
-
-If an API description is generated during `generate-sources`, bind the `lint` execution to a later phase than its
-default `validate` phase so the file exists before linting.
-
-The project is written in Kotlin; only the mojo classes (`src/main/java`) are Java, because Maven takes goal and
-parameter descriptions from Javadoc. They declare the parameters and hand over to the Kotlin `Goal` classes.
-`js/README.md` explains the JavaScript side and how to upgrade Redocly.
+See the [development guide](docs/development.md) for build commands, tests and implementation notes.
 
 ## License
 
-Apache License 2.0. The embedded bundle contains `@redocly/openapi-core` and parts of `@redocly/cli`
-(MIT, © Redocly Inc.) and their dependencies; see `LICENSE` and `js/vendor/redocly-cli/LICENSE`.
+[Apache License 2.0](LICENSE). The embedded Redocly code is [MIT-licensed](js/vendor/redocly-cli/LICENSE)
+(© Redocly Inc.); bundled dependency licenses are listed in [third-party notices](src/main/resources/META-INF/THIRD-PARTY-NOTICES.txt).
