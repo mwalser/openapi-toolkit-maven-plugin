@@ -12,10 +12,10 @@ public abstract class AbstractApiMojo extends AbstractConfiguredMojo {
      * file or a path (relative to the project base directory) or URL. When empty, all APIs defined in the
      * configuration file are processed.
      */
-    @Parameter(property = "openapi.apis")
+    @Parameter(property = "openapi.toolkit.apis")
     List<String> apis = new ArrayList<>();
 
     /** Severity used when linting the configuration file itself before the command runs: {@code warn}, {@code error} or {@code off}. */
-    @Parameter(property = "openapi.lintConfig", defaultValue = "warn")
+    @Parameter(property = "openapi.toolkit.lintConfig", defaultValue = "warn")
     String lintConfig = "warn";
 }

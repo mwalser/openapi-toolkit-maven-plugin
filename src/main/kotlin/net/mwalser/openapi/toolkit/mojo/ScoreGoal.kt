@@ -7,13 +7,13 @@ import org.apache.maven.plugin.MojoFailureException
 
 internal class ScoreGoal(mojo: ScoreMojo) : ApiGoal<ScoreMojo>(mojo) {
 
-    override val skipGoal get() = SkipParameter("openapi.score.skip", mojo.skipScore)
+    override val skipGoal get() = SkipParameter("openapi.toolkit.score.skip", mojo.skipScore)
 
     override fun validate() {
         super.validate()
-        requireOneOf("openapi.score.format", mojo.format, listOf("stylish", "json"))
+        requireOneOf("openapi.toolkit.score.format", mojo.format, listOf("stylish", "json"))
         mojo.minScore?.let { minScore ->
-            if (minScore !in 0.0..100.0) throw MojoExecutionException("Invalid value '$minScore' for openapi.score.minScore; must be a number from 0 to 100")
+            if (minScore !in 0.0..100.0) throw MojoExecutionException("Invalid value '$minScore' for openapi.toolkit.score.minScore; must be a number from 0 to 100")
         }
     }
 
@@ -34,7 +34,7 @@ internal class ScoreGoal(mojo: ScoreMojo) : ApiGoal<ScoreMojo>(mojo) {
 
         val outputFile = mojo.outputFile
         if (outputFile != null) {
-            requireSingleApi("openapi.score.outputFile", result.apis.size)
+            requireSingleApi("openapi.toolkit.score.outputFile", result.apis.size)
             val api = result.apis.single()
             val written = writeOutput(outputFile, api.output)
             log.info("Score for ${display(api.path)} (${mojo.format}) written to ${display(written)}")

@@ -146,7 +146,7 @@ export function checkIfRulesetExist(rules) {
 /** Runs formatProblems and returns what it would have printed, with the CLI's hints rephrased for Maven. */
 export async function formatToString(problems, opts) {
   const { transcript } = await captureOutput(() => formatProblems(problems, { color: false, version: __REDOCLY_VERSION__, ...opts }));
-  return transcript.replace('increase with `--max-problems N`', 'increase with openapi.maxProblems');
+  return transcript.replace('increase with `--max-problems N`', 'increase with openapi.toolkit.maxProblems');
 }
 
 /** Compact, JSON-friendly view of a problem (the raw objects reference whole source documents). */

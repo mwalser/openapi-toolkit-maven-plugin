@@ -9,21 +9,21 @@ import java.nio.file.Path
 
 internal class BundleGoal(mojo: BundleMojo) : ApiGoal<BundleMojo>(mojo) {
 
-    override val skipGoal get() = SkipParameter("openapi.bundle.skip", mojo.skipBundle)
+    override val skipGoal get() = SkipParameter("openapi.toolkit.bundle.skip", mojo.skipBundle)
 
     override fun validate() {
         super.validate()
-        mojo.ext?.let { requireOneOf("openapi.bundle.ext", it, EXTENSIONS) }
-        mojo.componentNamesStrategy?.let { requireOneOf("openapi.bundle.componentNamesStrategy", it, listOf("basename", "title")) }
-        mojo.componentRenamingConflicts?.let { requireOneOf("openapi.bundle.componentRenamingConflicts", it, SEVERITIES) }
-        if (mojo.attach && mojo.classifier.isBlank()) throw MojoExecutionException("openapi.bundle.classifier must not be blank when attach=true")
+        mojo.ext?.let { requireOneOf("openapi.toolkit.bundle.ext", it, EXTENSIONS) }
+        mojo.componentNamesStrategy?.let { requireOneOf("openapi.toolkit.bundle.componentNamesStrategy", it, listOf("basename", "title")) }
+        mojo.componentRenamingConflicts?.let { requireOneOf("openapi.toolkit.bundle.componentRenamingConflicts", it, SEVERITIES) }
+        if (mojo.attach && mojo.classifier.isBlank()) throw MojoExecutionException("openapi.toolkit.bundle.classifier must not be blank when attach=true")
         mojo.outputFile?.let { outputFile ->
             val fileExt = extension(outputFile)
             if (fileExt !in EXTENSIONS) {
-                throw MojoExecutionException("Invalid extension of openapi.bundle.outputFile '${outputFile.name}'; expected one of: ${EXTENSIONS.joinToString(", ")}")
+                throw MojoExecutionException("Invalid extension of openapi.toolkit.bundle.outputFile '${outputFile.name}'; expected one of: ${EXTENSIONS.joinToString(", ")}")
             }
             if (mojo.ext != null && mojo.ext != fileExt) {
-                throw MojoExecutionException("openapi.bundle.ext '${mojo.ext}' conflicts with the extension of openapi.bundle.outputFile '${outputFile.name}'")
+                throw MojoExecutionException("openapi.toolkit.bundle.ext '${mojo.ext}' conflicts with the extension of openapi.toolkit.bundle.outputFile '${outputFile.name}'")
             }
         }
     }
@@ -94,7 +94,7 @@ internal class BundleGoal(mojo: BundleMojo) : ApiGoal<BundleMojo>(mojo) {
             val previous = occupied.putIfAbsent(api.ext to classifier, api.outputFile)
             if (previous != null) {
                 throw MojoExecutionException(
-                    "openapi.bundle.attach would overwrite artifact (type=${api.ext}, classifier=$classifier): " +
+                    "openapi.toolkit.bundle.attach would overwrite artifact (type=${api.ext}, classifier=$classifier): " +
                         "${display(previous)} and ${display(api.outputFile)}; use distinct aliases or classifiers.",
                 )
             }

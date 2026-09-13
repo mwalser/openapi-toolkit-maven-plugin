@@ -138,7 +138,7 @@ class RedoclyRuntimeTest {
         assertTrue(api.totals.errors + api.totals.warnings > 3)
         // stylish output: one line per problem after the file header
         assertEquals(3, api.output.lines().count { it.contains("  warning  ") || it.contains("  error  ") })
-        assertContains(api.output, "increase with openapi.maxProblems")
+        assertContains(api.output, "increase with openapi.toolkit.maxProblems")
         val report = assertNotNull(result.report)
         assertContains(report, "\"errors\": ${api.totals.errors}")
         assertContains(report, "\"version\": \"${runtime.redoclyVersion}\"")

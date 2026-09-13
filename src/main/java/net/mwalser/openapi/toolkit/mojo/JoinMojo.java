@@ -12,27 +12,27 @@ import org.apache.maven.plugins.annotations.Parameter;
 public final class JoinMojo extends AbstractApiMojo {
 
     /** The joined description. The extension ({@code yaml}, {@code yml} or {@code json}) determines the output format. */
-    @Parameter(property = "openapi.join.outputFile", defaultValue = "${project.build.directory}/generated-resources/openapi/joined.yaml")
+    @Parameter(property = "openapi.toolkit.join.outputFile", defaultValue = "${project.build.directory}/generated-resources/openapi/joined.yaml")
     File outputFile;
 
     /** Prefix tags with the value of this {@code info} property (e.g. {@code title}) to avoid conflicts. */
-    @Parameter(property = "openapi.join.prefixTagsWithInfoProp")
+    @Parameter(property = "openapi.toolkit.join.prefixTagsWithInfoProp")
     String prefixTagsWithInfoProp;
 
     /** Prefix tags with the file name of the description they come from. */
-    @Parameter(property = "openapi.join.prefixTagsWithFilename", defaultValue = "false")
+    @Parameter(property = "openapi.toolkit.join.prefixTagsWithFilename", defaultValue = "false")
     boolean prefixTagsWithFilename;
 
     /** Prefix component names with the value of this {@code info} property to avoid conflicts. */
-    @Parameter(property = "openapi.join.prefixComponentsWithInfoProp")
+    @Parameter(property = "openapi.toolkit.join.prefixComponentsWithInfoProp")
     String prefixComponentsWithInfoProp;
 
     /** Do not generate {@code x-tagGroups}. */
-    @Parameter(property = "openapi.join.withoutXTagGroups", defaultValue = "false")
+    @Parameter(property = "openapi.toolkit.join.withoutXTagGroups", defaultValue = "false")
     boolean withoutXTagGroups;
 
-    /** Skip this goal only; {@code openapi.skip} skips every goal of the plugin. */
-    @Parameter(property = "openapi.join.skip", defaultValue = "false")
+    /** Skip this goal only; {@code openapi.toolkit.skip} skips every goal of the plugin. */
+    @Parameter(property = "openapi.toolkit.join.skip", defaultValue = "false")
     boolean skipJoin;
 
     @Override

@@ -38,7 +38,7 @@ public abstract class AbstractRedoclyMojo extends AbstractMojo {
     SettingsDecrypter settingsDecrypter;
 
     /** Skip execution of this goal. */
-    @Parameter(property = "openapi.skip", defaultValue = "false")
+    @Parameter(property = "openapi.toolkit.skip", defaultValue = "false")
     boolean skip;
 
     @Override

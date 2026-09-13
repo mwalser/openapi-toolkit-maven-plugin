@@ -5,12 +5,12 @@ import org.apache.maven.plugin.MojoFailureException
 
 internal class LintGoal(mojo: LintMojo) : ApiGoal<LintMojo>(mojo) {
 
-    override val skipGoal get() = SkipParameter("openapi.lint.skip", mojo.skipLint)
+    override val skipGoal get() = SkipParameter("openapi.toolkit.lint.skip", mojo.skipLint)
 
     override fun validate() {
         super.validate()
-        requireOneOf("openapi.lint.format", mojo.format, CONSOLE_FORMATS)
-        if (mojo.reportFile != null) requireOneOf("openapi.lint.reportFormat", mojo.reportFormat, REPORT_FORMATS)
+        requireOneOf("openapi.toolkit.lint.format", mojo.format, CONSOLE_FORMATS)
+        if (mojo.reportFile != null) requireOneOf("openapi.toolkit.lint.reportFormat", mojo.reportFormat, REPORT_FORMATS)
     }
 
     override fun run() {

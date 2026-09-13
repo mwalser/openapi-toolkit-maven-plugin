@@ -18,7 +18,7 @@ import kotlin.test.assertTrue
 class MojoParametersTest {
 
     private class OutputGoal(mojo: LintMojo) : Goal<LintMojo>(mojo) {
-        override val skipGoal get() = SkipParameter("openapi.lint.skip", mojo.skipLint)
+        override val skipGoal get() = SkipParameter("openapi.toolkit.lint.skip", mojo.skipLint)
         override fun run() {}
         fun write(file: File) = writeOutput(file, "content")
     }
@@ -33,26 +33,26 @@ class MojoParametersTest {
 
     @Test
     fun `invalid enumerated values are rejected before anything runs`() {
-        assertRejected("openapi.lint.format", LintMojo().apply { format = "typo" })
-        assertRejected("openapi.lint.format", LintMojo().apply { format = "junit" }) // machine formats are for reportFile
-        assertRejected("openapi.lint.reportFormat", LintMojo().apply { reportFile = File("x"); reportFormat = "typo" })
-        assertRejected("openapi.lintConfig", LintMojo().apply { lintConfig = "loud" })
-        assertRejected("openapi.maxProblems", LintMojo().apply { maxProblems = 0 })
-        assertRejected("openapi.bundle.ext", BundleMojo().apply { ext = "xml" })
-        assertRejected("openapi.bundle.ext", BundleMojo().apply { ext = "yaml"; outputFile = File("spec.json") })
-        assertRejected("openapi.bundle.componentNamesStrategy", BundleMojo().apply { componentNamesStrategy = "auto" })
-        assertRejected("openapi.bundle.componentRenamingConflicts", BundleMojo().apply { componentRenamingConflicts = "fatal" })
-        assertRejected("openapi.bundle.classifier", BundleMojo().apply { attach = true; classifier = " " })
-        assertRejected("openapi.checkConfig.severity", CheckConfigMojo().apply { severity = "off" })
-        assertRejected("openapi.checkConfig.format", CheckConfigMojo().apply { format = "typo" })
-        assertRejected("openapi.stats.format", StatsMojo().apply { format = "xml" })
-        assertRejected("openapi.score.format", ScoreMojo().apply { format = "markdown" })
-        assertRejected("openapi.score.minScore", ScoreMojo().apply { minScore = Double.NaN })
-        assertRejected("openapi.score.minScore", ScoreMojo().apply { minScore = 101.0 })
-        assertRejected("openapi.split.separator", SplitMojo().apply { separator = " " })
-        assertRejected("openapi.join.prefixTagsWithFilename", join().apply { prefixTagsWithInfoProp = "title"; prefixTagsWithFilename = true })
-        assertRejected("openapi.join.withoutXTagGroups", join().apply { prefixTagsWithInfoProp = "title"; withoutXTagGroups = true })
-        assertRejected("openapi.join.withoutXTagGroups", join().apply { prefixTagsWithFilename = true; withoutXTagGroups = true })
+        assertRejected("openapi.toolkit.lint.format", LintMojo().apply { format = "typo" })
+        assertRejected("openapi.toolkit.lint.format", LintMojo().apply { format = "junit" }) // machine formats are for reportFile
+        assertRejected("openapi.toolkit.lint.reportFormat", LintMojo().apply { reportFile = File("x"); reportFormat = "typo" })
+        assertRejected("openapi.toolkit.lintConfig", LintMojo().apply { lintConfig = "loud" })
+        assertRejected("openapi.toolkit.maxProblems", LintMojo().apply { maxProblems = 0 })
+        assertRejected("openapi.toolkit.bundle.ext", BundleMojo().apply { ext = "xml" })
+        assertRejected("openapi.toolkit.bundle.ext", BundleMojo().apply { ext = "yaml"; outputFile = File("spec.json") })
+        assertRejected("openapi.toolkit.bundle.componentNamesStrategy", BundleMojo().apply { componentNamesStrategy = "auto" })
+        assertRejected("openapi.toolkit.bundle.componentRenamingConflicts", BundleMojo().apply { componentRenamingConflicts = "fatal" })
+        assertRejected("openapi.toolkit.bundle.classifier", BundleMojo().apply { attach = true; classifier = " " })
+        assertRejected("openapi.toolkit.checkConfig.severity", CheckConfigMojo().apply { severity = "off" })
+        assertRejected("openapi.toolkit.checkConfig.format", CheckConfigMojo().apply { format = "typo" })
+        assertRejected("openapi.toolkit.stats.format", StatsMojo().apply { format = "xml" })
+        assertRejected("openapi.toolkit.score.format", ScoreMojo().apply { format = "markdown" })
+        assertRejected("openapi.toolkit.score.minScore", ScoreMojo().apply { minScore = Double.NaN })
+        assertRejected("openapi.toolkit.score.minScore", ScoreMojo().apply { minScore = 101.0 })
+        assertRejected("openapi.toolkit.split.separator", SplitMojo().apply { separator = " " })
+        assertRejected("openapi.toolkit.join.prefixTagsWithFilename", join().apply { prefixTagsWithInfoProp = "title"; prefixTagsWithFilename = true })
+        assertRejected("openapi.toolkit.join.withoutXTagGroups", join().apply { prefixTagsWithInfoProp = "title"; withoutXTagGroups = true })
+        assertRejected("openapi.toolkit.join.withoutXTagGroups", join().apply { prefixTagsWithFilename = true; withoutXTagGroups = true })
     }
 
     @Test
@@ -83,6 +83,7 @@ class MojoParametersTest {
         val descriptorFile = Path.of("target/classes/META-INF/maven/plugin.xml")
         assumeTrue(Files.exists(descriptorFile), "plugin descriptor not generated (run via Maven)")
         val descriptor = descriptorFile.readText()
+        assertContains(descriptor, "<goalPrefix>openapi-toolkit</goalPrefix>")
         val parameterTag = Regex("<parameter>(.*?)</parameter>", RegexOption.DOT_MATCHES_ALL)
         fun mojoXml(goal: String): String =
             Regex("<goal>$goal</goal>.*?</mojo>", RegexOption.DOT_MATCHES_ALL).find(descriptor)!!.value
@@ -117,6 +118,10 @@ class MojoParametersTest {
                 val name = Regex("<name>([^<]+)</name>").find(body)!!.groupValues[1]
                 val parameterDescription = Regex("<description>(.*?)</description>", RegexOption.DOT_MATCHES_ALL).find(body)?.groupValues?.get(1).orEmpty()
                 assertTrue(parameterDescription.isNotBlank(), "$goal parameter $name has no description")
+                if (goal != "help" && name !in setOf("project", "session")) {
+                    val expression = Regex("<$name\\b[^>]*>([^<]*)</$name>").find(xml)?.groupValues?.get(1).orEmpty()
+                    assertTrue(expression.startsWith("\${openapi.toolkit."), "$goal parameter $name has an unexpected property: $expression")
+                }
             }
         }
     }

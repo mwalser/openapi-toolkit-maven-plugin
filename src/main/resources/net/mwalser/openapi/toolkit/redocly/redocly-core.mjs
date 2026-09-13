@@ -54899,7 +54899,7 @@ function checkIfRulesetExist(rules9) {
 }
 async function formatToString(problems, opts) {
   const { transcript } = await captureOutput(() => formatProblems(problems, { color: false, version: "2.47.0", ...opts }));
-  return transcript.replace("increase with `--max-problems N`", "increase with openapi.maxProblems");
+  return transcript.replace("increase with `--max-problems N`", "increase with openapi.toolkit.maxProblems");
 }
 function describeProblem(problem) {
   return {

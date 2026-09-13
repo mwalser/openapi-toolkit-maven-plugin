@@ -46,28 +46,28 @@ rules:
 description to `target/generated-resources/openapi/petstore.yaml`.
 
 Without a `redocly.yaml`, point the plugin at files directly and Redocly's built-in `recommended` ruleset is used.
-The short `openapi:<goal>` form works after the plugin is declared in the POM:
+The short `openapi-toolkit:<goal>` form works after the plugin is declared in the POM:
 
 ```
-mvn openapi:lint -Dopenapi.apis=src/main/openapi/openapi.yaml
+mvn openapi-toolkit:lint -Dopenapi.toolkit.apis=src/main/openapi/openapi.yaml
 ```
 
 ## Goals
 
 Common parameters are listed below. For the full Maven reference, run
-`mvn help:describe -Dplugin=openapi -Ddetail`.
+`mvn help:describe -Dplugin=openapi-toolkit -Ddetail`.
 
 | Parameter | Property | Default | Description | Goals |
 |---|---|---|---|---|
-| `skip` | `openapi.skip` | `false` | Skip every goal of the plugin. | all |
-| `skipLint`, `skipBundle`, … | `openapi.<goal>.skip` | `false` | Skip one goal, e.g. `-Dopenapi.lint.skip`. For `check-config`, use `openapi.checkConfig.skip`. | each its own |
-| `configFile` | `openapi.configFile` | `redocly.yaml` if it exists | Redocly configuration file. | all except `split` |
-| `maxProblems` | `openapi.maxProblems` | `100` | Maximum number of problems printed per API and for the configuration file. | all except `split` |
-| `apis` | `openapi.apis` | all APIs of the config | Aliases from `apis:` or paths/URLs to process. | `lint`, `bundle`, `stats`, `score`, `join` |
-| `lintConfig` | `openapi.lintConfig` | `warn` | Lint the configuration file first: `warn`, `error`, `off`. | `lint`, `bundle`, `stats`, `score`, `join` |
-| `extends` | `openapi.extends` | – | Overrides the `extends` list (`recommended`, `minimal`, `recommended-strict`, …). | `lint`, `bundle` |
+| `skip` | `openapi.toolkit.skip` | `false` | Skip every goal of the plugin. | all |
+| `skipLint`, `skipBundle`, … | `openapi.toolkit.<goal>.skip` | `false` | Skip one goal, e.g. `-Dopenapi.toolkit.lint.skip`. For `check-config`, use `openapi.toolkit.checkConfig.skip`. | each its own |
+| `configFile` | `openapi.toolkit.configFile` | `redocly.yaml` if it exists | Redocly configuration file. | all except `split` |
+| `maxProblems` | `openapi.toolkit.maxProblems` | `100` | Maximum number of problems printed per API and for the configuration file. | all except `split` |
+| `apis` | `openapi.toolkit.apis` | all APIs of the config | Aliases from `apis:` or paths/URLs to process. | `lint`, `bundle`, `stats`, `score`, `join` |
+| `lintConfig` | `openapi.toolkit.lintConfig` | `warn` | Lint the configuration file first: `warn`, `error`, `off`. | `lint`, `bundle`, `stats`, `score`, `join` |
+| `extends` | `openapi.toolkit.extends` | – | Overrides the `extends` list (`recommended`, `minimal`, `recommended-strict`, …). | `lint`, `bundle` |
 
-List parameters accept comma-separated command-line values (`-Dopenapi.apis=petstore,admin`) or Maven XML:
+List parameters accept comma-separated command-line values (`-Dopenapi.toolkit.apis=petstore,admin`) or Maven XML:
 
 ```xml
 <apis>
@@ -76,101 +76,101 @@ List parameters accept comma-separated command-line values (`-Dopenapi.apis=pets
 </apis>
 ```
 
-### `openapi:lint` (default phase: `validate`)
+### `openapi-toolkit:lint` (default phase: `validate`)
 
 Lints API descriptions and fails the build on errors. If descriptions are generated during `generate-sources`,
 bind this execution to a later phase so the files exist before linting.
 
 | Parameter | Property | Default | Description |
 |---|---|---|---|
-| `format` | `openapi.lint.format` | `stylish` | Build log format: `stylish`, `codeframe`, `summary`, `markdown` or `github-actions` (GitHub Actions annotations). |
-| `reportFile` | `openapi.lint.reportFile` | – | Write all API problems to a report, without the `maxProblems` limit. |
-| `reportFormat` | `openapi.lint.reportFormat` | `checkstyle` | Report format: `checkstyle`, `junit`, `json`, `codeclimate` or any build log format. |
-| `failOnErrors` | `openapi.lint.failOnErrors` | `true` | Fail the build on `error` problems. |
-| `failOnWarnings` | `openapi.lint.failOnWarnings` | `false` | Fail the build on `warn` problems. |
-| `skipRules` | `openapi.lint.skipRules` | – | Rule ids to skip. |
-| `generateIgnoreFile` | `openapi.lint.generateIgnoreFile` | `false` | Write problems to `.redocly.lint-ignore.yaml`; this baseline-generation mode does not fail on API problems. |
+| `format` | `openapi.toolkit.lint.format` | `stylish` | Build log format: `stylish`, `codeframe`, `summary`, `markdown` or `github-actions` (GitHub Actions annotations). |
+| `reportFile` | `openapi.toolkit.lint.reportFile` | – | Write all API problems to a report, without the `maxProblems` limit. |
+| `reportFormat` | `openapi.toolkit.lint.reportFormat` | `checkstyle` | Report format: `checkstyle`, `junit`, `json`, `codeclimate` or any build log format. |
+| `failOnErrors` | `openapi.toolkit.lint.failOnErrors` | `true` | Fail the build on `error` problems. |
+| `failOnWarnings` | `openapi.toolkit.lint.failOnWarnings` | `false` | Fail the build on `warn` problems. |
+| `skipRules` | `openapi.toolkit.lint.skipRules` | – | Rule ids to skip. |
+| `generateIgnoreFile` | `openapi.toolkit.lint.generateIgnoreFile` | `false` | Write problems to `.redocly.lint-ignore.yaml`; this baseline-generation mode does not fail on API problems. |
 
 Configuration lint errors fail independently of `failOnErrors`; use `lintConfig=off` to disable configuration linting.
 
-### `openapi:bundle` (default phase: `generate-resources`)
+### `openapi-toolkit:bundle` (default phase: `generate-resources`)
 
 Resolves `$ref`s into one file and applies the configured decorators.
 
 | Parameter | Property | Default | Description |
 |---|---|---|---|
-| `outputDirectory` | `openapi.bundle.outputDirectory` | `${project.build.directory}/generated-resources/openapi` | Output directory; files are named `<alias>.<ext>` (or `<basename>.<ext>`). |
-| `outputFile` | `openapi.bundle.outputFile` | – | Explicit output file; overrides `outputDirectory` (single API only). |
-| `ext` | `openapi.bundle.ext` | extension of `outputFile`, else of the input, else `yaml` | `yaml`, `yml` or `json`. |
-| `dereferenced` | `openapi.bundle.dereferenced` | `false` | Inline everything, leave no `$ref`. |
-| `force` | `openapi.bundle.force` | `false` | Write the bundle even if there are errors. |
-| `removeUnusedComponents` | `openapi.bundle.removeUnusedComponents` | `false` | Drop unreferenced components. |
-| `keepUrlReferences` | `openapi.bundle.keepUrlReferences` | `false` | Keep absolute URL `$ref`s. |
-| `componentNamesStrategy` | `openapi.bundle.componentNamesStrategy` | `basename` | Naming of components pulled in from other files: `basename` (file name) or `title` (schema title). |
-| `componentRenamingConflicts` | `openapi.bundle.componentRenamingConflicts` | `warn` | Report component renaming conflicts as `warn`, `error` or `off`. |
-| `skipDecorators` | `openapi.bundle.skipDecorators` | – | Decorator ids to skip. |
-| `addResource` | `openapi.bundle.addResource` | `false` | Include the written bundles as project resources (packaged in the JAR). |
-| `attach` | `openapi.bundle.attach` | `false` | Attach each bundle as a build artifact (`type` = `ext`, `classifier` = alias). |
-| `classifier` | `openapi.bundle.classifier` | `openapi` | Classifier used when an API has no alias. |
+| `outputDirectory` | `openapi.toolkit.bundle.outputDirectory` | `${project.build.directory}/generated-resources/openapi` | Output directory; files are named `<alias>.<ext>` (or `<basename>.<ext>`). |
+| `outputFile` | `openapi.toolkit.bundle.outputFile` | – | Explicit output file; overrides `outputDirectory` (single API only). |
+| `ext` | `openapi.toolkit.bundle.ext` | extension of `outputFile`, else of the input, else `yaml` | `yaml`, `yml` or `json`. |
+| `dereferenced` | `openapi.toolkit.bundle.dereferenced` | `false` | Inline everything, leave no `$ref`. |
+| `force` | `openapi.toolkit.bundle.force` | `false` | Write the bundle even if there are errors. |
+| `removeUnusedComponents` | `openapi.toolkit.bundle.removeUnusedComponents` | `false` | Drop unreferenced components. |
+| `keepUrlReferences` | `openapi.toolkit.bundle.keepUrlReferences` | `false` | Keep absolute URL `$ref`s. |
+| `componentNamesStrategy` | `openapi.toolkit.bundle.componentNamesStrategy` | `basename` | Naming of components pulled in from other files: `basename` (file name) or `title` (schema title). |
+| `componentRenamingConflicts` | `openapi.toolkit.bundle.componentRenamingConflicts` | `warn` | Report component renaming conflicts as `warn`, `error` or `off`. |
+| `skipDecorators` | `openapi.toolkit.bundle.skipDecorators` | – | Decorator ids to skip. |
+| `addResource` | `openapi.toolkit.bundle.addResource` | `false` | Include the written bundles as project resources (packaged in the JAR). |
+| `attach` | `openapi.toolkit.bundle.attach` | `false` | Attach each bundle as a build artifact (`type` = `ext`, `classifier` = alias). |
+| `classifier` | `openapi.toolkit.bundle.classifier` | `openapi` | Classifier used when an API has no alias. |
 
 Maven controls bundle destinations; `apis.<alias>.output` in `redocly.yaml` is ignored.
 
-### `openapi:check-config`
+### `openapi-toolkit:check-config`
 
 Lints the Redocly configuration file.
 
 | Parameter | Property | Default | Description |
 |---|---|---|---|
-| `severity` | `openapi.checkConfig.severity` | `error` | `warn` reports problems; `error` fails the build. |
-| `format` | `openapi.checkConfig.format` | `stylish` | Build log format, as for `lint`. |
+| `severity` | `openapi.toolkit.checkConfig.severity` | `error` | `warn` reports problems; `error` fails the build. |
+| `format` | `openapi.toolkit.checkConfig.format` | `stylish` | Build log format, as for `lint`. |
 
 If no implicit `redocly.yaml` exists, the goal warns and succeeds. An explicitly configured missing `configFile` fails.
 
-### `openapi:stats`
+### `openapi-toolkit:stats`
 
 Prints statistics for each selected API.
 
 | Parameter | Property | Default | Description |
 |---|---|---|---|
-| `format` | `openapi.stats.format` | `stylish` | `stylish`, `json` or `markdown`. |
-| `outputFile` | `openapi.stats.outputFile` | build log | Write the output to a file instead (requires a single selected API). |
+| `format` | `openapi.toolkit.stats.format` | `stylish` | `stylish`, `json` or `markdown`. |
+| `outputFile` | `openapi.toolkit.stats.outputFile` | build log | Write the output to a file instead (requires a single selected API). |
 
-### `openapi:score`
+### `openapi-toolkit:score`
 
 Scores each selected OpenAPI 3 description for integration simplicity and agent readiness.
 
 | Parameter | Property | Default | Description |
 |---|---|---|---|
-| `format` | `openapi.score.format` | `stylish` | `stylish` or `json`. |
-| `operationDetails` | `openapi.score.operationDetails` | `false` | Include per-operation details in stylish output. |
-| `outputFile` | `openapi.score.outputFile` | build log | Write the output to a file instead (requires a single selected API). |
-| `minScore` | `openapi.score.minScore` | – | Fail the build when any selected API scores below this agent-readiness value (0-100). |
+| `format` | `openapi.toolkit.score.format` | `stylish` | `stylish` or `json`. |
+| `operationDetails` | `openapi.toolkit.score.operationDetails` | `false` | Include per-operation details in stylish output. |
+| `outputFile` | `openapi.toolkit.score.outputFile` | build log | Write the output to a file instead (requires a single selected API). |
+| `minScore` | `openapi.toolkit.score.minScore` | – | Fail the build when any selected API scores below this agent-readiness value (0-100). |
 
-For example, `mvn openapi:score -Dopenapi.apis=petstore -Dopenapi.score.minScore=75` works as a quality gate.
+For example, `mvn openapi-toolkit:score -Dopenapi.toolkit.apis=petstore -Dopenapi.toolkit.score.minScore=75` works as a quality gate.
 
-### `openapi:join`
+### `openapi-toolkit:join`
 
 Joins two or more OpenAPI 3 descriptions. This command is experimental upstream.
 
 | Parameter | Property | Default | Description |
 |---|---|---|---|
-| `outputFile` | `openapi.join.outputFile` | `target/generated-resources/openapi/joined.yaml` | Joined YAML or JSON file. |
-| `prefixTagsWithInfoProp` | `openapi.join.prefixTagsWithInfoProp` | – | Prefix tags with an `info` property such as `title`. |
-| `prefixTagsWithFilename` | `openapi.join.prefixTagsWithFilename` | `false` | Prefix tags with each source filename. |
-| `prefixComponentsWithInfoProp` | `openapi.join.prefixComponentsWithInfoProp` | – | Prefix component names with an `info` property. |
-| `withoutXTagGroups` | `openapi.join.withoutXTagGroups` | `false` | Do not generate `x-tagGroups`. |
+| `outputFile` | `openapi.toolkit.join.outputFile` | `target/generated-resources/openapi/joined.yaml` | Joined YAML or JSON file. |
+| `prefixTagsWithInfoProp` | `openapi.toolkit.join.prefixTagsWithInfoProp` | – | Prefix tags with an `info` property such as `title`. |
+| `prefixTagsWithFilename` | `openapi.toolkit.join.prefixTagsWithFilename` | `false` | Prefix tags with each source filename. |
+| `prefixComponentsWithInfoProp` | `openapi.toolkit.join.prefixComponentsWithInfoProp` | – | Prefix component names with an `info` property. |
+| `withoutXTagGroups` | `openapi.toolkit.join.withoutXTagGroups` | `false` | Do not generate `x-tagGroups`. |
 
 `prefixTagsWithInfoProp`, `prefixTagsWithFilename` and `withoutXTagGroups` are mutually exclusive; set at most one.
 
-### `openapi:split`
+### `openapi-toolkit:split`
 
 Splits a single-file description into a multi-file tree:
 
 ```
-mvn openapi:split -Dopenapi.split.api=openapi.yaml -Dopenapi.split.outputDirectory=src/main/openapi
+mvn openapi-toolkit:split -Dopenapi.toolkit.split.api=openapi.yaml -Dopenapi.toolkit.split.outputDirectory=src/main/openapi
 ```
 
-`api` and `outputDirectory` are required. `separator` (`openapi.split.separator`, default `_`) controls generated
+`api` and `outputDirectory` are required. `separator` (`openapi.toolkit.split.separator`, default `_`) controls generated
 path filenames. This goal does not read `redocly.yaml`.
 
 ## Remote references

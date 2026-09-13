@@ -29,13 +29,13 @@ abstract class Goal<M : AbstractRedoclyMojo>(protected val mojo: M) {
 
     protected val log: Log get() = mojo.log
 
-    /** The goal's own skip parameter; `openapi.skip` additionally skips every goal. */
+    /** The goal's own skip parameter; `openapi.toolkit.skip` additionally skips every goal. */
     protected abstract val skipGoal: SkipParameter
 
     @Throws(MojoExecutionException::class, MojoFailureException::class)
     fun execute() {
         val skippedBy = when {
-            mojo.skip -> "openapi.skip"
+            mojo.skip -> "openapi.toolkit.skip"
             skipGoal.enabled -> skipGoal.property
             else -> null
         }
@@ -181,7 +181,7 @@ abstract class ConfiguredGoal<M : AbstractConfiguredMojo>(mojo: M) : Goal<M>(moj
     override fun validate() {
         super.validate()
         if (mojo.maxProblems <= 0) {
-            throw MojoExecutionException("Invalid value '${mojo.maxProblems}' for openapi.maxProblems; must be greater than zero")
+            throw MojoExecutionException("Invalid value '${mojo.maxProblems}' for openapi.toolkit.maxProblems; must be greater than zero")
         }
     }
 
@@ -206,7 +206,7 @@ abstract class ApiGoal<M : AbstractApiMojo>(mojo: M) : ConfiguredGoal<M>(mojo) {
 
     override fun validate() {
         super.validate()
-        requireOneOf("openapi.lintConfig", mojo.lintConfig, SEVERITIES)
+        requireOneOf("openapi.toolkit.lintConfig", mojo.lintConfig, SEVERITIES)
     }
 
     protected fun requireSingleApi(parameter: String, selected: Int) {

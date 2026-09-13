@@ -1,7 +1,7 @@
 import java.util.zip.ZipFile
 
 def log = new File(basedir, 'build.log').text
-assert log.contains('Skipping (openapi.skip=true)')
+assert log.contains('Skipping (openapi.toolkit.skip=true)')
 assert new File(basedir, 'bundled/generated.yaml').isFile()
 
 // addResource with outputFile must add only the bundle, not the whole module directory

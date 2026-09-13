@@ -12,15 +12,15 @@ import org.apache.maven.plugins.annotations.Parameter;
 public final class StatsMojo extends AbstractApiMojo {
 
     /** Output format: {@code stylish} (default), {@code json} or {@code markdown}. */
-    @Parameter(property = "openapi.stats.format", defaultValue = "stylish")
+    @Parameter(property = "openapi.toolkit.stats.format", defaultValue = "stylish")
     String format = "stylish";
 
     /** When set, the statistics are written to this file instead of the build log. Requires a single selected API. */
-    @Parameter(property = "openapi.stats.outputFile")
+    @Parameter(property = "openapi.toolkit.stats.outputFile")
     File outputFile;
 
-    /** Skip this goal only; {@code openapi.skip} skips every goal of the plugin. */
-    @Parameter(property = "openapi.stats.skip", defaultValue = "false")
+    /** Skip this goal only; {@code openapi.toolkit.skip} skips every goal of the plugin. */
+    @Parameter(property = "openapi.toolkit.stats.skip", defaultValue = "false")
     boolean skipStats;
 
     @Override

@@ -4,11 +4,11 @@ import net.mwalser.openapi.toolkit.redocly.StatsOptions
 
 internal class StatsGoal(mojo: StatsMojo) : ApiGoal<StatsMojo>(mojo) {
 
-    override val skipGoal get() = SkipParameter("openapi.stats.skip", mojo.skipStats)
+    override val skipGoal get() = SkipParameter("openapi.toolkit.stats.skip", mojo.skipStats)
 
     override fun validate() {
         super.validate()
-        requireOneOf("openapi.stats.format", mojo.format, listOf("stylish", "json", "markdown"))
+        requireOneOf("openapi.toolkit.stats.format", mojo.format, listOf("stylish", "json", "markdown"))
     }
 
     override fun run() {
@@ -20,7 +20,7 @@ internal class StatsGoal(mojo: StatsMojo) : ApiGoal<StatsMojo>(mojo) {
 
         val outputFile = mojo.outputFile
         if (outputFile != null) {
-            requireSingleApi("openapi.stats.outputFile", result.apis.size)
+            requireSingleApi("openapi.toolkit.stats.outputFile", result.apis.size)
             val api = result.apis.single()
             val written = writeOutput(outputFile, api.output)
             log.info("Statistics for ${display(api.path)} (${mojo.format}) written to ${display(written)}")

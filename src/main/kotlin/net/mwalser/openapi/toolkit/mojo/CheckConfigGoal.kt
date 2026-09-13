@@ -4,12 +4,12 @@ import net.mwalser.openapi.toolkit.redocly.CheckConfigOptions
 
 internal class CheckConfigGoal(mojo: CheckConfigMojo) : ConfiguredGoal<CheckConfigMojo>(mojo) {
 
-    override val skipGoal get() = SkipParameter("openapi.checkConfig.skip", mojo.skipCheckConfig)
+    override val skipGoal get() = SkipParameter("openapi.toolkit.checkConfig.skip", mojo.skipCheckConfig)
 
     override fun validate() {
         super.validate()
-        requireOneOf("openapi.checkConfig.severity", mojo.severity, listOf("warn", "error"))
-        requireOneOf("openapi.checkConfig.format", mojo.format, CONSOLE_FORMATS)
+        requireOneOf("openapi.toolkit.checkConfig.severity", mojo.severity, listOf("warn", "error"))
+        requireOneOf("openapi.toolkit.checkConfig.format", mojo.format, CONSOLE_FORMATS)
     }
 
     override fun run() {

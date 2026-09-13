@@ -13,23 +13,23 @@ import org.apache.maven.plugins.annotations.Parameter;
 public final class ScoreMojo extends AbstractApiMojo {
 
     /** Output format: {@code stylish} (default) or {@code json}. */
-    @Parameter(property = "openapi.score.format", defaultValue = "stylish")
+    @Parameter(property = "openapi.toolkit.score.format", defaultValue = "stylish")
     String format = "stylish";
 
     /** Include per-operation details in the stylish output. */
-    @Parameter(property = "openapi.score.operationDetails", defaultValue = "false")
+    @Parameter(property = "openapi.toolkit.score.operationDetails", defaultValue = "false")
     boolean operationDetails;
 
     /** When set, the score output is written to this file instead of the build log. Requires a single selected API. */
-    @Parameter(property = "openapi.score.outputFile")
+    @Parameter(property = "openapi.toolkit.score.outputFile")
     File outputFile;
 
     /** Fail the build when the agent-readiness score (0-100) of any selected API is below this value. */
-    @Parameter(property = "openapi.score.minScore")
+    @Parameter(property = "openapi.toolkit.score.minScore")
     Double minScore;
 
-    /** Skip this goal only; {@code openapi.skip} skips every goal of the plugin. */
-    @Parameter(property = "openapi.score.skip", defaultValue = "false")
+    /** Skip this goal only; {@code openapi.toolkit.skip} skips every goal of the plugin. */
+    @Parameter(property = "openapi.toolkit.score.skip", defaultValue = "false")
     boolean skipScore;
 
     @Override
