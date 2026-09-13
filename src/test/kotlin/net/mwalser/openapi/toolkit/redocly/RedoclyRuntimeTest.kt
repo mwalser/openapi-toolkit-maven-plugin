@@ -9,6 +9,8 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.io.TempDir
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import java.net.InetSocketAddress
 import java.net.ServerSocket
 import java.nio.file.Files
@@ -95,6 +97,38 @@ class RedoclyRuntimeTest {
         assertContains(report, "<file name=\"openapi.json\">")
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = ["lint", "bundle"])
+    fun `ruleset overrides do not leak into later modules`(command: String, @TempDir dir: Path) {
+        val firstModule = Files.createDirectories(dir.resolve("first"))
+        val secondModule = Files.createDirectories(dir.resolve("second"))
+        for (module in listOf(firstModule, secondModule)) {
+            Files.writeString(module.resolve("openapi.yaml"), "openapi: 3.0.3\ninfo: { title: Test, version: '1' }\npaths: {}\n")
+        }
+        val overridden = LintOptions(cwd = firstModule.toString(), apis = listOf("openapi.yaml"), extends = listOf("minimal"))
+        when (command) {
+            "lint" -> {
+                val result = redocly().lint(overridden)
+                assertFalse(result.usedDefaultConfig)
+                assertEquals(Totals(errors = 0, warnings = 1), result.totals)
+            }
+            "bundle" -> {
+                val result = redocly().bundle(
+                    BundleOptions(cwd = overridden.cwd, apis = overridden.apis, extends = overridden.extends, outputDirectory = "out"),
+                )
+                assertTrue(result.apis.single().written)
+            }
+        }
+
+        // The same runtime must restore recommended rules when the next module supplies no override.
+        val result = redocly().lint(LintOptions(cwd = secondModule.toString(), apis = listOf("openapi.yaml")))
+        assertTrue(result.usedDefaultConfig)
+        assertNull(result.configLint)
+        assertEquals(Totals(errors = 1, warnings = 1), result.totals)
+        assertEquals("error", result.apis.single().problems.single { it.ruleId == "no-empty-servers" }.severity)
+        assertTrue(result.apis.single().problems.any { it.ruleId == "info-license" })
+    }
+
     @Test
     fun `maxProblems bounds the console output but not the report`(@TempDir dir: Path) {
         val project = fixture("petstore3", dir)
@@ -165,6 +199,27 @@ class RedoclyRuntimeTest {
         val result = redocly().lint(LintOptions(cwd = module.toString(), apis = listOf("openapi.yaml")))
         assertTrue(result.usedDefaultConfig)
         assertTrue(result.totals.ignored > 0, "module-local ignore file was not loaded")
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = [false, true])
+    fun `generates and reloads ignore files without a config`(overrideRuleset: Boolean, @TempDir dir: Path) {
+        Files.writeString(dir.resolve("openapi.yaml"), "openapi: 3.0.3\ninfo: { title: Test, version: '1' }\npaths: {}\n")
+        val options = LintOptions(
+            cwd = dir.toString(),
+            apis = listOf("openapi.yaml"),
+            extends = if (overrideRuleset) listOf("minimal") else null,
+        )
+        val generated = redocly().lint(options.copy(generateIgnoreFile = true))
+        val count = if (overrideRuleset) 1 else 2
+        assertEquals(count, generated.ignoreFile?.ignored)
+        assertTrue(Files.isRegularFile(dir.resolve(".redocly.lint-ignore.yaml")))
+        assertFalse(Files.exists(dir.resolve("redocly.yaml")))
+
+        val result = redocly().lint(options)
+        assertEquals(!overrideRuleset, result.usedDefaultConfig)
+        assertNull(result.configLint)
+        assertEquals(Totals(ignored = count), result.totals)
     }
 
     @Test

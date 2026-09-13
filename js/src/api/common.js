@@ -1,6 +1,11 @@
 // Shared helpers mirroring packages/cli/src/utils/miscellaneous.ts of redocly-cli (MIT).
 import {
+  BaseResolver,
+  DEFAULT_CONFIG,
+  createConfig,
+  findConfig,
   loadConfig,
+  loadIgnoreConfig,
   lintConfig,
   formatProblems,
   getTotals,
@@ -24,10 +29,22 @@ export class CommandError extends Error {
 export async function loadProjectConfig({ configPath, customExtends }) {
   let config;
   try {
-    config = await loadConfig({
-      configPath: configPath || undefined,
-      customExtends: customExtends?.length ? customExtends : undefined,
-    });
+    const file = configPath || findConfig();
+    if (file) {
+      config = await loadConfig({
+        configPath: file,
+        customExtends: customExtends?.length ? customExtends : undefined,
+      });
+    } else {
+      // loadConfig applies overrides to shared defaults. Own the input so successive goals remain independent.
+      const defaults = structuredClone(DEFAULT_CONFIG);
+      if (customExtends?.length) defaults.extends = customExtends;
+      config = await createConfig(defaults, {
+        ignore: await loadIgnoreConfig(undefined, new BaseResolver()),
+      });
+      // createConfig supplies a synthetic document; there is no configuration file to lint or report here.
+      config.document = undefined;
+    }
   } catch (e) {
     throw new CommandError(`Error while loading the configuration${configPath ? ` from ${configPath}` : ''}: ${e.message}`, { cause: e });
   }

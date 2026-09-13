@@ -52207,6 +52207,20 @@ var ResolveError = class _ResolveError extends Error {
     Object.setPrototypeOf(this, _ResolveError.prototype);
   }
 };
+function makeDocumentFromString(sourceString, absoluteRef) {
+  const source = new Source2(absoluteRef, sourceString);
+  if (isGraphqlRef(absoluteRef)) {
+    return { source, parsed: sourceString };
+  }
+  try {
+    return {
+      source,
+      parsed: parseYaml(sourceString, { filename: absoluteRef })
+    };
+  } catch (e2) {
+    throw new YamlParseError(e2, source);
+  }
+}
 var BaseResolver = class {
   config;
   cache = /* @__PURE__ */ new Map();
@@ -54048,6 +54062,25 @@ function findConfig(dir) {
   const configPath = dir ? path10.resolve(dir, CONFIG_FILE_NAME) : CONFIG_FILE_NAME;
   return existsSync(configPath) ? configPath : void 0;
 }
+async function createConfig(config, { configPath, externalRefResolver, ignore } = {}) {
+  const rawConfigSource = typeof config === "string" ? config : "";
+  const rawConfigDocument = makeDocumentFromString(rawConfigSource, configPath ?? "");
+  if (typeof config !== "string" && config) {
+    rawConfigDocument.parsed = config;
+  }
+  const { resolvedConfig, resolvedRefMap, plugins } = await resolveConfig({
+    rawConfigDocument: cloneConfigDocument(rawConfigDocument),
+    configPath,
+    externalRefResolver
+  });
+  return new Config(resolvedConfig, {
+    configPath,
+    document: rawConfigDocument,
+    resolvedRefMap,
+    plugins,
+    ignore
+  });
+}
 function cloneConfigDocument(document) {
   if (!document.parsed) {
     return document;
@@ -54766,10 +54799,20 @@ var CommandError = class extends Error {
 async function loadProjectConfig({ configPath, customExtends }) {
   let config;
   try {
-    config = await loadConfig({
-      configPath: configPath || void 0,
-      customExtends: customExtends?.length ? customExtends : void 0
-    });
+    const file = configPath || findConfig();
+    if (file) {
+      config = await loadConfig({
+        configPath: file,
+        customExtends: customExtends?.length ? customExtends : void 0
+      });
+    } else {
+      const defaults = structuredClone(DEFAULT_CONFIG);
+      if (customExtends?.length) defaults.extends = customExtends;
+      config = await createConfig(defaults, {
+        ignore: await loadIgnoreConfig(void 0, new BaseResolver())
+      });
+      config.document = void 0;
+    }
   } catch (e2) {
     throw new CommandError(`Error while loading the configuration${configPath ? ` from ${configPath}` : ""}: ${e2.message}`, { cause: e2 });
   }
