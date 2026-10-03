@@ -7,6 +7,12 @@ updates:
     groups:
       minor-and-patch:
         update-types: [minor, patch]
+    ignore:
+      # The plugin compiles against the oldest Maven it supports (see <prerequisites>); only patch releases apply.
+      - dependency-name: org.apache.maven:maven-core
+        update-types: [version-update:semver-major, version-update:semver-minor]
+      - dependency-name: org.apache.maven:maven-plugin-api
+        update-types: [version-update:semver-major, version-update:semver-minor]
   # A Redocly bump also needs the vendored CLI sources and the embedded bundle refreshed (see js/README.md);
   # the bundle job fails on the pull request until that is done.
   - package-ecosystem: npm

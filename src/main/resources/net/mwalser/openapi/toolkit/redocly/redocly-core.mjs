@@ -10,11 +10,20 @@ var __require = /* @__PURE__ */ ((x2) => typeof require !== "undefined" ? requir
   if (typeof require !== "undefined") return require.apply(this, arguments);
   throw Error('Dynamic require of "' + x2 + '" is not supported');
 });
-var __esm = (fn, res) => function __init() {
-  return fn && (res = (0, fn[__getOwnPropNames(fn)[0]])(fn = 0)), res;
+var __esm = (fn, res, err) => function __init() {
+  if (err) throw err[0];
+  try {
+    return fn && (res = (0, fn[__getOwnPropNames(fn)[0]])(fn = 0)), res;
+  } catch (e2) {
+    throw err = [e2], e2;
+  }
 };
 var __commonJS = (cb, mod) => function __require2() {
-  return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
+  try {
+    return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
+  } catch (e2) {
+    throw mod = 0, e2;
+  }
 };
 var __export = (target, all2) => {
   for (var name in all2)
@@ -40789,7 +40798,7 @@ var StatsAsync3 = (statsAccumulator) => {
 var path6 = __toESM(require_path_browserify(), 1);
 
 // node_modules/js-yaml/dist/js-yaml.mjs
-var NOT_RESOLVED = Symbol("NOT_RESOLVED");
+var NOT_RESOLVED = /* @__PURE__ */ Symbol("NOT_RESOLVED");
 function defineScalarTag(tagName, options2) {
   return {
     tagName,
@@ -43104,7 +43113,7 @@ var Style = class {
   literal = false;
   folded = false;
 };
-var INVALID = Symbol("INVALID");
+var INVALID = /* @__PURE__ */ Symbol("INVALID");
 function buildRepresentTypes(schema) {
   const defaultTags = new Set([
     schema.defaultScalarTag,
@@ -43230,8 +43239,8 @@ function jsToAst(input, schema, options2 = {}) {
     directives: []
   }];
 }
-var VISIT_BREAK = Symbol("visit:break");
-var VISIT_SKIP = Symbol("visit:skip");
+var VISIT_BREAK = /* @__PURE__ */ Symbol("visit:break");
+var VISIT_SKIP = /* @__PURE__ */ Symbol("visit:skip");
 function visitNode(node, visitor, ctx) {
   const control = visitor(node, ctx);
   if (control === VISIT_BREAK) return true;
@@ -56668,7 +56677,7 @@ var createNodeList = () => {
   nodeLists.add(list);
   return list;
 };
-var Nothing = Symbol("Nothing");
+var Nothing = /* @__PURE__ */ Symbol("Nothing");
 
 // node_modules/jsonpath-rfc9535/dist/esm/core/functions/count.js
 var count_default = {

@@ -50,9 +50,9 @@
     <kotlin.compiler.jvmTarget>21</kotlin.compiler.jvmTarget>
     <graalvm.version>25.4.4.1.1</graalvm.version>
     <maven.version>3.9.16</maven.version>
-    <maven-plugin-tools.version>3.15.2</maven-plugin-tools.version>
+    <maven-plugin-tools.version>3.16.0</maven-plugin-tools.version>
     <jackson.version>2.22.3</jackson.version>
-    <junit.version>5.14.4</junit.version>
+    <junit.version>6.1.3</junit.version>
     <!-- version of @redocly/openapi-core embedded in src/main/resources (see js/package.json) -->
     <redocly.version>2.57.0</redocly.version>
     <isolate.platform>unsupported</isolate.platform>
@@ -122,7 +122,7 @@
     <dependency>
       <groupId>org.junit.platform</groupId>
       <artifactId>junit-platform-launcher</artifactId>
-      <version>1.14.4</version>
+      <version>${junit.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -184,7 +184,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-site-plugin</artifactId>
-          <version>3.21.0</version>
+          <version>3.22.0</version>
         </plugin>
         <!-- mvn release:prepare release:perform (see the development guide) -->
         <plugin>
@@ -473,7 +473,7 @@
               <dependency>
                 <groupId>org.apache.groovy</groupId>
                 <artifactId>groovy</artifactId>
-                <version>4.0.30</version>
+                <version>6.0.0</version>
               </dependency>
             </dependencies>
             <executions>
