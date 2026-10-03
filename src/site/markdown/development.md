@@ -28,30 +28,39 @@ See [the JavaScript guide](https://github.com/mwalser/openapi-toolkit-maven-plug
 
 ## Release
 
-Releases are built on the maintainer's machine with the Maven release plugin. `~/.m2/settings.xml` must hold
-the Central Portal token as server `central` and select the signing key via `gpg.keyname`; the namespace
-`net.mwalser` must be verified in the [Central Portal](https://central.sonatype.com/publishing/namespaces).
+The Release workflow builds, signs and uploads releases on GitHub; the maintainer's machine only tags. The
+workflow runs for `v*` tags in the GitHub environment `release`, which requires the maintainer's approval and
+holds the secrets `GPG_PRIVATE_KEY` and `GPG_PASSPHRASE` (the signing key, exported with
+`gpg --armor --export-secret-keys <fingerprint>`, and its passphrase) and `CENTRAL_USERNAME` and
+`CENTRAL_PASSWORD` (a Central Portal user token). The namespace `net.mwalser` must be verified in the
+[Central Portal](https://central.sonatype.com/publishing/namespaces).
 
 1. Pre-flight: `main` equals `origin/main`, the working tree is clean, and CI is green on that commit.
 2. Update `README.md` for the release: the plugin version in the quick start and the sentence that calls the
    project unreleased. Commit, push, and wait for CI again; the tag must carry this README.
-3. Rehearse: `mvn -B release:prepare -DdryRun=true`, then `mvn release:clean`.
-4. Pre-warm gpg-agent, because `release:perform` asks for the passphrase in the middle of the build and the
-   agent forgets it after ten minutes by default: `echo test | gpg --clearsign -u <gpg.keyname> > /dev/null`
-   (the agent caches per key), or raise `default-cache-ttl` in `~/.gnupg/gpg-agent.conf`.
-5. `mvn release:prepare` sets the release version, tags `v<version>`, moves `main` to the next SNAPSHOT and
-   pushes both. The tag push deploys the documentation website.
-6. `mvn release:perform` clones the tag over SSH into `target/checkout`, builds it with `-Prelease` (sources,
-   javadoc, signatures) and uploads to Central. It stops once Central has validated the deployment.
-7. Publish the deployment in the [Central Portal](https://central.sonatype.com/publishing/deployments). The
-   artifact appears at <https://repo1.maven.org/maven2/net/mwalser/openapi-toolkit-maven-plugin/0.1.0/>
-   after the sync.
-8. Write the release notes and publish them: `gh release create v0.1.0 --title 0.1.0 --notes-file notes.md`.
-   There is no changelog file; the release notes are the changelog.
+3. Rehearse: `mvn -B release:prepare -DdryRun=true`, then `mvn release:clean`. After a change to the workflow or
+   the secrets, also run the Release workflow by hand on `main` with "publish" unchecked: it builds and signs
+   without uploading anything.
+4. `mvn release:prepare` sets the release version, tags `v<version>`, moves `main` to the next SNAPSHOT and
+   pushes both. The tag starts the Release workflow and deploys the documentation website.
+5. Approve the `release` environment in the workflow run. The workflow runs the CI matrix on the tag, builds
+   with `-Prelease` (sources, javadoc, signatures), records the build provenance of the jars, uploads to Central
+   and stops once Central has validated the deployment, and drafts the GitHub release with the jars and
+   signatures attached.
+6. Publish the deployment in the [Central Portal](https://central.sonatype.com/publishing/deployments). The
+   artifact appears at <https://repo1.maven.org/maven2/net/mwalser/openapi-toolkit-maven-plugin/> after the
+   sync.
+7. Write the release notes into the draft GitHub release and publish it. There is no changelog file; the release
+   notes are the changelog.
 
-To abandon a release after step 5 and before the upload: `mvn release:rollback` reverts the version commits;
+To abandon a release after step 4 and before the upload: `mvn release:rollback` reverts the version commits;
 delete the tag locally (`git tag -d v0.1.0`) and on origin (`git push origin :refs/tags/v0.1.0`), then
-`mvn release:clean`.
+`mvn release:clean`; drop the deployment in the Portal and delete the draft release if they exist. A run that
+failed for a reason outside the repository can be re-run from GitHub; a fix in the repository needs the rollback
+and a new `release:prepare`.
+
+`gh attestation verify <jar> --owner mwalser` checks the provenance of a published jar. The build is
+reproducible: `mvn -B package -DskipTests` on the tag yields the same jar.
 
 ## Documentation website
 
