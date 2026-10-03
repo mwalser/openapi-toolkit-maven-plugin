@@ -11,8 +11,8 @@ jobs:
         java: ['21', '25']
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: ${{ matrix.java }}
@@ -21,8 +21,8 @@ jobs:
   bundle:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with: { node-version-file: js/.nvmrc, cache: npm, cache-dependency-path: js/package-lock.json }
       - run: npm ci --ignore-scripts
         working-directory: js
@@ -37,7 +37,7 @@ jobs:
       matrix:
         distribution: [temurin, graalvm]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
         with: { distribution: '${{ matrix.distribution }}', java-version: '25' }
       - run: mvn --batch-mode test -Pisolate-tests
