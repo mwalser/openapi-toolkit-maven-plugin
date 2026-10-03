@@ -60,7 +60,9 @@ failed for a reason outside the repository can be re-run from GitHub; a fix in t
 and a new `release:prepare`.
 
 `gh attestation verify <jar> --owner mwalser` checks the provenance of a published jar. The build is
-reproducible: `mvn -B package -DskipTests` on the tag yields the same jar.
+reproducible: `mvn -B package -DskipTests` on the tag yields a jar with the same entries and checksums. The jar
+itself is byte-identical only with the same zlib as the GitHub runner; a JDK linked against zlib-ng, such as
+Homebrew's, compresses differently.
 
 ## Documentation website
 
