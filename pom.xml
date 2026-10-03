@@ -54,7 +54,7 @@
     <jackson.version>2.22.3</jackson.version>
     <junit.version>5.14.4</junit.version>
     <!-- version of @redocly/openapi-core embedded in src/main/resources (see js/package.json) -->
-    <redocly.version>2.47.0</redocly.version>
+    <redocly.version>2.57.0</redocly.version>
     <isolate.platform>unsupported</isolate.platform>
     <project.build.outputTimestamp>2026-08-23T00:00:00Z</project.build.outputTimestamp>
   </properties>

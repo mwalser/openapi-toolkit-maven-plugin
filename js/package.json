@@ -10,7 +10,7 @@
     "build": "node build.mjs"
   },
   "dependencies": {
-    "@redocly/openapi-core": "2.47.0",
+    "@redocly/openapi-core": "2.57.0",
     "buffer": "^6.0.3",
     "path-browserify": "^1.0.1"
   },

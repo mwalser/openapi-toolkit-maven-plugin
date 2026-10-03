@@ -18,9 +18,9 @@ bundled package; CI rebuilds both files and fails when they differ from the comm
 - `src/api/` – the command layer (`lint`, `bundle`, `check-config`, `stats`, `join`, `split`, `score`)
   mirroring `packages/cli/src/commands` of redocly-cli; every command takes plain options and returns
   JSON-serializable data.
-- `vendor/redocly-cli/` – command sources from the `@redocly/cli` 2.47.0 release (MIT) for
-  stats/join/split/score, compiled by esbuild from TypeScript. `types.ts`, `wrapper.ts`,
-  `utils/error.ts`, and `utils/miscellaneous.ts` are plugin-authored compatibility replacements;
+- `vendor/redocly-cli/` – command sources from the `@redocly/cli` 2.57.0 release (MIT) for
+  stats/join/split/score, compiled by esbuild from TypeScript. `types.ts`, `wrapper.ts` and
+  `utils/miscellaneous.ts` are plugin-authored compatibility replacements;
   the remaining files track the matching upstream release. The only edit to an upstream file is marked with
   an `openapi-toolkit:` comment (`commands/score/index.ts` returns the computed score).
 
