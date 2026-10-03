@@ -9,6 +9,9 @@ mvn test -Pisolate-tests           # unit tests with the native isolate for this
 mvn generate-resources -Pbuild-js  # rebuild the embedded JS bundle (requires Node.js and npm)
 ```
 
+CI runs the unit and integration tests on Linux, macOS and Windows with JDK 21 and 25, the native isolate
+on Temurin and GraalVM, and rebuilds the embedded bundle to compare it with the committed one.
+
 ## Implementation
 
 The plugin embeds `@redocly/openapi-core` and selected `@redocly/cli` commands as a JavaScript bundle executed
