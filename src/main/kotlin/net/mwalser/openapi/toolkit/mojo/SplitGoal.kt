@@ -17,7 +17,7 @@ internal class SplitGoal(mojo: SplitMojo) : Goal<SplitMojo>(mojo) {
         val result = redocly().split(
             SplitOptions(cwd = jsCwd, api = JsPaths.toJs(mojo.api), outDir = jsPath(resolve(mojo.outputDirectory)), separator = mojo.separator),
         )
-        MavenJsLog.block(log, result.output, MavenJsLog.Level.INFO)
+        MavenJsLog.block(log, result.output, MavenJsLog.Level.DEBUG) // upstream progress lines; the outcome is reported below
         log.info("Split ${display(result.api)} into ${display(result.outDir)}")
     }
 }

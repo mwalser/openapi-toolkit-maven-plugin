@@ -196,7 +196,7 @@ var require_path_browserify = __commonJS({
           return ".";
         return posix.normalize(joined);
       },
-      relative: function relative13(from, to2) {
+      relative: function relative14(from, to2) {
         assertPath(from);
         assertPath(to2);
         if (from === to2) return "";
@@ -6249,49 +6249,49 @@ var require_fast_uri = __commonJS({
       schemelessOptions.skipEscape = true;
       return serialize(resolved, schemelessOptions);
     }
-    function resolveComponent(base, relative13, options2, skipNormalization) {
+    function resolveComponent(base, relative14, options2, skipNormalization) {
       const target = {};
       if (!skipNormalization) {
         base = parse2(serialize(base, options2), options2);
-        relative13 = parse2(serialize(relative13, options2), options2);
+        relative14 = parse2(serialize(relative14, options2), options2);
       }
       options2 = options2 || {};
-      if (!options2.tolerant && relative13.scheme) {
-        target.scheme = relative13.scheme;
-        target.userinfo = relative13.userinfo;
-        target.host = relative13.host;
-        target.port = relative13.port;
-        target.path = removeDotSegments(relative13.path || "");
-        target.query = relative13.query;
+      if (!options2.tolerant && relative14.scheme) {
+        target.scheme = relative14.scheme;
+        target.userinfo = relative14.userinfo;
+        target.host = relative14.host;
+        target.port = relative14.port;
+        target.path = removeDotSegments(relative14.path || "");
+        target.query = relative14.query;
       } else {
-        if (relative13.userinfo !== void 0 || relative13.host !== void 0 || relative13.port !== void 0) {
-          target.userinfo = relative13.userinfo;
-          target.host = relative13.host;
-          target.port = relative13.port;
-          target.path = removeDotSegments(relative13.path || "");
-          target.query = relative13.query;
+        if (relative14.userinfo !== void 0 || relative14.host !== void 0 || relative14.port !== void 0) {
+          target.userinfo = relative14.userinfo;
+          target.host = relative14.host;
+          target.port = relative14.port;
+          target.path = removeDotSegments(relative14.path || "");
+          target.query = relative14.query;
         } else {
-          if (!relative13.path) {
+          if (!relative14.path) {
             target.path = base.path;
-            if (relative13.query !== void 0) {
-              target.query = relative13.query;
+            if (relative14.query !== void 0) {
+              target.query = relative14.query;
             } else {
               target.query = base.query;
             }
           } else {
-            if (relative13.path[0] === "/") {
-              target.path = removeDotSegments(relative13.path);
+            if (relative14.path[0] === "/") {
+              target.path = removeDotSegments(relative14.path);
             } else {
               if ((base.userinfo !== void 0 || base.host !== void 0 || base.port !== void 0) && !base.path) {
-                target.path = "/" + relative13.path;
+                target.path = "/" + relative14.path;
               } else if (!base.path) {
-                target.path = relative13.path;
+                target.path = relative14.path;
               } else {
-                target.path = base.path.slice(0, base.path.lastIndexOf("/") + 1) + relative13.path;
+                target.path = base.path.slice(0, base.path.lastIndexOf("/") + 1) + relative14.path;
               }
               target.path = removeDotSegments(target.path);
             }
-            target.query = relative13.query;
+            target.query = relative14.query;
           }
           target.userinfo = base.userinfo;
           target.host = base.host;
@@ -6299,7 +6299,7 @@ var require_fast_uri = __commonJS({
         }
         target.scheme = base.scheme;
       }
-      target.fragment = relative13.fragment;
+      target.fragment = relative14.fragment;
       return target;
     }
     function equal(uriA, uriB, options2) {
@@ -34431,11 +34431,11 @@ function getDir(filePath) {
   }
   return isAbsoluteUrl(filePath) ? filePath.substring(0, filePath.lastIndexOf("/")) : path3.dirname(filePath);
 }
-function resolvePath(base, relative13) {
+function resolvePath(base, relative14) {
   if (isAbsoluteUrl(base)) {
-    return new URL(relative13, base.endsWith("/") ? base : `${base}/`).href;
+    return new URL(relative14, base.endsWith("/") ? base : `${base}/`).href;
   }
-  return path3.resolve(base, relative13);
+  return path3.resolve(base, relative14);
 }
 function isMappingRef(mapping) {
   return typeof mapping === "string" && (mapping.startsWith("#") || isAbsoluteUrl(mapping) || mapping.startsWith("./") || mapping.startsWith("../") || mapping.indexOf("/") > -1 || /\.(ya?ml|json)$/i.test(mapping));
@@ -59499,26 +59499,27 @@ function resolveApis(config, requested, cwd2) {
   let entries;
   if (requested?.length) {
     entries = requested.map((aliasOrPath) => {
-      if (apis[aliasOrPath]) return { path: resolveRoot(apis[aliasOrPath].root, configDir), alias: aliasOrPath };
+      if (apis[aliasOrPath]) return { path: resolveRoot(apis[aliasOrPath].root, configDir), alias: aliasOrPath, requested: aliasOrPath };
       const root = resolveRoot(aliasOrPath, cwd2);
       const alias = Object.keys(apis).find((candidate) => resolveRoot(apis[candidate].root, configDir) === root);
-      return { path: root, alias };
+      return { path: root, alias, requested: aliasOrPath };
     });
   } else {
-    entries = Object.entries(apis).map(([alias, api]) => ({ path: resolveRoot(api.root, configDir), alias }));
+    entries = Object.entries(apis).map(([alias, api]) => ({ path: resolveRoot(api.root, configDir), alias, requested: null }));
   }
-  const invalid = entries.filter(({ path: p2 }) => !isAbsoluteUrl(p2) && !existsSync(p2));
-  if (invalid.length) {
-    throw new CommandError(
-      `The following API description${invalid.length > 1 ? "s do" : " does"} not exist: ${invalid.map((e2) => e2.path).join(", ")}`
-    );
+  const missing = entries.filter(({ path: p2 }) => !isAbsoluteUrl(p2) && !existsSync(p2));
+  if (missing.length) {
+    const aliases = Object.keys(apis);
+    const known = aliases.length ? ` (known: ${aliases.join(", ")})` : "";
+    const describe = ({ path: p2, alias, requested: requested2 }) => requested2 == null ? `${path13.relative(cwd2, p2)} (root of api '${alias}' in the configuration file)` : `${requested2} (not an alias in the configuration file${known} and not an existing file)`;
+    throw new CommandError(`API description${missing.length > 1 ? "s" : ""} not found: ${missing.map(describe).join("; ")}`);
   }
   if (entries.length === 0) {
     throw new CommandError(
-      "No APIs were provided. Specify an API via the <apis> parameter or define one in the `apis` section of redocly.yaml."
+      "No APIs were provided. Set <apis> (property openapi.toolkit.apis) or define APIs in the 'apis' section of redocly.yaml."
     );
   }
-  return entries;
+  return entries.map(({ requested: requested2, ...entry }) => entry);
 }
 function checkIfRulesetExist(rules9) {
   const ruleset = {
@@ -59674,7 +59675,7 @@ async function runBundle(opts) {
   if (configLint?.totals.errors > 0) return { configLint, apis: [], totals: { errors: 0, warnings: 0, ignored: 0 } };
   const apis = resolveApis(config, opts.apis, cwd2);
   if (opts.outputFile && apis.length > 1) {
-    throw new CommandError(`<outputFile> can only be used with a single API, but ${apis.length} were selected.`);
+    throw new CommandError(`openapi.toolkit.bundle.outputFile can only be used with a single API, but ${apis.length} were selected; use <apis> to select one.`);
   }
   const targets = apis.map((api) => ({ ...api, ...outputTarget(api, opts) }));
   rejectCollidingOutputs(targets);
@@ -59685,7 +59686,7 @@ async function runBundle(opts) {
     aliasConfig.skipDecorators(opts.skipDecorators);
     const configuredOutput = alias && config.resolvedConfig.apis?.[alias]?.output;
     if (configuredOutput) {
-      console.warn(`Ignoring output '${configuredOutput}' of api '${alias}' in redocly.yaml: the bundle goal writes to ${outputFile}`);
+      console.warn(`Ignoring output '${configuredOutput}' of api '${alias}' in redocly.yaml: the bundle goal writes to ${path14.relative(cwd2, outputFile)}`);
     }
     const started = performance.now();
     const { bundle: result, problems, ...meta } = await bundle({
@@ -59726,8 +59727,8 @@ function outputTarget({ path: ref, alias }, { cwd: cwd2, outputDirectory, output
   const directory = path14.resolve(cwd2, outputDirectory);
   const name = (alias || path14.basename(ref, path14.extname(ref))).replaceAll("\\", "/");
   const file = path14.resolve(directory, `${name}.${ext}`);
-  const relative13 = path14.relative(directory, file);
-  if (/^[A-Za-z]:/.test(name) || relative13 === ".." || relative13.startsWith("../") || path14.isAbsolute(relative13)) {
+  const relative14 = path14.relative(directory, file);
+  if (/^[A-Za-z]:/.test(name) || relative14 === ".." || relative14.startsWith("../") || path14.isAbsolute(relative14)) {
     throw new CommandError(`API '${alias || ref}' would write outside the bundle output directory: ${file}. Choose another alias or set outputFile explicitly.`);
   }
   return { outputFile: file, ext };
@@ -61023,8 +61024,8 @@ function replaceChannelRefs(obj, fromDir, channelsFiles) {
       const rest = slashIdx === -1 ? "" : afterChannels.slice(slashIdx);
       const channelFile = channelsFiles[channelName];
       if (channelFile) {
-        const relative13 = slash(path27.relative(fromDir, channelFile));
-        obj[key] = rest ? `${relative13}#${rest}` : relative13;
+        const relative14 = slash(path27.relative(fromDir, channelFile));
+        obj[key] = rest ? `${relative14}#${rest}` : relative14;
       }
     } else {
       replaceChannelRefs(value2, fromDir, channelsFiles);

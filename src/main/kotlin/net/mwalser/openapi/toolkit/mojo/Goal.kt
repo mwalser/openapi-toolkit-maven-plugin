@@ -104,7 +104,7 @@ abstract class Goal<M : AbstractRedoclyMojo>(protected val mojo: M) {
         result: ConfigLintResult?,
         configFile: Path?,
         format: String = "stylish",
-        hint: String = "Fix the configuration or set lintConfig=off.",
+        hint: String = "Fix the configuration or lower lintConfig to warn.",
     ) {
         val totals = result?.totals?.takeIf { it.hasProblems } ?: return
         printProblems(result.output, format, if (totals.errors > 0) MavenJsLog.Level.ERROR else MavenJsLog.Level.WARN)
@@ -149,7 +149,7 @@ abstract class Goal<M : AbstractRedoclyMojo>(protected val mojo: M) {
         if (format == GITHUB_ACTIONS_FORMAT) {
             output.trimEnd().takeIf { it.isNotEmpty() }?.let(::println)
         } else {
-            MavenJsLog.block(log, output, level)
+            MavenJsLog.problems(log, output, level)
         }
     }
 
@@ -189,7 +189,7 @@ abstract class ConfiguredGoal<M : AbstractConfiguredMojo>(mojo: M) : Goal<M>(moj
     protected fun resolveConfigFile(): Path? {
         val explicit = mojo.configFile?.let(::resolve)
         if (explicit != null) {
-            if (!Files.isRegularFile(explicit)) throw MojoExecutionException("Redocly configuration file not found: $explicit")
+            if (!Files.isRegularFile(explicit)) throw MojoExecutionException("Redocly configuration file not found: $explicit (set by openapi.toolkit.configFile)")
             return explicit
         }
         return basedir.resolve("redocly.yaml").takeIf { Files.isRegularFile(it) }

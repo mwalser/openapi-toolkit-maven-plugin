@@ -36,7 +36,7 @@ export async function runBundle(opts) {
   if (configLint?.totals.errors > 0) return { configLint, apis: [], totals: { errors: 0, warnings: 0, ignored: 0 } };
   const apis = resolveApis(config, opts.apis, cwd);
   if (opts.outputFile && apis.length > 1) {
-    throw new CommandError(`<outputFile> can only be used with a single API, but ${apis.length} were selected.`);
+    throw new CommandError(`openapi.toolkit.bundle.outputFile can only be used with a single API, but ${apis.length} were selected; use <apis> to select one.`);
   }
   const targets = apis.map((api) => ({ ...api, ...outputTarget(api, opts) }));
   rejectCollidingOutputs(targets);
@@ -49,7 +49,7 @@ export async function runBundle(opts) {
     aliasConfig.skipDecorators(opts.skipDecorators);
     const configuredOutput = alias && config.resolvedConfig.apis?.[alias]?.output;
     if (configuredOutput) {
-      console.warn(`Ignoring output '${configuredOutput}' of api '${alias}' in redocly.yaml: the bundle goal writes to ${outputFile}`);
+      console.warn(`Ignoring output '${configuredOutput}' of api '${alias}' in redocly.yaml: the bundle goal writes to ${path.relative(cwd, outputFile)}`);
     }
 
     const started = performance.now();

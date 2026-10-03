@@ -7,29 +7,29 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
 /**
- * Lints API descriptions with Redocly ({@code redocly lint}). Fails the build when problems with severity
- * {@code error} are found (configurable via {@code failOnErrors} / {@code failOnWarnings}).
+ * Lints API descriptions ({@code redocly lint}). Fails the build on problems with severity {@code error}; see
+ * {@code failOnErrors} and {@code failOnWarnings}.
  */
 @Mojo(name = "lint", defaultPhase = LifecyclePhase.VALIDATE, threadSafe = true)
 public final class LintMojo extends AbstractApiMojo {
 
-    /** Overrides the {@code extends} list of the configuration, e.g. {@code recommended}, {@code minimal}, {@code recommended-strict}. */
+    /** Replaces the {@code extends} list of the configuration. Built-in rulesets: {@code minimal}, {@code recommended}, {@code recommended-strict}, {@code spec}. */
     @Parameter(property = "openapi.toolkit.extends", alias = "extends")
     List<String> extendsRulesets;
 
     /**
-     * Build log output format: {@code stylish} (default), {@code codeframe}, {@code summary}, {@code markdown} or
-     * {@code github-actions} (annotations, printed unprefixed so GitHub picks them up). Machine-readable formats
-     * belong in {@code reportFile}.
+     * Format of the problems in the build log: {@code stylish}, {@code codeframe}, {@code summary}, {@code markdown}
+     * or {@code github-actions} (workflow annotations, printed without the Maven prefix). For machine-readable
+     * formats use {@code reportFile}.
      */
     @Parameter(property = "openapi.toolkit.lint.format", defaultValue = "stylish")
     String format = "stylish";
 
-    /** When set, all problems (not limited by {@code maxProblems}) are additionally written to this file in {@code reportFormat}. */
+    /** File to write all problems to, in {@code reportFormat}; not limited by {@code maxProblems}. The build log is still written. */
     @Parameter(property = "openapi.toolkit.lint.reportFile")
     File reportFile;
 
-    /** Format of {@code reportFile}: {@code checkstyle} (default), {@code junit}, {@code json}, {@code codeclimate}, or any of the build log formats. */
+    /** Format of {@code reportFile}: {@code checkstyle}, {@code junit}, {@code json}, {@code codeclimate}, or any {@code format} value. */
     @Parameter(property = "openapi.toolkit.lint.reportFormat", defaultValue = "checkstyle")
     String reportFormat = "checkstyle";
 
@@ -41,13 +41,14 @@ public final class LintMojo extends AbstractApiMojo {
     @Parameter(property = "openapi.toolkit.lint.failOnWarnings", defaultValue = "false")
     boolean failOnWarnings;
 
-    /** Rule ids to skip. */
+    /** Rules not to evaluate, by rule id (for example {@code info-license}). */
     @Parameter(property = "openapi.toolkit.lint.skipRules")
     List<String> skipRules;
 
     /**
-     * Instead of reporting, write all found problems to {@code .redocly.lint-ignore.yaml} next to the
-     * configuration file so they are ignored from now on ({@code redocly lint --generate-ignore-file}).
+     * Write every problem found to {@code .redocly.lint-ignore.yaml} next to the configuration file (or in the
+     * project base directory without one) instead of reporting it; later runs ignore those problems
+     * ({@code redocly lint --generate-ignore-file}). Does not fail the build.
      */
     @Parameter(property = "openapi.toolkit.lint.generateIgnoreFile", defaultValue = "false")
     boolean generateIgnoreFile;

@@ -7,13 +7,13 @@ import org.apache.maven.plugins.annotations.Parameter;
 public abstract class AbstractConfiguredMojo extends AbstractRedoclyMojo {
 
     /**
-     * The Redocly configuration file. Defaults to {@code redocly.yaml} in the project base directory when that
-     * file exists; without a configuration file Redocly's built-in {@code recommended} ruleset is used.
+     * The Redocly configuration file. Unset: {@code redocly.yaml} in the project base directory if it exists,
+     * otherwise no configuration file.
      */
     @Parameter(property = "openapi.toolkit.configFile")
     File configFile;
 
-    /** Maximum number of problems to print (per API description and for the configuration file). */
+    /** Maximum number of problems printed to the build log, per API description and for the configuration file. Report files are not limited. */
     @Parameter(property = "openapi.toolkit.maxProblems", defaultValue = "100")
     int maxProblems = 100;
 }

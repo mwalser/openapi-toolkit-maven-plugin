@@ -107,30 +107,35 @@ export function resolveApis(config, requested, cwd) {
   const apis = config.resolvedConfig.apis || {};
   const resolveRoot = (root, from) => (isAbsoluteUrl(root) ? root : path.resolve(from, root));
 
+  // `requested` keeps the user's spelling for error messages; it is stripped from the result
   let entries;
   if (requested?.length) {
     entries = requested.map((aliasOrPath) => {
-      if (apis[aliasOrPath]) return { path: resolveRoot(apis[aliasOrPath].root, configDir), alias: aliasOrPath };
+      if (apis[aliasOrPath]) return { path: resolveRoot(apis[aliasOrPath].root, configDir), alias: aliasOrPath, requested: aliasOrPath };
       const root = resolveRoot(aliasOrPath, cwd);
       const alias = Object.keys(apis).find((candidate) => resolveRoot(apis[candidate].root, configDir) === root);
-      return { path: root, alias };
+      return { path: root, alias, requested: aliasOrPath };
     });
   } else {
-    entries = Object.entries(apis).map(([alias, api]) => ({ path: resolveRoot(api.root, configDir), alias }));
+    entries = Object.entries(apis).map(([alias, api]) => ({ path: resolveRoot(api.root, configDir), alias, requested: null }));
   }
 
-  const invalid = entries.filter(({ path: p }) => !isAbsoluteUrl(p) && !fs.existsSync(p));
-  if (invalid.length) {
-    throw new CommandError(
-      `The following API description${invalid.length > 1 ? 's do' : ' does'} not exist: ${invalid.map((e) => e.path).join(', ')}`,
-    );
+  const missing = entries.filter(({ path: p }) => !isAbsoluteUrl(p) && !fs.existsSync(p));
+  if (missing.length) {
+    const aliases = Object.keys(apis);
+    const known = aliases.length ? ` (known: ${aliases.join(', ')})` : '';
+    const describe = ({ path: p, alias, requested }) =>
+      requested == null
+        ? `${path.relative(cwd, p)} (root of api '${alias}' in the configuration file)`
+        : `${requested} (not an alias in the configuration file${known} and not an existing file)`;
+    throw new CommandError(`API description${missing.length > 1 ? 's' : ''} not found: ${missing.map(describe).join('; ')}`);
   }
   if (entries.length === 0) {
     throw new CommandError(
-      'No APIs were provided. Specify an API via the <apis> parameter or define one in the `apis` section of redocly.yaml.',
+      "No APIs were provided. Set <apis> (property openapi.toolkit.apis) or define APIs in the 'apis' section of redocly.yaml.",
     );
   }
-  return entries;
+  return entries.map(({ requested, ...entry }) => entry);
 }
 
 export function checkIfRulesetExist(rules) {

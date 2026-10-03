@@ -9,8 +9,8 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProjectHelper;
 
 /**
- * Bundles multi-file API descriptions into single files ({@code redocly bundle}), applying the decorators
- * configured in {@code redocly.yaml}.
+ * Bundles each API description into a single file ({@code redocly bundle}): resolves {@code $ref}s to other files
+ * and applies the decorators configured in {@code redocly.yaml}.
  */
 @Mojo(name = "bundle", defaultPhase = LifecyclePhase.GENERATE_RESOURCES, threadSafe = true)
 public final class BundleMojo extends AbstractApiMojo {
@@ -18,21 +18,21 @@ public final class BundleMojo extends AbstractApiMojo {
     @Inject
     MavenProjectHelper projectHelper;
 
-    /** Overrides the {@code extends} list of the configuration, e.g. {@code recommended}, {@code minimal}, {@code recommended-strict}. */
+    /** Replaces the {@code extends} list of the configuration. Built-in rulesets: {@code minimal}, {@code recommended}, {@code recommended-strict}, {@code spec}. */
     @Parameter(property = "openapi.toolkit.extends", alias = "extends")
     List<String> extendsRulesets;
 
-    /** Directory the bundled files are written to. File names are {@code <alias>.<ext>} or {@code <basename>.<ext>}. */
+    /** Directory the bundles are written to, as {@code <alias>.<ext>} (APIs from the configuration file) or {@code <basename>.<ext>} (paths). */
     @Parameter(property = "openapi.toolkit.bundle.outputDirectory", defaultValue = "${project.build.directory}/generated-resources/openapi")
     File outputDirectory;
 
-    /** Write the bundle to this file instead of {@code outputDirectory}. Only allowed when a single API is bundled. */
+    /** File to write the bundle to instead of {@code outputDirectory}. Requires a single selected API. */
     @Parameter(property = "openapi.toolkit.bundle.outputFile")
     File outputFile;
 
     /**
-     * Output format: {@code yaml}, {@code yml} or {@code json}. Defaults to the extension of {@code outputFile}
-     * when that is set, otherwise to the extension of the input description (JSON stays JSON), otherwise {@code yaml}.
+     * Output format and file extension: {@code yaml}, {@code yml} or {@code json}. Unset: the extension of
+     * {@code outputFile}, else the input's format (JSON stays JSON), else {@code yaml}.
      */
     @Parameter(property = "openapi.toolkit.bundle.ext")
     String ext;
@@ -54,32 +54,35 @@ public final class BundleMojo extends AbstractApiMojo {
     boolean keepUrlReferences;
 
     /**
-     * How components pulled in from other files are named: {@code basename} (Redocly's default, from the file name)
-     * or {@code title} (from the schema's {@code title}).
+     * Naming of components pulled in from other files: {@code basename} (file name; Redocly's default when unset)
+     * or {@code title} (the schema's {@code title}).
      */
     @Parameter(property = "openapi.toolkit.bundle.componentNamesStrategy")
     String componentNamesStrategy;
 
-    /** Severity of component naming conflicts between files: {@code warn} (Redocly's default), {@code error} or {@code off}. */
+    /** Severity of component name conflicts between files: {@code warn} (Redocly's default when unset), {@code error} or {@code off}. */
     @Parameter(property = "openapi.toolkit.bundle.componentRenamingConflicts")
     String componentRenamingConflicts;
 
-    /** Decorator ids to skip. */
+    /** Decorators not to apply, by decorator id. */
     @Parameter(property = "openapi.toolkit.bundle.skipDecorators")
     List<String> skipDecorators;
 
-    /** Add the written bundles as project resources so they end up in the artifact. */
+    /**
+     * Add the bundles as project resources; they are packaged at the root of the JAR under their file names.
+     * The goal must run before {@code process-resources}, which copies resources into the JAR.
+     */
     @Parameter(property = "openapi.toolkit.bundle.addResource", defaultValue = "false")
     boolean addResource;
 
     /**
-     * Attach each bundle as an additional build artifact (type = {@code ext}, classifier = alias or {@code classifier}),
-     * so other modules can depend on it.
+     * Attach each bundle as a build artifact other modules can depend on: type is the output extension,
+     * classifier is the alias, or {@code classifier} for inputs without one. Aliases must be distinct per type.
      */
     @Parameter(property = "openapi.toolkit.bundle.attach", defaultValue = "false")
     boolean attach;
 
-    /** Classifier used when attaching a bundle without an alias. Defaults to {@code openapi}. */
+    /** Classifier of attached bundles whose input has no alias. */
     @Parameter(property = "openapi.toolkit.bundle.classifier", defaultValue = "openapi")
     String classifier = "openapi";
 

@@ -40,7 +40,7 @@ internal class JoinGoal(mojo: JoinMojo) : ApiGoal<JoinMojo>(mojo) {
             ),
         )
         reportConfigLint(result.configLint, configFile)
-        MavenJsLog.block(log, result.output, MavenJsLog.Level.INFO)
+        MavenJsLog.block(log, result.output, MavenJsLog.Level.DEBUG) // upstream progress lines; the outcome is reported below
         val inputs = result.apis.joinToString(", ") { display(it.path) }
         log.info("Joined ${plural(result.apis.size, "API description")} ($inputs) into ${display(result.outputFile)}")
     }

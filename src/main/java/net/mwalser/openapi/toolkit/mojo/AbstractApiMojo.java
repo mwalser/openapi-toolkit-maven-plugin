@@ -8,14 +8,17 @@ import org.apache.maven.plugins.annotations.Parameter;
 public abstract class AbstractApiMojo extends AbstractConfiguredMojo {
 
     /**
-     * The API descriptions to process, each either an alias from the {@code apis} section of the configuration
-     * file or a path (relative to the project base directory) or URL. When empty, all APIs defined in the
-     * configuration file are processed.
+     * The API descriptions to process: aliases from the {@code apis} section of the configuration file, paths
+     * relative to the project base directory, or URLs. Empty: every API in the configuration file. Without a
+     * configuration file, paths or URLs are required and Redocly's built-in {@code recommended} ruleset applies.
      */
     @Parameter(property = "openapi.toolkit.apis")
     List<String> apis = new ArrayList<>();
 
-    /** Severity used when linting the configuration file itself before the command runs: {@code warn}, {@code error} or {@code off}. */
+    /**
+     * Severity of problems in the configuration file, which is linted before the goal runs: {@code warn} (reported,
+     * invalid entries are ignored), {@code error} (fails the build) or {@code off}.
+     */
     @Parameter(property = "openapi.toolkit.lintConfig", defaultValue = "warn")
     String lintConfig = "warn";
 }

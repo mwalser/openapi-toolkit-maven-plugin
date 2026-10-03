@@ -72,13 +72,16 @@ function thirdPartyNotices(metafile) {
     const root = input.match(/^node_modules\/(?:@[^/]+\/[^/]+|[^/]+)/)?.[0];
     if (root) packageRoots.add(root);
   }
-  const sections = [...packageRoots].sort().map((root) => {
+  const listed = new Set(); // an npm alias (node_modules/ajv -> @redocly/ajv) must not list a package twice
+  const sections = [...packageRoots].sort().flatMap((root) => {
     const pkg = JSON.parse(readFileSync(path.join(root, 'package.json'), 'utf8'));
+    if (listed.has(`${pkg.name}@${pkg.version}`)) return [];
+    listed.add(`${pkg.name}@${pkg.version}`);
     const licenseFile = ['LICENSE', 'LICENSE.md', 'LICENSE.txt', 'LICENCE', 'license'].map((name) => path.join(root, name)).find(existsSync);
     const license = licenseFile
       ? readFileSync(licenseFile, 'utf8').trim()
       : `No license file is included in the package; its metadata declares ${pkg.license || 'an unspecified license'}.`;
-    return section(`${pkg.name} ${pkg.version} (${pkg.license || 'see below'})`, license);
+    return [section(`${pkg.name} ${pkg.version} (${pkg.license || 'see below'})`, license)];
   });
   sections.push(section('@redocly/cli (vendored command sources)', readFileSync('vendor/redocly-cli/LICENSE', 'utf8').trim()));
   return ['THIRD-PARTY NOTICES', '', 'This product bundles the following third-party software:', ...sections, ''].join('\n');

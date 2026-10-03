@@ -9,6 +9,7 @@ internal class StatsGoal(mojo: StatsMojo) : ApiGoal<StatsMojo>(mojo) {
     override fun validate() {
         super.validate()
         requireOneOf("openapi.toolkit.stats.format", mojo.format, listOf("stylish", "json", "markdown"))
+        if (mojo.outputFile != null) requireSingleApi("openapi.toolkit.stats.outputFile", mojo.apis.size)
     }
 
     override fun run() {

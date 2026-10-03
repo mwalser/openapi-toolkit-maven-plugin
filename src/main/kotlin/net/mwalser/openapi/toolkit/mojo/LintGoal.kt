@@ -41,7 +41,10 @@ internal class LintGoal(mojo: LintMojo) : ApiGoal<LintMojo>(mojo) {
             val written = writeOutput(reportFile, result.report.orEmpty())
             log.info("Lint report (${mojo.reportFormat}) written to ${display(written)}")
         }
-        result.ignoreFile?.let { log.info("Explicitly ignored ${plural(it.ignored, "problem")} via .redocly.lint-ignore.yaml") }
+        result.ignoreFile?.let {
+            val ignoreFile = (configFile?.parent ?: basedir).resolve(".redocly.lint-ignore.yaml")
+            log.info("Wrote ${plural(it.ignored, "problem")} to ${display(ignoreFile)}; they are ignored from now on")
+        }
         reportUnused(result.unused, configFile)
 
         val totals = result.totals
@@ -51,11 +54,11 @@ internal class LintGoal(mojo: LintMojo) : ApiGoal<LintMojo>(mojo) {
             mojo.generateIgnoreFile -> log.info(summary)
             totals.errors > 0 && mojo.failOnErrors -> {
                 log.error(summary)
-                throw MojoFailureException("OpenAPI lint failed with ${plural(totals.errors, "error")}.")
+                throw MojoFailureException("Lint failed with ${plural(totals.errors, "error")}.")
             }
             totals.warnings > 0 && mojo.failOnWarnings -> {
                 log.error(summary)
-                throw MojoFailureException("OpenAPI lint failed with ${plural(totals.warnings, "warning")} (failOnWarnings=true).")
+                throw MojoFailureException("Lint failed with ${plural(totals.warnings, "warning")} (failOnWarnings=true).")
             }
             totals.hasProblems -> log.warn(summary)
             else -> log.info(summary)

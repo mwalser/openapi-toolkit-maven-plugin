@@ -65,12 +65,12 @@ internal class BundleGoal(mojo: BundleMojo) : ApiGoal<BundleMojo>(mojo) {
         reportUnused(result.unused, configFile)
 
         if (result.totals.errors > 0 && !mojo.force) {
-            throw MojoFailureException("OpenAPI bundle failed with ${plural(result.totals.errors, "error")}.")
+            throw MojoFailureException("Bundle failed with ${plural(result.totals.errors, "error")}.")
         }
     }
 
     private fun report(api: ApiBundleResult) {
-        MavenJsLog.block(log, api.output, levelFor(api.totals))
+        MavenJsLog.problems(log, api.output, levelFor(api.totals))
         val source = display(api.path) + api.alias?.let { " using configuration for api '$it'" }.orEmpty()
         val errors = api.totals.errors
         when {

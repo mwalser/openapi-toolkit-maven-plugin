@@ -15,6 +15,7 @@ internal class ScoreGoal(mojo: ScoreMojo) : ApiGoal<ScoreMojo>(mojo) {
         mojo.minScore?.let { minScore ->
             if (minScore !in 0.0..100.0) throw MojoExecutionException("Invalid value '$minScore' for openapi.toolkit.score.minScore; must be a number from 0 to 100")
         }
+        if (mojo.outputFile != null) requireSingleApi("openapi.toolkit.score.outputFile", mojo.apis.size)
     }
 
     override fun run() {
@@ -50,11 +51,14 @@ internal class ScoreGoal(mojo: ScoreMojo) : ApiGoal<ScoreMojo>(mojo) {
     private fun enforceMinScore(minScore: Double, apis: List<ApiScoreResult>) {
         val failing = apis.filter { it.agentReadiness < minScore }
         if (failing.isNotEmpty()) {
-            val failures = failing.joinToString(", ") { "${display(it.path)} (${it.agentReadiness})" }
-            throw MojoFailureException("Agent-readiness score below the required minimum of $minScore: $failures")
+            val failures = failing.joinToString(", ") { "${display(it.path)} (${score(it.agentReadiness)})" }
+            throw MojoFailureException("Agent-readiness score below the required minimum of ${score(minScore)}: $failures")
         }
-        val scores = apis.joinToString(", ") { it.agentReadiness.toString() }
+        val scores = apis.joinToString(", ") { score(it.agentReadiness) }
         val summary = if (apis.size == 1) "score $scores meets" else "scores $scores meet"
-        log.info("Agent-readiness $summary the required minimum of $minScore.")
+        log.info("Agent-readiness $summary the required minimum of ${score(minScore)}.")
     }
+
+    /** Whole scores are the common case; `85` reads better than `85.0`. */
+    private fun score(value: Double): String = if (value % 1.0 == 0.0) value.toLong().toString() else value.toString()
 }

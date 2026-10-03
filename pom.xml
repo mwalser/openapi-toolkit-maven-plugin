@@ -9,7 +9,7 @@
   <packaging>maven-plugin</packaging>
 
   <name>OpenAPI Toolkit Maven Plugin</name>
-  <description>Lint, bundle and transform OpenAPI descriptions. Powered by Redocly.</description>
+  <description>Lint, bundle and transform OpenAPI and AsyncAPI descriptions with Redocly, inside the JVM (no Node.js).</description>
   <url>https://mwalser.github.io/openapi-toolkit-maven-plugin/</url>
   <inceptionYear>2026</inceptionYear>
   <scm>
@@ -58,6 +58,17 @@
     <isolate.platform>unsupported</isolate.platform>
     <project.build.outputTimestamp>2026-08-23T00:00:00Z</project.build.outputTimestamp>
   </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <!-- jackson-module-kotlin pulls an older kotlin-reflect; reflection must match the stdlib -->
+      <dependency>
+        <groupId>org.jetbrains.kotlin</groupId>
+        <artifactId>kotlin-reflect</artifactId>
+        <version>${kotlin.version}</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
   <dependencies>
     <dependency>
@@ -129,6 +140,13 @@
       <groupId>org.jetbrains.kotlin</groupId>
       <artifactId>kotlin-test-junit5</artifactId>
       <version>${kotlin.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <!-- silences SLF4J's missing-binding warning from the Maven API during the unit tests -->
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-nop</artifactId>
+      <version>1.7.36</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -328,7 +346,10 @@
               </execution>
             </executions>
           </plugin>
-          <!-- Dokka documents the Kotlin and the Java sources together; javadoc alone cannot resolve the Kotlin types. -->
+          <!--
+            Dokka documents the Kotlin and the Java sources together; javadoc alone cannot resolve the Kotlin types.
+            The jar plugin packages its output so that the javadoc jar is as reproducible as the other two.
+          -->
           <plugin>
             <groupId>org.jetbrains.dokka</groupId>
             <artifactId>dokka-maven-plugin</artifactId>
@@ -338,12 +359,31 @@
                 <dir>${project.basedir}/src/main/kotlin</dir>
                 <dir>${project.basedir}/src/main/java</dir>
               </sourceDirectories>
+              <outputDir>${project.build.directory}/dokka-javadoc</outputDir>
             </configuration>
             <executions>
               <execution>
-                <id>attach-javadocs</id>
-                <phase>package</phase>
-                <goals><goal>javadocJar</goal></goals>
+                <id>javadoc</id>
+                <phase>prepare-package</phase>
+                <goals>
+                  <goal>javadoc</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-jar-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>javadoc-jar</id>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+                <configuration>
+                  <classifier>javadoc</classifier>
+                  <classesDirectory>${project.build.directory}/dokka-javadoc</classesDirectory>
+                </configuration>
               </execution>
             </executions>
           </plugin>

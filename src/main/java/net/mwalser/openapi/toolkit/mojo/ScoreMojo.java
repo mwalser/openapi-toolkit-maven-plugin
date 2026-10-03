@@ -6,13 +6,12 @@ import org.apache.maven.plugins.annotations.Parameter;
 
 /**
  * Scores OpenAPI 3 descriptions for integration simplicity and agent readiness ({@code redocly score}).
- * Processes every selected API (see {@code apis}); optionally fails the build when an agent-readiness score is
- * below {@code minScore}.
+ * Fails the build when a score is below {@code minScore}.
  */
 @Mojo(name = "score", threadSafe = true)
 public final class ScoreMojo extends AbstractApiMojo {
 
-    /** Output format: {@code stylish} (default) or {@code json}. */
+    /** Output format: {@code stylish} or {@code json}. */
     @Parameter(property = "openapi.toolkit.score.format", defaultValue = "stylish")
     String format = "stylish";
 
@@ -20,11 +19,11 @@ public final class ScoreMojo extends AbstractApiMojo {
     @Parameter(property = "openapi.toolkit.score.operationDetails", defaultValue = "false")
     boolean operationDetails;
 
-    /** When set, the score output is written to this file instead of the build log. Requires a single selected API. */
+    /** File to write the score report to instead of the build log. Requires a single selected API. */
     @Parameter(property = "openapi.toolkit.score.outputFile")
     File outputFile;
 
-    /** Fail the build when the agent-readiness score (0-100) of any selected API is below this value. */
+    /** Minimum agent-readiness score, 0 to 100; the build fails when any selected API scores lower. Unset: never fails. */
     @Parameter(property = "openapi.toolkit.score.minScore")
     Double minScore;
 

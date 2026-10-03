@@ -12,6 +12,7 @@ import java.net.http.HttpRequest
 import java.net.http.HttpRequest.BodyPublishers
 import java.net.http.HttpResponse.BodyHandlers
 import java.net.http.HttpTimeoutException
+import java.nio.channels.UnresolvedAddressException
 import java.nio.charset.StandardCharsets
 import java.nio.file.AccessDeniedException
 import java.nio.file.FileAlreadyExistsException
@@ -157,15 +158,21 @@ private fun Value.asStringOrNull(): String? = if (isNull) null else asString()
 internal class HostCallException(code: String, description: String) : RuntimeException("$code: $description") {
 
     companion object {
-        fun of(failure: Exception): HostCallException = when (failure) {
-            is NoSuchFileException -> HostCallException("ENOENT", "no such file or directory")
-            is AccessDeniedException -> HostCallException("EACCES", "permission denied")
-            is NotDirectoryException -> HostCallException("ENOTDIR", "not a directory")
-            is FileAlreadyExistsException -> HostCallException("EEXIST", "file already exists")
-            is UnknownHostException -> HostCallException("ENOTFOUND", "host not found")
-            is ConnectException -> HostCallException("ECONNREFUSED", "connection refused")
-            is HttpTimeoutException -> HostCallException("ETIMEDOUT", "request timed out")
-            else -> HostCallException("EIO", failure.message ?: failure.toString())
+        fun of(failure: Exception): HostCallException {
+            // HttpClient reports an unresolvable host as a ConnectException; only a cause names the real problem
+            val chain = generateSequence<Throwable>(failure) { it.cause }
+            if (chain.any { it is UnknownHostException || it is UnresolvedAddressException }) {
+                return HostCallException("ENOTFOUND", "host not found")
+            }
+            return when (failure) {
+                is NoSuchFileException -> HostCallException("ENOENT", "no such file or directory")
+                is AccessDeniedException -> HostCallException("EACCES", "permission denied")
+                is NotDirectoryException -> HostCallException("ENOTDIR", "not a directory")
+                is FileAlreadyExistsException -> HostCallException("EEXIST", "file already exists")
+                is ConnectException -> HostCallException("ECONNREFUSED", "connection refused")
+                is HttpTimeoutException -> HostCallException("ETIMEDOUT", "request timed out")
+                else -> HostCallException("EIO", failure.message ?: failure.toString())
+            }
         }
     }
 }

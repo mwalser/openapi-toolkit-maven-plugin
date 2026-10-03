@@ -5,29 +5,29 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
 /**
- * Joins two or more OpenAPI 3 descriptions into one ({@code redocly join}, experimental upstream).
- * Select the descriptions with the {@code apis} parameter (aliases or paths); at least two are required.
+ * Joins two or more OpenAPI 3 descriptions, selected with {@code apis}, into one file ({@code redocly join};
+ * experimental upstream).
  */
 @Mojo(name = "join", threadSafe = true)
 public final class JoinMojo extends AbstractApiMojo {
 
-    /** The joined description. The extension ({@code yaml}, {@code yml} or {@code json}) determines the output format. */
+    /** File to write the joined description to; its extension ({@code yaml}, {@code yml} or {@code json}) sets the format. */
     @Parameter(property = "openapi.toolkit.join.outputFile", defaultValue = "${project.build.directory}/generated-resources/openapi/joined.yaml")
     File outputFile;
 
-    /** Prefix tags with the value of this {@code info} property (e.g. {@code title}) to avoid conflicts. */
+    /** Prefix tags with this {@code info} property of their source description, for example {@code title}. Exclusive with {@code prefixTagsWithFilename} and {@code withoutXTagGroups}. */
     @Parameter(property = "openapi.toolkit.join.prefixTagsWithInfoProp")
     String prefixTagsWithInfoProp;
 
-    /** Prefix tags with the file name of the description they come from. */
+    /** Prefix tags with the file name of their source description. Exclusive with {@code prefixTagsWithInfoProp} and {@code withoutXTagGroups}. */
     @Parameter(property = "openapi.toolkit.join.prefixTagsWithFilename", defaultValue = "false")
     boolean prefixTagsWithFilename;
 
-    /** Prefix component names with the value of this {@code info} property to avoid conflicts. */
+    /** Prefix component names with this {@code info} property of their source description, for example {@code title}. */
     @Parameter(property = "openapi.toolkit.join.prefixComponentsWithInfoProp")
     String prefixComponentsWithInfoProp;
 
-    /** Do not generate {@code x-tagGroups}. */
+    /** Do not generate {@code x-tagGroups}. Exclusive with {@code prefixTagsWithInfoProp} and {@code prefixTagsWithFilename}. */
     @Parameter(property = "openapi.toolkit.join.withoutXTagGroups", defaultValue = "false")
     boolean withoutXTagGroups;
 

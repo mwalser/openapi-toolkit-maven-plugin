@@ -50,6 +50,8 @@ class MojoParametersTest {
         assertRejected("openapi.toolkit.score.minScore", ScoreMojo().apply { minScore = Double.NaN })
         assertRejected("openapi.toolkit.score.minScore", ScoreMojo().apply { minScore = 101.0 })
         assertRejected("openapi.toolkit.split.separator", SplitMojo().apply { separator = " " })
+        assertRejected("openapi.toolkit.stats.outputFile", StatsMojo().apply { outputFile = File("stats.json"); apis = mutableListOf("one", "two") })
+        assertRejected("openapi.toolkit.score.outputFile", ScoreMojo().apply { outputFile = File("score.json"); apis = mutableListOf("one", "two") })
         assertRejected("openapi.toolkit.join.prefixTagsWithFilename", join().apply { prefixTagsWithInfoProp = "title"; prefixTagsWithFilename = true })
         assertRejected("openapi.toolkit.join.withoutXTagGroups", join().apply { prefixTagsWithInfoProp = "title"; withoutXTagGroups = true })
         assertRejected("openapi.toolkit.join.withoutXTagGroups", join().apply { prefixTagsWithFilename = true; withoutXTagGroups = true })

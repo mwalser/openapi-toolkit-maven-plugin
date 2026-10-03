@@ -5,17 +5,17 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
 /**
- * Prints statistics about API descriptions ({@code redocly stats}): number of paths, operations, schemas, ...
- * Processes every selected API (see {@code apis}).
+ * Prints statistics of API descriptions ({@code redocly stats}): references, external documents, schemas,
+ * parameters, links, path items, webhooks, operations and tags.
  */
 @Mojo(name = "stats", threadSafe = true)
 public final class StatsMojo extends AbstractApiMojo {
 
-    /** Output format: {@code stylish} (default), {@code json} or {@code markdown}. */
+    /** Output format: {@code stylish}, {@code json} or {@code markdown}. */
     @Parameter(property = "openapi.toolkit.stats.format", defaultValue = "stylish")
     String format = "stylish";
 
-    /** When set, the statistics are written to this file instead of the build log. Requires a single selected API. */
+    /** File to write the statistics to instead of the build log. Requires a single selected API. */
     @Parameter(property = "openapi.toolkit.stats.outputFile")
     File outputFile;
 

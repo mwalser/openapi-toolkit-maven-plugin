@@ -37,7 +37,10 @@ public abstract class AbstractRedoclyMojo extends AbstractMojo {
     @Inject
     SettingsDecrypter settingsDecrypter;
 
-    /** Skip execution of this goal. */
+    /**
+     * Skip execution. As the property {@code openapi.toolkit.skip} it skips every goal of the plugin; the
+     * goal-specific properties such as {@code openapi.toolkit.lint.skip} skip one goal.
+     */
     @Parameter(property = "openapi.toolkit.skip", defaultValue = "false")
     boolean skip;
 

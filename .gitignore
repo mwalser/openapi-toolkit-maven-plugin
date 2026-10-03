@@ -15,6 +15,9 @@ js/node_modules/
 js/dist/
 npm-debug.log*
 
+# Claude Code
+.claude/
+
 # IntelliJ IDEA
 .idea/
 *.iml

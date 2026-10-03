@@ -363,6 +363,16 @@ class RedoclyRuntimeTest {
     }
 
     @Test
+    fun `an unknown host is reported with code and url`(@TempDir dir: Path) {
+        val url = "http://nonexistent.invalid/schema.yaml" // RFC 6761 reserves .invalid: it never resolves
+        writeApiWithRef(dir, url)
+        val result = redocly().bundle(BundleOptions(cwd = dir.js, apis = listOf("openapi.yaml"), outputDirectory = "out"))
+        val message = result.apis.single().problems.joinToString { it.message }
+        assertContains(message, "ENOTFOUND")
+        assertContains(message, url)
+    }
+
+    @Test
     fun `an http error status is reported with the url`(@TempDir dir: Path) {
         withHttpServer({ it.sendResponseHeaders(404, -1); it.close() }) { base ->
             writeApiWithRef(dir, "$base/missing.yaml")
