@@ -1,4 +1,4 @@
-def log = new File(basedir, 'build.log').text
+def log = new File(basedir, 'build.log').text.replace('\\', '/') // paths are displayed with the host separator
 assert log.contains('Statistics for api/openapi.yaml:')
 assert log.contains('Statistics for api/orders.yaml:')
 assert log.contains('Operations: 2')

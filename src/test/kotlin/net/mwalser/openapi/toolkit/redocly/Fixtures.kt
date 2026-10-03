@@ -37,3 +37,9 @@ fun writeDeepRefChain(dir: Path, depth: Int): Path {
     writeApiWithRef(dir, "./schemas/0.yaml")
     return dir
 }
+
+/** The path as the JavaScript side expects it; tests hand paths to [Redocly] the way the goals do (see [JsPaths]). */
+val Path.js: String get() = JsPaths.toJs(this)
+
+/** A path reported by the JavaScript side, as a host path. */
+fun hostPath(jsPath: String): Path = JsPaths.toHostPath(jsPath)

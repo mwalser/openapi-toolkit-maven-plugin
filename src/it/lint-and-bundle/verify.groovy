@@ -1,4 +1,4 @@
-def log = new File(basedir, 'build.log').text
+def log = new File(basedir, 'build.log').text.replace('\\', '/') // paths are displayed with the host separator
 assert log.contains("Validating api/openapi.yaml using lint rules for api 'petstore'")
 assert log.contains('1 API description validated: 0 errors, 1 warning')
 assert log.contains('no-server-example.com')
