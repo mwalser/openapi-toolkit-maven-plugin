@@ -53,21 +53,7 @@ rules:
 ```
 
 `mvn package` lints `src/main/openapi/openapi.yaml`, writes the bundle to
-`target/generated-resources/openapi/petstore.yaml` and packages it as `petstore.yaml` in the JAR:
-
-```
-[INFO] --- openapi-toolkit:${project.version}:lint (lint) @ petstore-api ---
-[INFO] Redocly 2.57.0 - JavaScript engine: GraalJS interpreter (add org.graalvm.polyglot:js-isolate-linux-amd64-community to the plugin dependencies for faster runs)
-[INFO] Validating src/main/openapi/openapi.yaml using lint rules for api 'petstore' (207 ms)
-[WARNING] src/main/openapi/openapi.yaml:
-[WARNING]   13:5  warning  security-defined  Every operation should have security defined on it or on the root level.
-[WARNING]   32:5  warning  security-defined  Every operation should have security defined on it or on the root level.
-[WARNING] 1 API description validated: 0 errors, 2 warnings
-[INFO]
-[INFO] --- openapi-toolkit:${project.version}:bundle (bundle) @ petstore-api ---
-[INFO] Created bundle for src/main/openapi/openapi.yaml using configuration for api 'petstore' at target/generated-resources/openapi/petstore.yaml (83 ms)
-[INFO] Added petstore.yaml in target/generated-resources/openapi as resources
-```
+`target/generated-resources/openapi/petstore.yaml` and packages it as `petstore.yaml` in the JAR.
 
 Problems with severity `error` fail the build (`Lint failed with 2 errors.`); warnings do not.
 Change severities under `rules:` or pick a smaller ruleset such as `minimal`

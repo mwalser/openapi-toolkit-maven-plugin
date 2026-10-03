@@ -1,4 +1,4 @@
-/* Align benchmark headings with the values underneath them. */
-#Benchmarks ~ table th {
+/* Align table headings with the values underneath them; the skin reverts them to the browser's centered default. */
+table.table th {
   text-align: left;
 }

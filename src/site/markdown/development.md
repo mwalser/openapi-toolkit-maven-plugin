@@ -33,8 +33,8 @@ the Central Portal token as server `central` and select the signing key via `gpg
 `net.mwalser` must be verified in the [Central Portal](https://central.sonatype.com/publishing/namespaces).
 
 1. Pre-flight: `main` equals `origin/main`, the working tree is clean, and CI is green on that commit.
-2. Update `README.md` for the release: the plugin version in the quick start and in the log excerpt, and the
-   sentence that calls the project unreleased. Commit, push, and wait for CI again; the tag must carry this README.
+2. Update `README.md` for the release: the plugin version in the quick start and the sentence that calls the
+   project unreleased. Commit, push, and wait for CI again; the tag must carry this README.
 3. Rehearse: `mvn -B release:prepare -DdryRun=true`, then `mvn release:clean`.
 4. Pre-warm gpg-agent, because `release:perform` asks for the passphrase in the middle of the build and the
    agent forgets it after ten minutes by default: `echo test | gpg --clearsign -u <gpg.keyname> > /dev/null`
