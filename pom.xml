@@ -18,9 +18,15 @@
     <url>https://github.com/mwalser/openapi-toolkit-maven-plugin</url>
     <tag>HEAD</tag>
   </scm>
+  <issueManagement>
+    <system>GitHub</system>
+    <url>https://github.com/mwalser/openapi-toolkit-maven-plugin/issues</url>
+  </issueManagement>
   <developers>
     <developer>
+      <id>mwalser</id>
       <name>Michael Walser</name>
+      <url>https://github.com/mwalser</url>
     </developer>
   </developers>
 
@@ -179,6 +185,17 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-site-plugin</artifactId>
           <version>3.21.0</version>
+        </plugin>
+        <!-- mvn release:prepare release:perform (see the development guide) -->
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-release-plugin</artifactId>
+          <version>3.3.1</version>
+          <configuration>
+            <tagNameFormat>v@{project.version}</tagNameFormat>
+            <releaseProfiles>release</releaseProfiles>
+            <goals>deploy</goals>
+          </configuration>
         </plugin>
       </plugins>
     </pluginManagement>
@@ -347,6 +364,9 @@
             <artifactId>central-publishing-maven-plugin</artifactId>
             <version>0.9.0</version>
             <extensions>true</extensions>
+            <configuration>
+              <deploymentName>${project.artifactId}-${project.version}</deploymentName>
+            </configuration>
           </plugin>
         </plugins>
       </build>

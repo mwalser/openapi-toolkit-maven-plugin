@@ -23,6 +23,21 @@ so there is no `skipPreprocessors` parameter. Windows paths are mapped for the b
 See [the JavaScript guide](https://github.com/mwalser/openapi-toolkit-maven-plugin/blob/main/js/README.md) for the bundle layout and Redocly upgrade procedure, and
 [performance and runtime](performance.html) for engine selection and caching.
 
+## Release
+
+Releases are built from this machine with the Maven release plugin. `~/.m2/settings.xml` must hold the
+Central Portal token as server `central` and select the signing key via `gpg.keyname`.
+
+```sh
+mvn release:prepare   # sets the release version, tags v<version>, moves main to the next SNAPSHOT
+mvn release:perform   # builds the tag with -Prelease and uploads sources, javadoc and signatures to Central
+```
+
+CI must be green on the commit being released; `release:prepare` runs the unit tests only.
+The upload stops after Central has validated the deployment; publishing is confirmed in the
+[Central Portal](https://central.sonatype.com/publishing/deployments). Afterwards, write the GitHub release
+notes for the new tag and update the version in the README.
+
 ## Documentation website
 
 Build the complete site, including the generated goal reference:
