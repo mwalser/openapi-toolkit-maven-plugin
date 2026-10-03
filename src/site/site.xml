@@ -17,8 +17,8 @@
     <menu name="Documentation">
       <item name="Quick start" href="index.html"/>
       <item name="Usage and examples" href="usage.html"/>
-      <item name="Performance and runtime" href="performance.html"/>
       <item name="Limitations" href="limitations.html"/>
+      <item name="Performance" href="performance.html"/>
     </menu>
     <menu name="Goal reference">
       <item name="Overview" href="plugin-info.html"/>

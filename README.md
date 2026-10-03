@@ -1,7 +1,7 @@
 # OpenAPI Toolkit Maven Plugin
 
-Lint, bundle and transform OpenAPI / AsyncAPI descriptions from Maven, powered by
-[Redocly](https://redocly.com/docs/cli).
+Lint, bundle and transform OpenAPI and AsyncAPI descriptions from Maven with
+[Redocly](https://redocly.com/docs/cli). Redocly runs inside the JVM; no Node.js is required.
 
 Requires JDK 21+ and Maven 3.9+.
 
@@ -18,23 +18,23 @@ This project is currently unreleased. Run `mvn install` in this repository befor
     <execution>
       <id>lint</id>
       <goals>
-        <goal>lint</goal>                 <!-- bound to validate -->
+        <goal>lint</goal>                 <!-- runs in the validate phase -->
       </goals>
     </execution>
     <execution>
       <id>bundle</id>
       <goals>
-        <goal>bundle</goal>               <!-- bound to generate-resources -->
+        <goal>bundle</goal>               <!-- runs in the generate-resources phase -->
       </goals>
       <configuration>
-        <addResource>true</addResource>   <!-- ship the bundled spec inside the jar -->
+        <addResource>true</addResource>   <!-- package the bundle in the JAR -->
       </configuration>
     </execution>
   </executions>
 </plugin>
 ```
 
-Add a `redocly.yaml` in the project base directory:
+Put the API description under `src/main/openapi/` and add a `redocly.yaml` next to the POM:
 
 ```yaml
 extends:
@@ -43,16 +43,34 @@ apis:
   petstore:
     root: src/main/openapi/openapi.yaml
 rules:
-  operation-4xx-response: warn
+  security-defined: warn   # downgrade a rule; `off` disables it
 ```
 
-`mvn verify` then lints `src/main/openapi/openapi.yaml` (failing the build on errors) and writes the bundled
-description to `target/generated-resources/openapi/petstore.yaml`.
-
-Without a `redocly.yaml`, point the plugin at files directly and Redocly's built-in `recommended` ruleset is used.
-The short `openapi-toolkit:<goal>` form works after the plugin is declared in the POM:
+`mvn package` lints `src/main/openapi/openapi.yaml`, writes the bundle to
+`target/generated-resources/openapi/petstore.yaml` and packages it as `petstore.yaml` in the JAR:
 
 ```
+[INFO] --- openapi-toolkit:0.1.0-SNAPSHOT:lint (lint) @ petstore-api ---
+[INFO] Redocly 2.57.0 - JavaScript engine: GraalJS interpreter (add org.graalvm.polyglot:js-isolate-linux-amd64-community to the plugin dependencies for faster runs)
+[INFO] Validating src/main/openapi/openapi.yaml using lint rules for api 'petstore' (207 ms)
+[WARNING] src/main/openapi/openapi.yaml:
+[WARNING]   13:5  warning  security-defined  Every operation should have security defined on it or on the root level.
+[WARNING]   32:5  warning  security-defined  Every operation should have security defined on it or on the root level.
+[WARNING] 1 API description validated: 0 errors, 2 warnings
+[INFO]
+[INFO] --- openapi-toolkit:0.1.0-SNAPSHOT:bundle (bundle) @ petstore-api ---
+[INFO] Created bundle for src/main/openapi/openapi.yaml using configuration for api 'petstore' at target/generated-resources/openapi/petstore.yaml (83 ms)
+[INFO] Added petstore.yaml in target/generated-resources/openapi as resources
+```
+
+Problems with severity `error` fail the build (`Lint failed with 2 errors.`); warnings do not.
+Change severities under `rules:` or pick a smaller ruleset such as `minimal`
+(see [Redocly's rules](https://redocly.com/docs/cli/rules)).
+
+Once the plugin is declared in the POM, every goal also runs from the command line.
+Without a `redocly.yaml`, pass the files and the built-in `recommended` ruleset applies:
+
+```sh
 mvn openapi-toolkit:lint -Dopenapi.toolkit.apis=src/main/openapi/openapi.yaml
 ```
 
@@ -62,16 +80,15 @@ The [documentation website](https://mwalser.github.io/openapi-toolkit-maven-plug
 
 - [Usage and examples](https://mwalser.github.io/openapi-toolkit-maven-plugin/usage.html)
 - [Generated goal and parameter reference](https://mwalser.github.io/openapi-toolkit-maven-plugin/plugin-info.html)
-- [Performance and runtime](https://mwalser.github.io/openapi-toolkit-maven-plugin/performance.html)
 - [Limitations](https://mwalser.github.io/openapi-toolkit-maven-plugin/limitations.html)
+- [Performance](https://mwalser.github.io/openapi-toolkit-maven-plugin/performance.html)
 
 For command-line help, run `mvn openapi-toolkit:help -Ddetail=true` after declaring the plugin in your POM.
 
 ## Development
 
-Run `mvn verify` for unit tests or `mvn verify -Prun-its` to include Maven integration tests.
-Build the documentation with `mvn site` and open `target/site/index.html`.
-See the [development guide](src/site/markdown/development.md) for implementation notes and publishing the site.
+See the [development guide](src/site/markdown/development.md) for building, testing, the documentation site
+and releasing.
 
 ## License
 

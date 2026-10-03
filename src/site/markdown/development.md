@@ -20,26 +20,38 @@ by GraalJS. The embedded Redocly version is set by `redocly.version` in [pom.xml
 The implementation is Kotlin. The Mojo classes in `src/main/java` declare parameters and delegate to Kotlin
 `Goal` classes; they are Java because Maven extracts goal and parameter descriptions from Javadoc.
 
-Redocly runs in browser mode, which cannot load custom JavaScript plugins. Preprocessors require custom plugins,
-so there is no `skipPreprocessors` parameter. Windows paths are mapped for the bundle's POSIX `path` implementation.
+Redocly runs in browser mode (see [limitations](limitations.html) for the consequences). Windows paths are
+mapped for the bundle's POSIX `path` implementation.
 
 See [the JavaScript guide](https://github.com/mwalser/openapi-toolkit-maven-plugin/blob/main/js/README.md) for the bundle layout and Redocly upgrade procedure, and
-[performance and runtime](performance.html) for engine selection and caching.
+[performance](performance.html) for engine selection and caching.
 
 ## Release
 
-Releases are built from this machine with the Maven release plugin. `~/.m2/settings.xml` must hold the
-Central Portal token as server `central` and select the signing key via `gpg.keyname`.
+Releases are built on the maintainer's machine with the Maven release plugin. `~/.m2/settings.xml` must hold
+the Central Portal token as server `central` and select the signing key via `gpg.keyname`; the namespace
+`net.mwalser` must be verified in the [Central Portal](https://central.sonatype.com/publishing/namespaces).
 
-```sh
-mvn release:prepare   # sets the release version, tags v<version>, moves main to the next SNAPSHOT
-mvn release:perform   # builds the tag with -Prelease and uploads sources, javadoc and signatures to Central
-```
+1. Pre-flight: `main` equals `origin/main`, the working tree is clean, and CI is green on that commit.
+2. Update `README.md` for the release: the plugin version in the quick start and in the log excerpt, and the
+   sentence that calls the project unreleased. Commit, push, and wait for CI again; the tag must carry this README.
+3. Rehearse: `mvn -B release:prepare -DdryRun=true`, then `mvn release:clean`.
+4. Pre-warm gpg-agent, because `release:perform` asks for the passphrase in the middle of the build and the
+   agent forgets it after ten minutes by default: `echo test | gpg --clearsign -u <gpg.keyname> > /dev/null`
+   (the agent caches per key), or raise `default-cache-ttl` in `~/.gnupg/gpg-agent.conf`.
+5. `mvn release:prepare` sets the release version, tags `v<version>`, moves `main` to the next SNAPSHOT and
+   pushes both. The tag push deploys the documentation website.
+6. `mvn release:perform` clones the tag over SSH into `target/checkout`, builds it with `-Prelease` (sources,
+   javadoc, signatures) and uploads to Central. It stops once Central has validated the deployment.
+7. Publish the deployment in the [Central Portal](https://central.sonatype.com/publishing/deployments). The
+   artifact appears at <https://repo1.maven.org/maven2/net/mwalser/openapi-toolkit-maven-plugin/0.1.0/>
+   after the sync.
+8. Write the release notes and publish them: `gh release create v0.1.0 --title 0.1.0 --notes-file notes.md`.
+   There is no changelog file; the release notes are the changelog.
 
-CI must be green on the commit being released; `release:prepare` runs the unit tests only.
-The upload stops after Central has validated the deployment; publishing is confirmed in the
-[Central Portal](https://central.sonatype.com/publishing/deployments). Afterwards, write the GitHub release
-notes for the new tag and update the version in the README.
+To abandon a release after step 5 and before the upload: `mvn release:rollback` reverts the version commits;
+delete the tag locally (`git tag -d v0.1.0`) and on origin (`git push origin :refs/tags/v0.1.0`), then
+`mvn release:clean`.
 
 ## Documentation website
 
@@ -59,16 +71,10 @@ Files ending in `.md.vm` use Maven's Velocity filtering for the project and Graa
 Use underlined Markdown headings in those templates: Velocity treats lines starting with `##` as comments.
 Parameter descriptions, defaults, and user properties come from the Java Mojo classes;
 update those descriptions to update the generated reference.
+The quick start in `README.md` and in `index.md.vm` is the same text; change both.
 
-The Documentation workflow builds and checks the site on pull requests and uploads a
-`documentation` artifact for review. Pushes to `main` also deploy it to GitHub Pages.
-You can rebuild and deploy manually by running that workflow on `main`.
+The Documentation workflow builds and checks the site on every push and pull request and uploads a
+`documentation` artifact for review. It deploys to GitHub Pages only for release tags (`v*`), so the public
+site always documents the latest release. To redeploy, run the workflow manually on that tag; running it
+manually on `main` publishes the development version.
 
-### Enable GitHub Pages
-
-In the repository's **Settings → Pages → Build and deployment**, select **GitHub Actions**
-as the source. Then push the site configuration to `main` or run the Documentation workflow.
-The published address is <https://mwalser.github.io/openapi-toolkit-maven-plugin/>.
-
-The website follows `main`; the version displayed on each page identifies the documented build.
-Publishing the Maven artifact and publishing this website are separate workflows.
