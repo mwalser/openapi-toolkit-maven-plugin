@@ -7,13 +7,11 @@ Requires JDK 21+ and Maven 3.9+.
 
 ## Quick start
 
-This project is currently unreleased. Run `mvn install` in this repository before using the snapshot below.
-
 ```xml
 <plugin>
   <groupId>net.mwalser</groupId>
   <artifactId>openapi-toolkit-maven-plugin</artifactId>
-  <version>0.1.0-SNAPSHOT</version>
+  <version>0.1.0</version>
   <executions>
     <execution>
       <id>lint</id>

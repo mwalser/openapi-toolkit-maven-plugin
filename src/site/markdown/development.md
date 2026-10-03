@@ -36,8 +36,8 @@ holds the secrets `GPG_PRIVATE_KEY` and `GPG_PASSPHRASE` (the signing key, expor
 [Central Portal](https://central.sonatype.com/publishing/namespaces).
 
 1. Pre-flight: `main` equals `origin/main`, the working tree is clean, and CI is green on that commit.
-2. Update `README.md` for the release: the plugin version in the quick start and the sentence that calls the
-   project unreleased. Commit, push, and wait for CI again; the tag must carry this README.
+2. Set the release version in the quick start of `README.md`. Commit, push, and wait for CI again; the tag must
+   carry this README.
 3. Rehearse: `mvn -B release:prepare -DdryRun=true`, then `mvn release:clean`. After a change to the workflow or
    the secrets, also run the Release workflow by hand on `main` with "publish" unchecked: it builds and signs
    without uploading anything.
