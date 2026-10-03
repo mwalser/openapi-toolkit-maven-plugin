@@ -4,7 +4,7 @@
 
   <groupId>net.mwalser</groupId>
   <artifactId>openapi-toolkit-maven-plugin</artifactId>
-  <version>0.1.0</version>
+  <version>0.1.1-SNAPSHOT</version>
   <packaging>maven-plugin</packaging>
 
   <name>OpenAPI Toolkit Maven Plugin</name>
@@ -15,7 +15,7 @@
     <connection>scm:git:https://github.com/mwalser/openapi-toolkit-maven-plugin.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/mwalser/openapi-toolkit-maven-plugin.git</developerConnection>
     <url>https://github.com/mwalser/openapi-toolkit-maven-plugin</url>
-    <tag>v0.1.0</tag>
+    <tag>HEAD</tag>
   </scm>
   <issueManagement>
     <system>GitHub</system>
@@ -55,7 +55,7 @@
     <!-- version of @redocly/openapi-core embedded in src/main/resources (see js/package.json) -->
     <redocly.version>2.57.0</redocly.version>
     <isolate.platform>unsupported</isolate.platform>
-    <project.build.outputTimestamp>2026-10-03T17:45:17Z</project.build.outputTimestamp>
+    <project.build.outputTimestamp>2026-10-03T17:45:56Z</project.build.outputTimestamp>
   </properties>
 
   <dependencyManagement>
