@@ -36,7 +36,9 @@ bind lint to a later phase so the input files exist first.
 ```xml
 <execution>
   <id>lint</id>
-  <goals><goal>lint</goal></goals>
+  <goals>
+    <goal>lint</goal>
+  </goals>
   <configuration>
     <failOnWarnings>true</failOnWarnings>
     <reportFile>${project.build.directory}/openapi/lint.xml</reportFile>
@@ -66,7 +68,9 @@ Add the bundle to the main JAR and attach it as a separate Maven artifact:
 ```xml
 <execution>
   <id>bundle</id>
-  <goals><goal>bundle</goal></goals>
+  <goals>
+    <goal>bundle</goal>
+  </goals>
   <configuration>
     <addResource>true</addResource>
     <attach>true</attach>

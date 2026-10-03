@@ -17,13 +17,17 @@ This project is currently unreleased. Run `mvn install` in this repository befor
   <executions>
     <execution>
       <id>lint</id>
-      <goals><goal>lint</goal></goals>        <!-- bound to validate -->
+      <goals>
+        <goal>lint</goal>                 <!-- bound to validate -->
+      </goals>
     </execution>
     <execution>
       <id>bundle</id>
-      <goals><goal>bundle</goal></goals>      <!-- bound to generate-resources -->
+      <goals>
+        <goal>bundle</goal>               <!-- bound to generate-resources -->
+      </goals>
       <configuration>
-        <addResource>true</addResource>      <!-- ship the bundled spec inside the jar -->
+        <addResource>true</addResource>   <!-- ship the bundled spec inside the jar -->
       </configuration>
     </execution>
   </executions>
