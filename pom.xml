@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>net.mwalser</groupId>
   <artifactId>openapi-toolkit-maven-plugin</artifactId>
-  <version>0.1.0-SNAPSHOT</version>
+  <version>0.1.0</version>
   <packaging>maven-plugin</packaging>
 
   <name>OpenAPI Toolkit Maven Plugin</name>
@@ -16,7 +15,7 @@
     <connection>scm:git:https://github.com/mwalser/openapi-toolkit-maven-plugin.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/mwalser/openapi-toolkit-maven-plugin.git</developerConnection>
     <url>https://github.com/mwalser/openapi-toolkit-maven-plugin</url>
-    <tag>HEAD</tag>
+    <tag>v0.1.0</tag>
   </scm>
   <issueManagement>
     <system>GitHub</system>
@@ -56,7 +55,7 @@
     <!-- version of @redocly/openapi-core embedded in src/main/resources (see js/package.json) -->
     <redocly.version>2.57.0</redocly.version>
     <isolate.platform>unsupported</isolate.platform>
-    <project.build.outputTimestamp>2026-08-23T00:00:00Z</project.build.outputTimestamp>
+    <project.build.outputTimestamp>2026-10-03T17:45:17Z</project.build.outputTimestamp>
   </properties>
 
   <dependencyManagement>
@@ -227,7 +226,7 @@
             <goals><goal>enforce</goal></goals>
             <configuration>
               <rules>
-                <requirePluginVersions/>
+                <requirePluginVersions />
               </rules>
             </configuration>
           </execution>
