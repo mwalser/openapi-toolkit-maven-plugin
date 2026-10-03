@@ -1,7 +1,9 @@
 name: CI
 on:
   push:
+    branches: ['**'] # tags are tested by the Release workflow, which calls this one
   pull_request:
+  workflow_call:
 jobs:
   test:
     strategy:

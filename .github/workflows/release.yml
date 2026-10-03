@@ -1,0 +1,80 @@
+name: Release
+
+# Builds, signs and uploads a release when a v* tag is pushed, after the CI workflow has passed on that
+# commit. Nothing reaches Maven Central without a click in the Central Portal: the upload stops once Central
+# has validated it. Run by hand on main with "publish" unchecked to rehearse the build and the signing.
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Upload to Central and draft the GitHub release (needs a v* tag)
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+
+jobs:
+  tests:
+    uses: ./.github/workflows/ci.yml
+
+  release:
+    needs: tests
+    runs-on: ubuntu-latest
+    # The signing key and the Central token live in this environment: v* tags and main only, approval required.
+    environment: release
+    permissions:
+      contents: write # the draft release and its assets
+      id-token: write # the provenance attestation
+      attestations: write
+    env:
+      PUBLISH: ${{ github.event_name == 'push' || inputs.publish }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+          server-id: central
+          server-username-env-var: CENTRAL_USERNAME
+          server-password-env-var: CENTRAL_PASSWORD
+      - name: Check that the tag names the version
+        if: env.PUBLISH == 'true'
+        run: |
+          version="$(python3 -c "import xml.etree.ElementTree as ET; print(ET.parse('pom.xml').getroot().find('{http://maven.apache.org/POM/4.0.0}version').text)")"
+          if [ "$GITHUB_REF_TYPE" != tag ] || [ "$GITHUB_REF_NAME" != "v$version" ]; then
+            echo "::error::publishing version $version needs the tag v$version, not $GITHUB_REF_NAME"
+            exit 1
+          fi
+          case "$version" in *-SNAPSHOT) echo "::error::$version is a snapshot"; exit 1 ;; esac
+      - name: Build, sign and upload
+        # The CI matrix above ran the tests on this commit. verify signs; deploy also uploads to Central.
+        # The Bouncy Castle signer reads the armored key from the environment: no gpg executable, no keyring.
+        run: mvn --batch-mode ${{ env.PUBLISH == 'true' && 'deploy' || 'verify' }} -Prelease -DskipTests -Dgpg.signer=bc
+        env:
+          CENTRAL_USERNAME: ${{ secrets.CENTRAL_USERNAME }}
+          CENTRAL_PASSWORD: ${{ secrets.CENTRAL_PASSWORD }}
+          MAVEN_GPG_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+      - name: Attest the build provenance
+        if: env.PUBLISH == 'true'
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: target/*.jar
+      - name: Draft the GitHub release
+        if: env.PUBLISH == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "$GITHUB_REF_NAME" > /dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" --clobber target/*.jar target/*.jar.asc
+          else
+            gh release create "$GITHUB_REF_NAME" --draft --verify-tag --title "${GITHUB_REF_NAME#v}" \
+              --generate-notes target/*.jar target/*.jar.asc
+          fi
