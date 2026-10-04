@@ -24,7 +24,7 @@ The implementation is Kotlin. The Mojo classes in `src/main/java` declare parame
 `Goal` classes; they are Java because Maven extracts goal and parameter descriptions from Javadoc.
 
 Redocly runs in browser mode (see [limitations](limitations.html) for the consequences). Windows paths are
-mapped for the bundle's POSIX `path` implementation.
+mapped for the POSIX `path` implementation of the embedded code.
 
 See [the JavaScript guide](https://github.com/mwalser/openapi-toolkit-maven-plugin/blob/main/js/README.md) for the bundle layout and Redocly upgrade procedure, and
 [performance](performance.html) for engine selection and caching.
@@ -39,8 +39,8 @@ holds the secrets `GPG_PRIVATE_KEY` and `GPG_PASSPHRASE` (the signing key, expor
 [Central Portal](https://central.sonatype.com/publishing/namespaces).
 
 1. Pre-flight: `main` equals `origin/main`, the working tree is clean, and CI is green on that commit.
-2. Set the release version in the quick start of `README.md`. Commit, push, and wait for CI again; the tag must
-   carry this README.
+2. Set the release version in the quick start of `README.md` and in the multi-module example of
+   `src/site/markdown/usage.md`. Commit, push, and wait for CI again; the tag must carry this README.
 3. Rehearse: `mvn -B release:prepare -DdryRun=true`, then `mvn release:clean`. After a change to the workflow or
    the secrets, also run the Release workflow by hand on `main` with "publish" unchecked: it builds and signs
    without uploading anything.
@@ -85,7 +85,9 @@ Files ending in `.md.vm` use Maven's Velocity filtering for the project and Graa
 Use underlined Markdown headings in those templates: Velocity treats lines starting with `##` as comments.
 Parameter descriptions, defaults, and user properties come from the Java Mojo classes;
 update those descriptions to update the generated reference.
-The quick start in `README.md` and in `index.md.vm` is the same text; change both.
+The quick start in `README.md` and in `index.md.vm` is the same text; change both. `usage.md` is not a Velocity
+template, because its examples contain `${...}` expressions meant for the reader's POM, so its multi-module example
+names the release version literally; the release checklist updates it.
 
 The Documentation workflow builds and checks the site on every push and pull request and uploads a
 `documentation` artifact for review. It deploys to GitHub Pages only for release tags (`v*`), so the public

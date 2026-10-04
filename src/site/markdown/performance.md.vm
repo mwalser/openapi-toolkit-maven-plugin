@@ -5,7 +5,7 @@ which is fine for small descriptions and slow for large ones. The first line eac
 use:
 
 ```
-[INFO] Redocly 2.57.0 - JavaScript engine: GraalJS interpreter (add org.graalvm.polyglot:js-isolate-linux-amd64-community to the plugin dependencies for faster runs)
+[INFO] Redocly ${project.properties.getProperty("redocly.version")} - JavaScript engine: GraalJS interpreter (add org.graalvm.polyglot:js-isolate-linux-amd64-community to the plugin dependencies for faster runs)
 ```
 
 Enable the native isolate
@@ -36,7 +36,8 @@ does not support, the build logs a warning that names the cause and continues on
 Benchmarks
 ----------
 
-These measurements compare cold lint runs on four cores:
+These measurements compare first lint runs in a fresh JVM on four cores, without the one-time warm-up described
+under Engine selection:
 
 | Description | Size | Node | Interpreter | Native isolate |
 |---|---|---|---|---|
@@ -67,9 +68,9 @@ Which engine runs is decided once per build:
 | GraalJS native isolate | the isolate dependency above is present | about 60 MB of downloads, 140 MB extracted to `~/.cache/org.graalvm.polyglot/` |
 | GraalJS interpreter | otherwise (any JDK 21+) | none |
 
-The engine and the Redocly bundle are initialized once per Maven JVM and reused by every goal and module, so the
-warm-up (about 4 s for the interpreter, 1.4 s for the isolate) is paid once per build. build-docs evaluates a
-second bundle with Redoc and React when it first runs (about 4 s for the interpreter, 2.5 s for the isolate).
+The engine and the embedded Redocly code are initialized once per Maven JVM and reused by every goal and module,
+so the warm-up (about 4 s for the interpreter, 1.4 s for the isolate) is paid once per build. build-docs loads
+Redoc and React in addition when it first runs (about 4 s for the interpreter, 2.5 s for the isolate).
 
 Isolate troubleshooting
 -----------------------

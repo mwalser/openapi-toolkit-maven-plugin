@@ -24,12 +24,12 @@
       <item name="Overview" href="plugin-info.html"/>
       <item name="lint" href="lint-mojo.html"/>
       <item name="bundle" href="bundle-mojo.html"/>
+      <item name="build-docs" href="build-docs-mojo.html"/>
       <item name="check-config" href="check-config-mojo.html"/>
       <item name="stats" href="stats-mojo.html"/>
       <item name="score" href="score-mojo.html"/>
       <item name="join" href="join-mojo.html"/>
       <item name="split" href="split-mojo.html"/>
-      <item name="build-docs" href="build-docs-mojo.html"/>
       <item name="help" href="help-mojo.html"/>
     </menu>
     <menu name="Project">

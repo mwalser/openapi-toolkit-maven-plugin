@@ -1,7 +1,8 @@
 # Embedded Redocly bundles
 
 This directory builds the JavaScript files the plugin evaluates in GraalJS, under
-`src/main/resources/net/mwalser/openapi/toolkit/redocly/`. Node.js is only needed here, never by plugin users.
+`src/main/resources/net/mwalser/openapi/toolkit/redocly/`. Node.js 22 (`.nvmrc`) and npm are only needed here,
+never by plugin users.
 
 - `redocly-core.mjs` – `@redocly/openapi-core`, the vendored CLI commands and the command layer of every goal.
 - `redocly-docs.mjs` – Redoc with React for `build-docs`; `RedoclyRuntime` evaluates it into the same context when
@@ -33,6 +34,7 @@ bundled package; CI rebuilds all three files and fails when they differ from the
   an `openapi-toolkit:` comment (`commands/score/index.ts` returns the computed score).
 
 Upgrading Redocly: bump `@redocly/openapi-core` in `package.json`, refresh `vendor/redocly-cli` from the
-matching `@redocly/cli` tag, rebuild, run `mvn verify -Prun-its`, and update `redocly.version` in `pom.xml`.
+matching `@redocly/cli` tag (and the release named above), rebuild, run `mvn verify -Prun-its`, and update
+`redocly.version` in `pom.xml`.
 Upgrading Redoc: bump `redoc` in `package.json` (an exact version: the page loads `redoc.standalone.js` of the same
 version from the CDN) and rebuild; the Redocly CLI pins the Redoc it ships in `packages/cli/package.json`.

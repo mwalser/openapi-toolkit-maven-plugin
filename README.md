@@ -46,6 +46,8 @@ rules:
 
 `mvn package` lints `src/main/openapi/openapi.yaml`, writes the bundle to
 `target/generated-resources/openapi/petstore.yaml` and packages it as `petstore.yaml` in the JAR.
+An execution of `build-docs` also renders an HTML reference page,
+`target/generated-resources/redoc/petstore.html`.
 
 Problems with severity `error` fail the build (`Lint failed with 2 errors.`); warnings do not.
 Change severities under `rules:` or pick a smaller ruleset such as `minimal`

@@ -7,7 +7,7 @@ parameter with its default and user property.
 ## Select API descriptions
 
 `apis` (property `openapi.toolkit.apis`) selects what a goal processes: aliases from the `apis` section of
-`redocly.yaml`, paths relative to the module directory, or URLs. Leave it empty to process every API in
+`redocly.yaml`, paths relative to the project base directory, or URLs. Leave it empty to process every API in
 `redocly.yaml`. Without a `redocly.yaml`, `apis` is required and lint uses the built-in `recommended` ruleset.
 
 ```yaml
@@ -37,23 +37,22 @@ In the POM, list parameters take one child element per value:
 </apis>
 ```
 
-`configFile` points at a configuration file other than `redocly.yaml` in the module directory.
+`configFile` points at a configuration file other than `redocly.yaml` in the project base directory.
 `extends` (XML element `<extends>` with one `<extend>` per ruleset, property `openapi.toolkit.extends`) replaces
 the rulesets of the configuration on lint and bundle, for example `-Dopenapi.toolkit.extends=minimal`.
 
 ## Run goals from the command line
 
-Once the plugin is declared in the POM, every goal runs from the command line. Every parameter has a user
-property: `openapi.toolkit.<parameter>` for the parameters shared by all goals, `openapi.toolkit.<goal>.<parameter>`
-for a goal's own. The exceptions are the maps `templateOptions` and `redocOptions` of build-docs, which are set in
-the POM only.
+Every parameter has a user property: `openapi.toolkit.<parameter>` for the parameters shared by several goals,
+`openapi.toolkit.<goal>.<parameter>` for a goal's own, with the goal camel-cased (`buildDocs`, `checkConfig`). The
+exceptions are the maps `templateOptions` and `redocOptions` of build-docs, which are set in the POM only.
 
 ```sh
 mvn openapi-toolkit:lint -Dopenapi.toolkit.apis=petstore -Dopenapi.toolkit.lint.failOnWarnings=true
 ```
 
-`lint`, `bundle` and `build-docs` have default phases (`validate` for lint, `generate-resources` for the other
-two). `check-config`, `stats`, `score`, `join` and `split` do not.
+lint, bundle and build-docs have default phases (`validate` for lint, `generate-resources` for the other two).
+check-config, stats, score, join and split do not.
 Set the phase explicitly:
 
 ```xml
@@ -68,7 +67,7 @@ Set the phase explicitly:
 
 ## Configure rules and decorators
 
-`lint` evaluates `rules`; `bundle` applies `decorators` and reports only what prevents bundling, such as
+lint evaluates `rules`; bundle applies `decorators` and reports only what prevents bundling, such as
 unresolved references. Rule and decorator ids are Redocly's:
 [built-in rules](https://redocly.com/docs/cli/rules/built-in-rules), [decorators](https://redocly.com/docs/cli/decorators).
 
@@ -129,7 +128,7 @@ The [check-config](#Check_the_configuration) goal validates the configuration on
 
 To accept the current problems as a baseline, run lint once with
 `-Dopenapi.toolkit.lint.generateIgnoreFile=true`. It writes `.redocly.lint-ignore.yaml` next to `redocly.yaml`
-(or into the module directory when there is no configuration file) and does not fail the build; commit the
+(or into the project base directory when there is no configuration file) and does not fail the build; commit the
 file and later runs ignore the listed problems.
 
 ## Bundle and package descriptions
@@ -230,14 +229,14 @@ script from Redocly's CDN and the Montserrat and Roboto fonts from Google Fonts,
 
 ```xml
 <execution>
-  <id>docs</id>
+  <id>build-docs</id>
   <goals>
     <goal>build-docs</goal>
   </goals>
   <configuration>
     <title>Petstore API reference</title>
     <addResource>true</addResource>
-    <resourceTargetPath>META-INF/resources</resourceTargetPath>  <!-- served at /petstore.html by Spring Boot, Quarkus and servlet containers -->
+    <resourceTargetPath>META-INF/resources</resourceTargetPath>  <!-- served at /petstore.html -->
     <redocOptions>
       <hideDownloadButton>true</hideDownloadButton>
       <expandResponses>200,201</expandResponses>
@@ -247,9 +246,10 @@ script from Redocly's CDN and the Montserrat and Roboto fonts from Google Fonts,
 </execution>
 ```
 
-`addResource` packages the page like a bundle: at the root of the JAR, or under `resourceTargetPath`. The goal
-runs in `generate-resources` by default, so `process-resources` copies the page into the JAR. For an exact output
-path of a single API, use `outputFile`:
+`addResource` packages the page like a bundle: at the root of the JAR, or under `resourceTargetPath`;
+`META-INF/resources` is where Spring Boot, Quarkus and servlet containers serve static files from. The goal runs
+in `generate-resources` by default, so `process-resources` copies the page into the JAR. For an exact output path
+of a single API, use `outputFile`:
 
 ```sh
 mvn openapi-toolkit:build-docs -Dopenapi.toolkit.apis=petstore -Dopenapi.toolkit.buildDocs.outputFile=target/site/api.html
@@ -293,8 +293,8 @@ the same name. The viewport meta tag keeps the layout responsive:
 </html>
 ```
 
-The goal renders with Redoc 2, which accepts OpenAPI 2.0 (converted while loading), 3.0 and 3.1. Rendering is
-the slowest goal of the plugin; see [performance](performance.html).
+Rendering is the slowest goal of the plugin (see [performance](performance.html)); the OpenAPI versions Redoc 2
+accepts are listed under [limitations](limitations.html).
 
 ## Multi-module projects
 
@@ -402,7 +402,7 @@ names: `/users/{id}` becomes `users_{id}.yaml`. Split does not read `redocly.yam
 `-Dopenapi.toolkit.skip=true` skips every goal of the plugin. Each goal also has its own property:
 `openapi.toolkit.lint.skip`, `openapi.toolkit.bundle.skip`, `openapi.toolkit.checkConfig.skip`,
 `openapi.toolkit.stats.skip`, `openapi.toolkit.score.skip`, `openapi.toolkit.join.skip`,
-`openapi.toolkit.split.skip`, `openapi.toolkit.buildDocs.skip`. A skipped goal logs `Skipping (openapi.toolkit.skip=true)`.
+`openapi.toolkit.split.skip`, `openapi.toolkit.buildDocs.skip`. A skipped goal logs the property that skipped it: `Skipping (openapi.toolkit.lint.skip=true)`.
 
 ## JVM warnings on JDK 24 and later
 

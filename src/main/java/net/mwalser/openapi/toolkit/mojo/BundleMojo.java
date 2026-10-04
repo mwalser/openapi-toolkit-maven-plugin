@@ -69,8 +69,8 @@ public final class BundleMojo extends AbstractApiMojo {
     List<String> skipDecorators;
 
     /**
-     * Add the bundles as project resources; they are packaged at the root of the JAR under their file names.
-     * The goal must run before {@code process-resources}, which copies resources into the JAR.
+     * Add the bundles as project resources, packaged under their file names at the root of the JAR or under
+     * {@code resourceTargetPath}. The goal must run before {@code process-resources}, which copies resources into the JAR.
      */
     @Parameter(property = "openapi.toolkit.bundle.addResource", defaultValue = "false")
     boolean addResource;

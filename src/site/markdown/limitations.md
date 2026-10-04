@@ -12,7 +12,7 @@
   (`disableGoogleFont=true` leaves the fonts out). The pages render with Redoc 2, as the Redocly CLI's build-docs
   does today; Redocly is moving the command to Redoc 3, and the goal will follow.
 - **Format support follows upstream.** join and score accept OpenAPI 3 only; split accepts OpenAPI 3 and
-  AsyncAPI; build-docs accepts OpenAPI 2.0, 3.0 and 3.1; join is experimental upstream. Split does not read
+  AsyncAPI; build-docs accepts OpenAPI 2.0 (converted while loading), 3.0 and 3.1; join is experimental upstream. Split does not read
   `redocly.yaml`.
 - **Bundle problems are always printed in codeframe format.** The bundle goal has no `format` parameter; use
   lint for other formats and for report files.

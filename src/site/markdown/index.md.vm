@@ -54,6 +54,8 @@ rules:
 
 `mvn package` lints `src/main/openapi/openapi.yaml`, writes the bundle to
 `target/generated-resources/openapi/petstore.yaml` and packages it as `petstore.yaml` in the JAR.
+An execution of `build-docs` also renders an HTML reference page,
+`target/generated-resources/redoc/petstore.html`.
 
 Problems with severity `error` fail the build (`Lint failed with 2 errors.`); warnings do not.
 Change severities under `rules:` or pick a smaller ruleset such as `minimal`
@@ -73,12 +75,12 @@ Goals
 |---|---|
 | [lint](lint-mojo.html) | Lints API descriptions; fails the build on errors; writes checkstyle or JUnit reports for CI. |
 | [bundle](bundle-mojo.html) | Resolves references to other files and applies decorators; packages or attaches the bundle. |
+| [build-docs](build-docs-mojo.html) | Renders an HTML reference page with Redoc; can package it in the JAR. |
 | [check-config](check-config-mojo.html) | Lints `redocly.yaml`. |
 | [stats](stats-mojo.html) | Counts paths, operations, schemas and more. |
 | [score](score-mojo.html) | Scores an OpenAPI 3 description; fails the build below `minScore`. |
 | [join](join-mojo.html) | Joins OpenAPI 3 descriptions into one (experimental upstream). |
 | [split](split-mojo.html) | Splits a description into a multi-file tree. |
-| [build-docs](build-docs-mojo.html) | Renders an HTML reference page with Redoc; can package it in the JAR. |
 
 Next: [usage and examples](usage.html) for each scenario, the [goal reference](plugin-info.html) for every
 parameter, [limitations](limitations.html), and [performance](performance.html) for the optional native engine.

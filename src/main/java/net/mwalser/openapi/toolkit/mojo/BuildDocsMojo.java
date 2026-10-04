@@ -54,8 +54,8 @@ public final class BuildDocsMojo extends AbstractApiMojo {
     Map<String, String> redocOptions = new LinkedHashMap<>();
 
     /**
-     * Add the pages as project resources; they are packaged at the root of the JAR under their file names.
-     * The goal must run before {@code process-resources}, which copies resources into the JAR.
+     * Add the pages as project resources, packaged under their file names at the root of the JAR or under
+     * {@code resourceTargetPath}. The goal must run before {@code process-resources}, which copies resources into the JAR.
      */
     @Parameter(property = "openapi.toolkit.buildDocs.addResource", defaultValue = "false")
     boolean addResource;
