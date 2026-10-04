@@ -6,6 +6,7 @@ import { runStats } from './api/stats.js';
 import { runJoin } from './api/join.js';
 import { runSplit } from './api/split.js';
 import { runScore } from './api/score.js';
+import { runBuildDocs } from './api/build-docs.js';
 
 const COMMANDS = {
   lint: runLint,
@@ -15,6 +16,7 @@ const COMMANDS = {
   join: runJoin,
   split: runSplit,
   score: runScore,
+  'build-docs': runBuildDocs,
 };
 
 export function version() {

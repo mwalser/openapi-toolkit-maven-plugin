@@ -202,3 +202,38 @@ data class JoinResult(
 data class SplitOptions(override val cwd: String, val api: String, val outDir: String, val separator: String = "_") : CommandOptions
 
 data class SplitResult(val api: String, val outDir: String, val output: String = "")
+
+// ---- build-docs ---------------------------------------------------------------------------------
+
+data class BuildDocsOptions(
+    override val cwd: String,
+    val configPath: String? = null,
+    val apis: List<String> = emptyList(),
+    val outputDirectory: String,
+    val outputFile: String? = null,
+    val title: String? = null,
+    val disableGoogleFont: Boolean = false,
+    /** Handlebars template of the page; the built-in one when null. */
+    val template: String? = null,
+    val templateOptions: Map<String, String> = emptyMap(),
+    /** Redoc options, merged over the `openapi` section of the configuration file; JSON values are parsed. */
+    val redocOptions: Map<String, String> = emptyMap(),
+    val lintConfig: String = "warn",
+    val maxProblems: Int = 100,
+) : CommandOptions
+
+data class ApiBuildDocsResult(
+    val path: String,
+    val alias: String? = null,
+    val outputFile: String,
+    /** The title the page ended up with. */
+    val title: String,
+    val durationMillis: Long = 0,
+)
+
+data class BuildDocsResult(
+    val configLint: ConfigLintResult? = null,
+    val apis: List<ApiBuildDocsResult> = emptyList(),
+    /** Version of Redoc that rendered the pages. */
+    val redocVersion: String,
+)

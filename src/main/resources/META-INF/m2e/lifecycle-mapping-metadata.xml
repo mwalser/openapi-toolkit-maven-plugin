@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- How m2e treats executions of this plugin in Eclipse builds: goals that only report are skipped there; goals
+     whose output may be packaged run on full builds, not on incremental ones. MojoParametersTest keeps this in
+     step with the goals of the plugin. -->
 <lifecycleMappingMetadata>
   <pluginExecutions>
     <pluginExecution>
@@ -8,13 +11,26 @@
           <goal>check-config</goal>
           <goal>stats</goal>
           <goal>score</goal>
+          <goal>split</goal>
         </goals>
       </pluginExecutionFilter>
-      <action><ignore/></action>
+      <action>
+        <ignore/>
+      </action>
     </pluginExecution>
     <pluginExecution>
-      <pluginExecutionFilter><goals><goal>bundle</goal></goals></pluginExecutionFilter>
-      <action><execute><runOnIncremental>false</runOnIncremental></execute></action>
+      <pluginExecutionFilter>
+        <goals>
+          <goal>bundle</goal>
+          <goal>join</goal>
+          <goal>build-docs</goal>
+        </goals>
+      </pluginExecutionFilter>
+      <action>
+        <execute>
+          <runOnIncremental>false</runOnIncremental>
+        </execute>
+      </action>
     </pluginExecution>
   </pluginExecutions>
 </lifecycleMappingMetadata>

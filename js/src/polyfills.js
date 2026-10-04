@@ -1,5 +1,6 @@
 // Runtime shims so that @redocly/openapi-core (browser build) runs inside GraalJS. Only what the bundle
 // actually reaches is provided; `performance` comes from GraalJS itself (`js.performance` option).
+import { Buffer } from 'buffer';
 import { callHost, host } from './host.js';
 
 // --- process -----------------------------------------------------------------------------------
@@ -98,6 +99,37 @@ globalThis.clearTimeout = (id) => {
 };
 globalThis.setInterval = () => { throw new Error('setInterval is not supported'); };
 globalThis.clearInterval = () => {};
+
+// --- globals of Node and browsers that Redoc's server-side rendering reaches (redocly-docs.mjs) ------
+// prismjs registers its language components on `global`; react-dom/server creates a MessageChannel when it loads.
+globalThis.global = globalThis;
+if (typeof globalThis.queueMicrotask !== 'function') {
+  globalThis.queueMicrotask = (fn) => { Promise.resolve().then(fn); };
+}
+globalThis.setImmediate = (fn, ...args) => setTimeout(fn, 0, ...args);
+globalThis.clearImmediate = (id) => clearTimeout(id);
+if (typeof globalThis.MessageChannel === 'undefined') {
+  class MessagePort {
+    constructor() { this.onmessage = null; this.other = null; }
+    postMessage(data) { const { other } = this; queueMicrotask(() => { if (other.onmessage) other.onmessage({ data }); }); }
+    start() {}
+    close() {}
+  }
+  globalThis.MessageChannel = class MessageChannel {
+    constructor() {
+      this.port1 = new MessagePort();
+      this.port2 = new MessagePort();
+      this.port1.other = this.port2;
+      this.port2.other = this.port1;
+    }
+  };
+}
+if (typeof globalThis.TextEncoder === 'undefined') {
+  globalThis.TextEncoder = class TextEncoder { encode(text) { return new Uint8Array(Buffer.from(String(text), 'utf8')); } };
+}
+if (typeof globalThis.TextDecoder === 'undefined') {
+  globalThis.TextDecoder = class TextDecoder { decode(bytes) { return Buffer.from(bytes).toString('utf8'); } };
+}
 
 // --- structuredClone ---------------------------------------------------------------------------
 globalThis.structuredClone = (value) => {

@@ -138,6 +138,36 @@ export function resolveApis(config, requested, cwd) {
   return entries.map(({ requested, ...entry }) => entry);
 }
 
+/**
+ * Where an API's output goes: `outputFile` when given, otherwise `<alias|basename>.<ext>` in `outputDirectory`.
+ * `what` names the output in the error message (`bundle`, `documentation`).
+ */
+export function outputFileFor({ path: ref, alias }, { cwd, outputDirectory, outputFile }, ext, what) {
+  if (outputFile) return path.resolve(cwd, outputFile);
+  const directory = path.resolve(cwd, outputDirectory);
+  // Treat both separator styles consistently, including when checking Windows aliases on a POSIX host.
+  const name = (alias || path.basename(ref, path.extname(ref))).replaceAll('\\', '/');
+  const file = path.resolve(directory, `${name}.${ext}`);
+  const relative = path.relative(directory, file);
+  if (/^[A-Za-z]:/.test(name) || relative === '..' || relative.startsWith('../') || path.isAbsolute(relative)) {
+    throw new CommandError(`API '${alias || ref}' would write outside the ${what} output directory: ${file}. Choose another alias or set outputFile explicitly.`);
+  }
+  return file;
+}
+
+/** Two alias-less APIs with the same file name would silently overwrite each other. `verb`: `bundled`, `documented`. */
+export function rejectCollidingOutputs(targets, verb) {
+  const inputsByOutput = new Map();
+  for (const { path: ref, outputFile } of targets) {
+    inputsByOutput.set(outputFile, [...(inputsByOutput.get(outputFile) || []), ref]);
+  }
+  const collisions = [...inputsByOutput].filter(([, inputs]) => inputs.length > 1);
+  if (collisions.length) {
+    const described = collisions.map(([outputFile, inputs]) => `${outputFile} (from ${inputs.join(', ')})`).join('; ');
+    throw new CommandError(`Several APIs would be ${verb} to the same file: ${described}. Give them aliases in redocly.yaml or select them separately.`);
+  }
+}
+
 export function checkIfRulesetExist(rules) {
   const ruleset = {
     ...rules.oas2, ...rules.oas3_0, ...rules.oas3_1, ...rules.oas3_2,

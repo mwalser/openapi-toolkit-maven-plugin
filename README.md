@@ -1,6 +1,6 @@
 # OpenAPI Toolkit Maven Plugin
 
-Lint, bundle and transform OpenAPI and AsyncAPI descriptions from Maven with
+Lint, bundle, transform and document OpenAPI and AsyncAPI descriptions from Maven with
 [Redocly](https://redocly.com/docs/cli). Redocly runs inside the JVM; no Node.js is required.
 
 Requires JDK 21+ and Maven 3.9+.

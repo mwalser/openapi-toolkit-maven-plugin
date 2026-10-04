@@ -4,7 +4,9 @@ import org.graalvm.polyglot.Engine
 import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
+import java.nio.file.Files
 import java.nio.file.Path
+import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
@@ -24,6 +26,9 @@ class IsolateEngineTest {
             assertEquals(Totals(errors = 2, warnings = 4), result.totals)
             val deepResult = redocly.lint(LintOptions(cwd = deep.toString(), apis = listOf("openapi.yaml"), extends = listOf("minimal")))
             assertEquals(0, deepResult.totals.errors, deepResult.apis.single().problems.toString())
+            // the second bundle (Redoc with React) is evaluated into the isolate on first use
+            val docs = redocly.buildDocs(BuildDocsOptions(cwd = project.toString(), configPath = project.resolve("redocly.yaml").toString(), outputDirectory = "docs"))
+            assertContains(Files.readString(Path.of(docs.apis.single().outputFile)), "Redoc.hydrate(__redoc_state, container);")
         }
         RedoclyRuntime.create(EngineMode.AUTO).use { runtime ->
             val expected = if (Engine.supportsCompilation()) RedoclyRuntime.EffectiveEngine.JIT else RedoclyRuntime.EffectiveEngine.ISOLATE

@@ -6,17 +6,18 @@ Requires JDK 21+ and Maven 3.9+. Run commands from the repository root:
 mvn verify                        # unit tests
 mvn verify -Prun-its               # also run integration tests: Maven builds under target/it
 mvn test -Pisolate-tests           # unit tests with the native isolate for this platform
-mvn generate-resources -Pbuild-js  # rebuild the embedded JS bundle (requires Node.js and npm)
+mvn generate-resources -Pbuild-js  # rebuild the embedded JS bundles (requires Node.js and npm)
 ```
 
 CI runs the unit and integration tests on Linux, macOS and Windows with JDK 21, 25 and 26, the native isolate
-on Temurin and GraalVM, and rebuilds the embedded bundle to compare it with the committed one.
+on Temurin and GraalVM, and rebuilds the embedded bundles to compare them with the committed ones.
 
 ## Implementation
 
 The plugin embeds `@redocly/openapi-core` and selected `@redocly/cli` commands as a JavaScript bundle executed
-by GraalJS. The embedded Redocly version is set by `redocly.version` in [pom.xml](https://github.com/mwalser/openapi-toolkit-maven-plugin/blob/main/pom.xml),
-GraalJS by `graalvm.version`; a GraalJS upgrade also updates the JDK range of the native isolate on the
+by GraalJS. build-docs adds a second bundle with Redoc and React that is evaluated when the goal first runs,
+so the other goals start as fast as before. The embedded Redocly version is set by `redocly.version` in [pom.xml](https://github.com/mwalser/openapi-toolkit-maven-plugin/blob/main/pom.xml),
+GraalJS by `graalvm.version`, Redoc by `redoc` in `js/package.json`; a GraalJS upgrade also updates the JDK range of the native isolate on the
 [performance](performance.html) page.
 
 The implementation is Kotlin. The Mojo classes in `src/main/java` declare parameters and delegate to Kotlin

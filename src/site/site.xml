@@ -29,6 +29,7 @@
       <item name="score" href="score-mojo.html"/>
       <item name="join" href="join-mojo.html"/>
       <item name="split" href="split-mojo.html"/>
+      <item name="build-docs" href="build-docs-mojo.html"/>
       <item name="help" href="help-mojo.html"/>
     </menu>
     <menu name="Project">

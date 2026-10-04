@@ -106,11 +106,4 @@ internal class BundleGoal(mojo: BundleMojo) : ApiGoal<BundleMojo>(mojo) {
         mojo.projectHelper.attachArtifact(mojo.project, api.ext, classifier, hostPath(api.outputFile).toFile())
         log.info("Attached ${display(api.outputFile)} as artifact (type=${api.ext}, classifier=$classifier)")
     }
-
-    /** Adds only the written bundles, not everything in [directory] (which may be the module itself). */
-    private fun addResources(directory: Path, files: List<Path>) {
-        val includes = files.map { directory.relativize(it).toString() }
-        mojo.projectHelper.addResource(mojo.project, directory.toString(), includes, emptyList<String>())
-        log.info("Added ${includes.joinToString(", ")} in ${display(directory)} as resources")
-    }
 }

@@ -13,6 +13,7 @@ import net.mwalser.openapi.toolkit.redocly.UnusedConfig
 import org.apache.maven.plugin.MojoExecutionException
 import org.apache.maven.plugin.MojoFailureException
 import org.apache.maven.plugin.logging.Log
+import org.apache.maven.model.Resource
 import org.apache.maven.settings.crypto.DefaultSettingsDecryptionRequest
 import java.io.File
 import java.io.IOException
@@ -140,6 +141,21 @@ abstract class Goal<M : AbstractRedoclyMojo>(protected val mojo: M) {
             throw MojoExecutionException("Could not write output to $target: ${e.message}", e)
         }
         return target
+    }
+
+    /**
+     * Adds only the written [files] as resources, not everything in [directory] (which may be the module itself);
+     * [targetPath] places them in a subdirectory of the JAR instead of its root.
+     */
+    protected fun addResources(directory: Path, files: List<Path>, targetPath: String? = null) {
+        val includes = files.map { directory.relativize(it).toString() }
+        val resource = Resource().also {
+            it.directory = directory.toString()
+            it.includes = includes
+            it.targetPath = targetPath
+        }
+        mojo.project.addResource(resource)
+        log.info("Added ${includes.joinToString(", ")} in ${display(directory)} as resources${targetPath?.let { " under $it" }.orEmpty()}")
     }
 
     /**

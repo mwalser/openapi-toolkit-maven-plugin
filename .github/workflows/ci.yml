@@ -28,9 +28,10 @@ jobs:
         with: { node-version-file: js/.nvmrc, cache: npm, cache-dependency-path: js/package-lock.json }
       - run: npm ci --ignore-scripts
         working-directory: js
-      - run: npm run build -- ../target/redocly-core.mjs ../target/THIRD-PARTY-NOTICES.txt
+      - run: npm run build -- ../target/redocly-core.mjs ../target/redocly-docs.mjs ../target/THIRD-PARTY-NOTICES.txt
         working-directory: js
       - run: cmp target/redocly-core.mjs src/main/resources/net/mwalser/openapi/toolkit/redocly/redocly-core.mjs
+      - run: cmp target/redocly-docs.mjs src/main/resources/net/mwalser/openapi/toolkit/redocly/redocly-docs.mjs
       - run: cmp target/THIRD-PARTY-NOTICES.txt src/main/resources/META-INF/THIRD-PARTY-NOTICES.txt
   isolate:
     runs-on: ubuntu-latest

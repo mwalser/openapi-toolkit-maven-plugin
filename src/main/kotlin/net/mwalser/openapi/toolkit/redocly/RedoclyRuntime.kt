@@ -39,6 +39,9 @@ class RedoclyRuntime private constructor(
 
     private val jsRun: Value = module.getMember("run")
 
+    /** Extension bundles already evaluated into the context (see [EXTENSION_BUNDLES]). */
+    private val loadedExtensions = HashSet<String>()
+
     /** Version of `@redocly/openapi-core` embedded in the bundle. */
     val redoclyVersion: String = module.getMember("version").execute().asString()
 
@@ -53,6 +56,7 @@ class RedoclyRuntime private constructor(
             bridge.workingDirectory = JsPaths.toHostPath(options.cwd).toAbsolutePath().normalize()
             bridge.network = network
             try {
+                EXTENSION_BUNDLES[command]?.let { loadExtension(it, log) }
                 val promise = guest { jsRun.execute(command, Json.mapper.writeValueAsString(options)) }
                 Json.mapper.readValue(settledValue(promise).asString(), resultType)
             } finally {
@@ -62,6 +66,23 @@ class RedoclyRuntime private constructor(
 
     inline fun <reified T> run(command: String, options: CommandOptions, log: JsLog, network: NetworkConfig = NetworkConfig()): T =
         run(command, options, T::class.java, log, network)
+
+    /**
+     * Evaluates an extension bundle into the context once. It registers itself with the core bundle through a
+     * global, so the core's `run` dispatches to it afterwards.
+     */
+    private fun loadExtension(resource: String, log: JsLog) {
+        if (resource in loadedExtensions) return
+        val started = System.nanoTime()
+        val source = loadBundle(resource)
+        try {
+            guest { context.eval(source) }
+        } catch (e: RedoclyException) {
+            throw RedoclyException("Failed to initialize the embedded bundle $resource: ${e.message}", cause = e)
+        }
+        loadedExtensions.add(resource)
+        log.debug("Loaded $resource in ${(System.nanoTime() - started) / 1_000_000} ms")
+    }
 
     /**
      * Unwraps the promise returned by `run`. It has settled by the time `execute` returns: the bundle has no
@@ -116,6 +137,12 @@ class RedoclyRuntime private constructor(
     companion object {
         private const val BUNDLE_RESOURCE = "redocly-core.mjs"
 
+        /**
+         * Commands whose code lives in a bundle of its own, evaluated when the command first runs: Redoc with
+         * React would otherwise slow down the start of every goal.
+         */
+        private val EXTENSION_BUNDLES = mapOf("build-docs" to "redocly-docs.mjs")
+
         /** GraalJS recursion depth is bounded by the thread stack; Maven's 1 MB main thread allows only ~700 frames. */
         private const val JS_THREAD_STACK_BYTES = 256L * 1024 * 1024
 
@@ -162,7 +189,7 @@ class RedoclyRuntime private constructor(
                     .build()
                 val bridge = HostBridge()
                 context.getBindings("js").putMember("__jvm", bridge.asProxy())
-                val module = context.eval(loadBundle())
+                val module = context.eval(loadBundle(BUNDLE_RESOURCE))
                 return RedoclyRuntime(choice.effective, engine, context, bridge, module, jsThread, choice.isolateFailure)
             } catch (e: Exception) {
                 engine.close(true)
@@ -268,11 +295,11 @@ class RedoclyRuntime private constructor(
             }
         }
 
-        private fun loadBundle(): Source {
-            val stream = RedoclyRuntime::class.java.getResourceAsStream(BUNDLE_RESOURCE)
-                ?: throw RedoclyException("Embedded bundle $BUNDLE_RESOURCE not found on the classpath")
+        private fun loadBundle(resource: String): Source {
+            val stream = RedoclyRuntime::class.java.getResourceAsStream(resource)
+                ?: throw RedoclyException("Embedded bundle $resource not found on the classpath")
             return InputStreamReader(stream, StandardCharsets.UTF_8).use { reader ->
-                Source.newBuilder("js", reader, BUNDLE_RESOURCE)
+                Source.newBuilder("js", reader, resource)
                     .mimeType("application/javascript+module")
                     .cached(true)
                     .build()

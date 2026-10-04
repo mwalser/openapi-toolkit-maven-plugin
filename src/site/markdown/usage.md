@@ -45,14 +45,15 @@ the rulesets of the configuration on lint and bundle, for example `-Dopenapi.too
 
 Once the plugin is declared in the POM, every goal runs from the command line. Every parameter has a user
 property: `openapi.toolkit.<parameter>` for the parameters shared by all goals, `openapi.toolkit.<goal>.<parameter>`
-for a goal's own.
+for a goal's own. The exceptions are the maps `templateOptions` and `redocOptions` of build-docs, which are set in
+the POM only.
 
 ```sh
 mvn openapi-toolkit:lint -Dopenapi.toolkit.apis=petstore -Dopenapi.toolkit.lint.failOnWarnings=true
 ```
 
-`lint` and `bundle` have default phases (`validate` and `generate-resources`). `check-config`, `stats`, `score`,
-`join` and `split` do not.
+`lint`, `bundle` and `build-docs` have default phases (`validate` for lint, `generate-resources` for the other
+two). `check-config`, `stats`, `score`, `join` and `split` do not.
 Set the phase explicitly:
 
 ```xml
@@ -218,6 +219,81 @@ A generator in that module then reads `target/openapi/petstore.yaml`. The same c
 classpath. Either way the producer must be built first: in the same reactor, include both modules in the build,
 otherwise `mvn install` the producer.
 
+## Render API documentation
+
+[build-docs](build-docs-mojo.html) renders each API description as an HTML reference page with
+[Redoc](https://redocly.com/redoc) and writes `target/generated-resources/redoc/<alias>.html` (or
+`<basename>.html` for paths). The reference is pre-rendered into the page. When opened, the page loads the Redoc
+script from Redocly's CDN and the Montserrat and Roboto fonts from Google Fonts, so viewers need internet access.
+
+```xml
+<execution>
+  <id>docs</id>
+  <goals>
+    <goal>build-docs</goal>
+  </goals>
+  <configuration>
+    <title>Petstore API reference</title>
+    <addResource>true</addResource>
+    <resourceTargetPath>META-INF/resources</resourceTargetPath>  <!-- served at /petstore.html by Spring Boot, Quarkus and servlet containers -->
+    <redocOptions>
+      <hideDownloadButton>true</hideDownloadButton>
+      <expandResponses>200,201</expandResponses>
+      <theme>{"colors":{"primary":{"main":"#1f6feb"}}}</theme>
+    </redocOptions>
+  </configuration>
+</execution>
+```
+
+`addResource` packages the page like a bundle: at the root of the JAR, or under `resourceTargetPath`. The goal
+runs in `generate-resources` by default, so `process-resources` copies the page into the JAR. For an exact output
+path of a single API, use `outputFile`:
+
+```sh
+mvn openapi-toolkit:build-docs -Dopenapi.toolkit.apis=petstore -Dopenapi.toolkit.buildDocs.outputFile=target/site/api.html
+```
+
+[Redoc options](https://redocly.com/docs/redoc/config) come from the `openapi` section of `redocly.yaml`;
+`redocOptions` overrides them top-level option by top-level option, so a `theme` in the POM replaces the configured
+`theme` as a whole. Values are strings, which Redoc converts; nested options are given as JSON in the POM and as
+YAML in the configuration file:
+
+```yaml
+# redocly.yaml
+openapi:
+  hideDownloadButton: true
+  theme:
+    colors:
+      primary:
+        main: '#1f6feb'
+```
+
+`disableGoogleFont=true` leaves the font link out. `template` replaces the built-in
+[Handlebars](https://handlebarsjs.com/) page template (`htmlTemplate` in the `openapi` section of `redocly.yaml`
+does the same). It receives `title`, `redocHead` and `redocHTML` (insert these two unescaped, with triple braces),
+`disableGoogleFont` for the template's own font link, and `templateOptions` with the values of the parameter of
+the same name. The viewport meta tag keeps the layout responsive:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{title}}</title>
+  {{{redocHead}}}
+  {{#unless disableGoogleFont}}<link href="https://fonts.googleapis.com/css?family=Montserrat:300,400,700|Roboto:300,400,700" rel="stylesheet">{{/unless}}
+</head>
+<body>
+  <header>{{templateOptions.company}}</header>
+  {{{redocHTML}}}
+</body>
+</html>
+```
+
+The goal renders with Redoc 2, which accepts OpenAPI 2.0 (converted while loading), 3.0 and 3.1. Rendering is
+the slowest goal of the plugin; see [performance](performance.html).
+
 ## Multi-module projects
 
 Declare the plugin once in the parent's `pluginManagement` and list it in every module that has an API
@@ -324,7 +400,7 @@ names: `/users/{id}` becomes `users_{id}.yaml`. Split does not read `redocly.yam
 `-Dopenapi.toolkit.skip=true` skips every goal of the plugin. Each goal also has its own property:
 `openapi.toolkit.lint.skip`, `openapi.toolkit.bundle.skip`, `openapi.toolkit.checkConfig.skip`,
 `openapi.toolkit.stats.skip`, `openapi.toolkit.score.skip`, `openapi.toolkit.join.skip`,
-`openapi.toolkit.split.skip`. A skipped goal logs `Skipping (openapi.toolkit.skip=true)`.
+`openapi.toolkit.split.skip`, `openapi.toolkit.buildDocs.skip`. A skipped goal logs `Skipping (openapi.toolkit.skip=true)`.
 
 ## JVM warnings on JDK 24 and later
 

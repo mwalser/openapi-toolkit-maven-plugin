@@ -1,6 +1,6 @@
 # OpenAPI Toolkit Maven Plugin
 
-Lint, bundle and transform OpenAPI and AsyncAPI descriptions from Maven with
+Lint, bundle, transform and document OpenAPI and AsyncAPI descriptions from Maven with
 [Redocly](https://redocly.com/docs/cli). Redocly runs inside the JVM; no Node.js is required.
 
 Requires JDK 21+ and Maven 3.9+.
@@ -78,6 +78,7 @@ Goals
 | [score](score-mojo.html) | Scores an OpenAPI 3 description; fails the build below `minScore`. |
 | [join](join-mojo.html) | Joins OpenAPI 3 descriptions into one (experimental upstream). |
 | [split](split-mojo.html) | Splits a description into a multi-file tree. |
+| [build-docs](build-docs-mojo.html) | Renders an HTML reference page with Redoc; can package it in the JAR. |
 
 Next: [usage and examples](usage.html) for each scenario, the [goal reference](plugin-info.html) for every
 parameter, [limitations](limitations.html), and [performance](performance.html) for the optional native engine.

@@ -44,6 +44,18 @@ These measurements compare cold lint runs on four cores:
 | Twilio API | 1.9 MB | 1.1 s | 18 s | 7 s |
 | GitHub REST API | 12.9 MB | 6 s | 90 s | 44 s |
 
+build-docs renders the reference with React inside the JVM, which costs more than linting:
+
+| Description | Node | Interpreter | Native isolate |
+|---|---|---|---|
+| Petstore | 0.4 s | 2.3 s | 1.6 s |
+| Twilio API | 2.1 s | 21 s | 12 s |
+| GitHub REST API | 19 s | 223 s | 110 s |
+
+The GitHub page is 71 MB, as with the Redocly CLI, and rendering it took close to 3 GB of memory. On the
+interpreter that is JVM heap: give Maven more (`MAVEN_OPTS=-Xmx4g`) for descriptions of that size. The native
+isolate manages its own heap.
+
 Engine selection
 ----------------
 
@@ -56,7 +68,8 @@ Which engine runs is decided once per build:
 | GraalJS interpreter | otherwise (any JDK 21+) | none |
 
 The engine and the Redocly bundle are initialized once per Maven JVM and reused by every goal and module, so the
-warm-up (about 4 s for the interpreter, 1.4 s for the isolate) is paid once per build.
+warm-up (about 4 s for the interpreter, 1.4 s for the isolate) is paid once per build. build-docs evaluates a
+second bundle with Redoc and React when it first runs (about 4 s for the interpreter, 2.5 s for the isolate).
 
 Isolate troubleshooting
 -----------------------

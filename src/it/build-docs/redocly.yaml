@@ -1,0 +1,7 @@
+extends:
+  - minimal
+apis:
+  petstore:
+    root: api/openapi.yaml
+openapi:
+  hideDownloadButton: true

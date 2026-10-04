@@ -27,5 +27,7 @@ class Redocly(
 
     fun split(options: SplitOptions): SplitResult = run("split", options)
 
+    fun buildDocs(options: BuildDocsOptions): BuildDocsResult = run("build-docs", options)
+
     private inline fun <reified T> run(command: String, options: CommandOptions): T = runtime.run(command, options, log, network)
 }

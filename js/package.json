@@ -12,7 +12,13 @@
   "dependencies": {
     "@redocly/openapi-core": "2.57.0",
     "buffer": "^6.0.3",
-    "path-browserify": "^1.0.1"
+    "handlebars": "^4.7.9",
+    "mobx": "^6.16.1",
+    "path-browserify": "^1.0.1",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "redoc": "2.5.4",
+    "styled-components": "^6.5.3"
   },
   "devDependencies": {
     "esbuild": "^0.28.2"

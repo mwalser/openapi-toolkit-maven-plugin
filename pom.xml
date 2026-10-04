@@ -4,11 +4,11 @@
 
   <groupId>net.mwalser</groupId>
   <artifactId>openapi-toolkit-maven-plugin</artifactId>
-  <version>0.1.1-SNAPSHOT</version>
+  <version>0.2.0-SNAPSHOT</version>
   <packaging>maven-plugin</packaging>
 
   <name>OpenAPI Toolkit Maven Plugin</name>
-  <description>Lint, bundle and transform OpenAPI and AsyncAPI descriptions with Redocly, inside the JVM (no Node.js).</description>
+  <description>Lint, bundle, transform and document OpenAPI and AsyncAPI descriptions with Redocly, inside the JVM (no Node.js).</description>
   <url>https://mwalser.github.io/openapi-toolkit-maven-plugin/</url>
   <inceptionYear>2026</inceptionYear>
   <scm>
@@ -409,7 +409,7 @@
         </plugins>
       </build>
     </profile>
-    <!-- Rebuilds the embedded JavaScript bundle from js/ (requires Node.js + npm; only needed when upgrading Redocly). -->
+    <!-- Rebuilds the embedded JavaScript bundles from js/ (requires Node.js + npm; only needed when upgrading Redocly or Redoc). -->
     <profile>
       <id>build-js</id>
       <build>
@@ -444,6 +444,7 @@
                     <argument>build</argument>
                     <argument>--</argument>
                     <argument>${project.basedir}/src/main/resources/net/mwalser/openapi/toolkit/redocly/redocly-core.mjs</argument>
+                    <argument>${project.basedir}/src/main/resources/net/mwalser/openapi/toolkit/redocly/redocly-docs.mjs</argument>
                     <argument>${project.basedir}/src/main/resources/META-INF/THIRD-PARTY-NOTICES.txt</argument>
                   </arguments>
                 </configuration>
