@@ -154,7 +154,9 @@ To package the bundle in the module's JAR and attach it as an artifact of its ow
 ```
 
 `addResource` adds the output directory as a resource directory, so each bundle lands at the root of the JAR
-under its file name. Resources are copied in `process-resources`; keep bundle in `generate-resources` (its
+under its file name; `resourceTargetPath` puts it in a subdirectory instead, for example
+`META-INF/resources/openapi` to have Spring Boot, Quarkus or a servlet container serve it at
+`/openapi/petstore.yaml`. Resources are copied in `process-resources`; keep bundle in `generate-resources` (its
 default) or earlier, otherwise the bundle is silently left out of the JAR.
 
 An attached bundle has type `yaml` (or `json`) and the alias as classifier; inputs given as paths use

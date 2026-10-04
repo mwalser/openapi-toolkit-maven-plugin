@@ -26,7 +26,6 @@
             <configuration>
               <title>Petstore reference</title>
               <addResource>true</addResource>
-              <resourceTargetPath>META-INF/resources</resourceTargetPath>
               <redocOptions>
                 <expandResponses>all</expandResponses>
               </redocOptions>

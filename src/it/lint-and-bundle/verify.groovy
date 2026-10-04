@@ -17,8 +17,10 @@ assert bundle.contains('  description: |\n    This description was injected by a
 assert bundle.contains("\$ref: '#/components/schemas/pet'")
 assert !bundle.contains('schemas/pet.yaml')
 
-// addResource=true: the bundle ends up in the jar
+// addResource=true with resourceTargetPath: the bundle ends up in the jar where web frameworks serve static files
+assert log.contains('Added petstore.yaml in target/generated-resources/openapi as resources under META-INF/resources/openapi')
 def jar = new java.util.jar.JarFile(new File(basedir, 'target/lint-and-bundle-1.0-SNAPSHOT.jar'))
-assert jar.getEntry('petstore.yaml') != null
+assert jar.getEntry('META-INF/resources/openapi/petstore.yaml') != null
+assert jar.getEntry('petstore.yaml') == null
 jar.close()
 return true

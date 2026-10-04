@@ -129,7 +129,7 @@ class MojoParametersTest {
 
         assertEquals(api + setOf("skipLint", "extends", "format", "reportFile", "reportFormat", "failOnErrors", "failOnWarnings", "skipRules", "generateIgnoreFile"), parameters("lint"))
         assertEquals(
-            api + setOf("skipBundle", "extends", "outputDirectory", "outputFile", "ext", "dereferenced", "force", "removeUnusedComponents", "keepUrlReferences", "componentNamesStrategy", "componentRenamingConflicts", "skipDecorators", "addResource", "attach", "classifier"),
+            api + setOf("skipBundle", "extends", "outputDirectory", "outputFile", "ext", "dereferenced", "force", "removeUnusedComponents", "keepUrlReferences", "componentNamesStrategy", "componentRenamingConflicts", "skipDecorators", "addResource", "resourceTargetPath", "attach", "classifier"),
             parameters("bundle"),
         )
         assertEquals(configured + setOf("skipCheckConfig", "severity", "format"), parameters("check-config"))

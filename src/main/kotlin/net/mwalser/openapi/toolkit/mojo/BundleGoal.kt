@@ -61,7 +61,7 @@ internal class BundleGoal(mojo: BundleMojo) : ApiGoal<BundleMojo>(mojo) {
         }
 
         val writtenFiles = result.apis.filter { it.written }.map { hostPath(it.outputFile) }
-        if (mojo.addResource && writtenFiles.isNotEmpty()) addResources(outputFile?.parent ?: outputDirectory, writtenFiles)
+        if (mojo.addResource && writtenFiles.isNotEmpty()) addResources(outputFile?.parent ?: outputDirectory, writtenFiles, mojo.resourceTargetPath?.takeIf { it.isNotBlank() })
         reportUnused(result.unused, configFile)
 
         if (result.totals.errors > 0 && !mojo.force) {

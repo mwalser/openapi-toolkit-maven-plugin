@@ -76,6 +76,14 @@ public final class BundleMojo extends AbstractApiMojo {
     boolean addResource;
 
     /**
+     * Directory inside the JAR for {@code addResource}, relative to its root: {@code META-INF/resources/openapi}
+     * for bundles that Spring Boot, Quarkus and servlet containers serve as static files under {@code /openapi/}.
+     * Unset: the root of the JAR.
+     */
+    @Parameter(property = "openapi.toolkit.bundle.resourceTargetPath")
+    String resourceTargetPath;
+
+    /**
      * Attach each bundle as a build artifact other modules can depend on: type is the output extension,
      * classifier is the alias, or {@code classifier} for inputs without one. Aliases must be distinct per type.
      */

@@ -1,6 +1,6 @@
 def log = new File(basedir, 'build.log').text.replace('\\', '/') // paths are displayed with the host separator
 assert log.contains("Created documentation for api/openapi.yaml using configuration for api 'petstore' at target/generated-resources/redoc/petstore.html (")
-assert log.contains('Added petstore.html in target/generated-resources/redoc as resources under META-INF/resources')
+assert log.contains('Added petstore.html in target/generated-resources/redoc as resources')
 assert log.contains('BUILD SUCCESS')
 
 def page = new File(basedir, 'target/generated-resources/redoc/petstore.html').text
@@ -11,9 +11,8 @@ assert page.contains('"hideDownloadButton":true') // from redocly.yaml
 assert page.contains('"expandResponses":"all"')   // from the POM
 assert page.contains('List pets')
 
-// addResource=true with resourceTargetPath: the page ends up in the jar where web frameworks serve static files
+// addResource=true: the page ends up at the root of the jar
 def jar = new java.util.jar.JarFile(new File(basedir, 'target/build-docs-1.0-SNAPSHOT.jar'))
-assert jar.getEntry('META-INF/resources/petstore.html') != null
-assert jar.getEntry('petstore.html') == null
+assert jar.getEntry('petstore.html') != null
 jar.close()
 return true

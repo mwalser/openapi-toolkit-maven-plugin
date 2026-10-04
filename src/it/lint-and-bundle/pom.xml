@@ -32,6 +32,7 @@
             <configuration>
               <attach>true</attach>
               <addResource>true</addResource>
+              <resourceTargetPath>META-INF/resources/openapi</resourceTargetPath>
             </configuration>
           </execution>
         </executions>
