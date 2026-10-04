@@ -3,7 +3,7 @@
 Requires JDK 21+ and Maven 3.9+. Run commands from the repository root:
 
 ```sh
-mvn verify                        # unit tests
+mvn verify                         # unit tests
 mvn verify -Prun-its               # also run integration tests: Maven builds under target/it
 mvn test -Pisolate-tests           # unit tests with the native isolate for this platform
 mvn generate-resources -Pbuild-js  # rebuild the embedded JS bundles (requires Node.js and npm)
