@@ -77,8 +77,9 @@ abstract class Goal<M : AbstractRedoclyMojo>(protected val mojo: M) {
 
     protected fun hostPath(jsPath: String): Path = JsPaths.toHostPath(jsPath)
 
-    /** Displays a path reported by the JS side relative to the base directory when possible. */
+    /** Displays a path reported by the JS side relative to the base directory when possible; URLs are shown as they are. */
     protected fun display(jsPath: String): String {
+        if (JsPaths.isUrl(jsPath)) return jsPath
         val host = JsPaths.toHost(jsPath)
         return runCatching { display(Path.of(host)) }.getOrDefault(host)
     }

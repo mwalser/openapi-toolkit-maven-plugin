@@ -3,6 +3,8 @@ package net.mwalser.openapi.toolkit.redocly
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class JsPathsTest {
     private val original = JsPaths.windows
@@ -32,5 +34,14 @@ class JsPathsTest {
         assertEquals("C:\\Users\\me\\out\\spec.yaml", JsPaths.toHost("/C:/Users/me/out/spec.yaml"))
         assertEquals("out\\spec.yaml", JsPaths.toHost("out/spec.yaml"))
         assertEquals("https://example.com/openapi.yaml", JsPaths.toHost("https://example.com/openapi.yaml"))
+    }
+
+    @Test
+    fun `recognizes urls`() {
+        assertTrue(JsPaths.isUrl("https://example.com/api/openapi.yaml"))
+        assertTrue(JsPaths.isUrl("file:///tmp/openapi.yaml"))
+        assertFalse(JsPaths.isUrl("src/main/openapi/openapi.yaml"))
+        assertFalse(JsPaths.isUrl("C:/dev/openapi.yaml"))
+        assertFalse(JsPaths.isUrl("/C:/dev/openapi.yaml"))
     }
 }

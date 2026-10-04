@@ -22,7 +22,7 @@ public final class BundleMojo extends AbstractApiMojo {
     @Parameter(property = "openapi.toolkit.extends", alias = "extends")
     List<String> extendsRulesets;
 
-    /** Directory the bundles are written to, as {@code <alias>.<ext>} (APIs from the configuration file) or {@code <basename>.<ext>} (paths). */
+    /** Directory the bundles are written to, named after the alias (APIs from the configuration file) or the file name (paths), with the output extension. */
     @Parameter(property = "openapi.toolkit.bundle.outputDirectory", defaultValue = "${project.build.directory}/generated-resources/openapi")
     File outputDirectory;
 

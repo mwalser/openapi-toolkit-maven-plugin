@@ -32,10 +32,14 @@ object JsPaths {
     @JvmStatic
     fun toJs(file: File): String = toJs(file.path)
 
+    /** Whether the string is a URL (`scheme://...`) rather than a path. */
+    @JvmStatic
+    fun isUrl(path: String): Boolean = urlScheme.containsMatchIn(path)
+
     /** JS path → host path. URLs pass through unchanged. */
     @JvmStatic
     fun toHost(jsPath: String): String {
-        if (!windows || urlScheme.containsMatchIn(jsPath)) return jsPath
+        if (!windows || isUrl(jsPath)) return jsPath
         val withoutLeadingSlash = if (jsWindowsDrive.containsMatchIn(jsPath)) jsPath.drop(1) else jsPath
         return withoutLeadingSlash.replace('/', '\\')
     }

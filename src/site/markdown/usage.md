@@ -67,9 +67,9 @@ Set the phase explicitly:
 
 ## Configure rules and decorators
 
-`lint` evaluates `rules`; `bundle` applies `decorators` and also reports rule problems. Rule and decorator ids
-are Redocly's: [built-in rules](https://redocly.com/docs/cli/rules/built-in-rules),
-[decorators](https://redocly.com/docs/cli/decorators).
+`lint` evaluates `rules`; `bundle` applies `decorators` and reports only what prevents bundling, such as
+unresolved references. Rule and decorator ids are Redocly's:
+[built-in rules](https://redocly.com/docs/cli/rules/built-in-rules), [decorators](https://redocly.com/docs/cli/decorators).
 
 ```yaml
 # redocly.yaml
@@ -170,6 +170,13 @@ mvn openapi-toolkit:bundle -Dopenapi.toolkit.apis=petstore -Dopenapi.toolkit.bun
 
 `dereferenced=true` inlines every reference; `removeUnusedComponents=true` drops components nothing references;
 `force=true` writes the bundle even when bundling reports errors (the build then succeeds with a warning).
+
+A schema that the root file lists under `components` as a `$ref` to a file, while the paths reference that
+file directly, ends up twice in the bundle: under its component name as a reference, and under a name derived
+from the file name with the schema itself (`Pet` and `pet`). Reference the component
+(`#/components/schemas/Pet`) from the paths, or give the schemas a `title` and set
+`componentNamesStrategy=title`. Splitting such a bundle writes `Pet.yaml` next to `pet.yaml`, which collide on
+case-insensitive file systems.
 
 ### Attach bundles for other modules
 
@@ -291,12 +298,13 @@ mvn openapi-toolkit:score -Dopenapi.toolkit.apis=petstore -Dopenapi.toolkit.scor
 [join](join-mojo.html) merges two or more OpenAPI 3 descriptions into one file (experimental upstream):
 
 ```sh
-mvn openapi-toolkit:join -Dopenapi.toolkit.apis=petstore,admin -Dopenapi.toolkit.join.prefixTagsWithInfoProp=title
+mvn openapi-toolkit:join -Dopenapi.toolkit.apis=petstore,admin -Dopenapi.toolkit.join.prefixComponentsWithInfoProp=title
 ```
 
 The result is `target/generated-resources/openapi/joined.yaml` unless `outputFile` says otherwise (a `.json`
-extension gives JSON). To avoid name clashes, prefix tags with `prefixTagsWithInfoProp` or
-`prefixTagsWithFilename`, and components with `prefixComponentsWithInfoProp`. Set at most one of
+extension gives JSON). Join stops on conflicts, and two descriptions that both define a component such as
+`Error` conflict: `prefixComponentsWithInfoProp` prefixes component names with an `info` property of their
+description, `prefixTagsWithInfoProp` or `prefixTagsWithFilename` do the same for tags. Set at most one of
 `prefixTagsWithInfoProp`, `prefixTagsWithFilename` and `withoutXTagGroups`.
 
 ## Split a description
@@ -317,6 +325,13 @@ names: `/users/{id}` becomes `users_{id}.yaml`. Split does not read `redocly.yam
 `openapi.toolkit.lint.skip`, `openapi.toolkit.bundle.skip`, `openapi.toolkit.checkConfig.skip`,
 `openapi.toolkit.stats.skip`, `openapi.toolkit.score.skip`, `openapi.toolkit.join.skip`,
 `openapi.toolkit.split.skip`. A skipped goal logs `Skipping (openapi.toolkit.skip=true)`.
+
+## JVM warnings on JDK 24 and later
+
+On JDK 24 and later every build starts with four lines such as
+`WARNING: A terminally deprecated method in sun.misc.Unsafe has been called`. They come from Truffle, the engine
+under GraalJS, and are harmless. Add `--sun-misc-unsafe-memory-access=allow` to `.mvn/jvm.config` to silence
+them.
 
 ## Offline builds and proxies
 

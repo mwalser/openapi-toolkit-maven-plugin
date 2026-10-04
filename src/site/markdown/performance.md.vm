@@ -30,13 +30,8 @@ the project):
 </plugin>
 ```
 
-Platforms: `linux-amd64`, `linux-aarch64`, `darwin-aarch64`, `windows-amd64`. The next build logs
-`JavaScript engine: GraalJS native isolate`:
-
-```sh
-mvn validate | grep 'JavaScript engine'
-# [INFO] Redocly 2.57.0 - JavaScript engine: GraalJS native isolate
-```
+Platforms: `linux-amd64`, `linux-aarch64`, `darwin-aarch64`, `windows-amd64`; JDK 21 to 25. On a JDK the isolate
+does not support, the build logs a warning that names the cause and continues on the interpreter.
 
 Benchmarks
 ----------
@@ -66,9 +61,9 @@ warm-up (about 4 s for the interpreter, 1.4 s for the isolate) is paid once per 
 Isolate troubleshooting
 -----------------------
 
-- If the isolate dependency is present but cannot start, the build fails. Check that the artifact matches your
-  platform and the GraalJS version in the plugin's [POM](https://github.com/mwalser/openapi-toolkit-maven-plugin/blob/main/pom.xml).
-- On JDK 24+, add `--enable-native-access=ALL-UNNAMED` to `.mvn/jvm.config` to suppress the Truffle
-  native-access warning.
-- The isolate extracts roughly 140 MB into `~/.cache/org.graalvm.polyglot/`. If the home directory is
-  read-only, set `-Dpolyglot.engine.userResourceCache=<writable-directory>` in `.mvn/jvm.config`.
+- If the isolate dependency is present but cannot start, the build continues on the interpreter and a warning
+  names the cause. Check the JDK version, and that the artifact matches your platform and the GraalJS version
+  in the plugin's [POM](https://github.com/mwalser/openapi-toolkit-maven-plugin/blob/main/pom.xml).
+- The isolate extracts roughly 140 MB per extraction into `~/.cache/org.graalvm.polyglot/`, and the cache can
+  hold several. If the home directory is read-only, set `-Dpolyglot.engine.userResourceCache=<writable-directory>`
+  in `.mvn/jvm.config`.

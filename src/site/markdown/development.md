@@ -9,13 +9,15 @@ mvn test -Pisolate-tests           # unit tests with the native isolate for this
 mvn generate-resources -Pbuild-js  # rebuild the embedded JS bundle (requires Node.js and npm)
 ```
 
-CI runs the unit and integration tests on Linux, macOS and Windows with JDK 21 and 25, the native isolate
+CI runs the unit and integration tests on Linux, macOS and Windows with JDK 21, 25 and 26, the native isolate
 on Temurin and GraalVM, and rebuilds the embedded bundle to compare it with the committed one.
 
 ## Implementation
 
 The plugin embeds `@redocly/openapi-core` and selected `@redocly/cli` commands as a JavaScript bundle executed
-by GraalJS. The embedded Redocly version is set by `redocly.version` in [pom.xml](https://github.com/mwalser/openapi-toolkit-maven-plugin/blob/main/pom.xml).
+by GraalJS. The embedded Redocly version is set by `redocly.version` in [pom.xml](https://github.com/mwalser/openapi-toolkit-maven-plugin/blob/main/pom.xml),
+GraalJS by `graalvm.version`; a GraalJS upgrade also updates the JDK range of the native isolate on the
+[performance](performance.html) page.
 
 The implementation is Kotlin. The Mojo classes in `src/main/java` declare parameters and delegate to Kotlin
 `Goal` classes; they are Java because Maven extracts goal and parameter descriptions from Javadoc.

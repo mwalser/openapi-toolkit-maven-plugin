@@ -31,6 +31,8 @@ class RedoclyRuntime private constructor(
     private val bridge: HostBridge,
     module: Value,
     private val jsThread: ExecutorService,
+    /** Why the native isolate on the classpath is not in use; null unless [EngineMode.AUTO] fell back to the interpreter. */
+    val isolateFailure: Throwable? = null,
 ) : AutoCloseable {
 
     enum class EffectiveEngine { JIT, ISOLATE, INTERPRETER }
@@ -138,15 +140,17 @@ class RedoclyRuntime private constructor(
                 jsThread.shutdown()
                 throw e
             }
-            diagnostics.info("Redocly ${runtime.redoclyVersion} - JavaScript engine: ${describe(runtime.effectiveEngine)}")
+            runtime.isolateFailure?.let { diagnostics.warn(isolateFallbackWarning(it)) }
+            diagnostics.info("Redocly ${runtime.redoclyVersion} - JavaScript engine: ${describe(runtime)}")
             return runtime
         }
 
         /** Builds engine and context and evaluates the bundle; runs on the JavaScript thread. */
         private fun initialize(mode: EngineMode, diagnostics: JsLog, jsThread: ExecutorService): RedoclyRuntime {
-            val effective = resolve(mode)
-            diagnostics.debug("Redocly engine mode $mode resolved to $effective")
-            val engine = buildEngine(effective)
+            val resolved = resolve(mode)
+            diagnostics.debug("Redocly engine mode $mode resolved to $resolved")
+            val choice = chooseEngine(mode, resolved, ::buildEngine)
+            val engine = choice.engine
             try {
                 val context = Context.newBuilder("js")
                     .engine(engine)
@@ -159,7 +163,7 @@ class RedoclyRuntime private constructor(
                 val bridge = HostBridge()
                 context.getBindings("js").putMember("__jvm", bridge.asProxy())
                 val module = context.eval(loadBundle())
-                return RedoclyRuntime(effective, engine, context, bridge, module, jsThread)
+                return RedoclyRuntime(choice.effective, engine, context, bridge, module, jsThread, choice.isolateFailure)
             } catch (e: Exception) {
                 engine.close(true)
                 if (e is PolyglotException) throw RedoclyException("Failed to initialize the embedded Redocly bundle: ${e.message}", cause = e)
@@ -206,17 +210,44 @@ class RedoclyRuntime private constructor(
             }
         }
 
+        /** The engine in use and, when the isolate was resolved but could not start, the failure. */
+        internal class EngineChoice(val effective: EffectiveEngine, val engine: Engine, val isolateFailure: Throwable?)
+
+        /**
+         * Builds the resolved engine. In [EngineMode.AUTO] the isolate is an optional accelerator: when it cannot
+         * start (a JDK it does not support, a wrong platform artifact, an unwritable cache directory), the
+         * interpreter takes its place and the failure is kept for the diagnostics. An explicitly requested
+         * isolate fails instead.
+         */
+        internal fun chooseEngine(mode: EngineMode, resolved: EffectiveEngine, build: (EffectiveEngine) -> Engine): EngineChoice {
+            if (mode != EngineMode.AUTO || resolved != EffectiveEngine.ISOLATE) return EngineChoice(resolved, build(resolved), null)
+            return try {
+                EngineChoice(resolved, build(resolved), null)
+            } catch (e: Throwable) {
+                EngineChoice(EffectiveEngine.INTERPRETER, build(EffectiveEngine.INTERPRETER), e)
+            }
+        }
+
         private fun buildEngine(effective: EffectiveEngine): Engine {
             val builder = Engine.newBuilder("js").option("engine.WarnInterpreterOnly", "false")
             if (effective == EffectiveEngine.ISOLATE) builder.spawnIsolate(true)
             return try {
                 builder.build()
-            } catch (e: Exception) {
+            } catch (e: Throwable) { // an isolate on an unsupported JDK fails with an Error, which must not escape as a class-realm dump
                 throw RedoclyException(engineFailureMessage(effective, e), cause = e)
             }
         }
 
-        private fun engineFailureMessage(effective: EffectiveEngine, failure: Exception): String {
+        /** One line for the build log: the JDK, the root cause, and the two ways out. The supported JDKs are documented, not coded. */
+        internal fun isolateFallbackWarning(failure: Throwable): String {
+            val cause = generateSequence(failure) { it.cause }.last()
+            val reason = cause.toString().lineSequence().first()
+            return "The native JavaScript isolate could not start on Java ${Runtime.version()} ($reason). " +
+                "Using the slower GraalJS interpreter instead; remove org.graalvm.polyglot:js-isolate-${isolatePlatform()}-community " +
+                "from the plugin dependencies to silence this warning, or use a JDK the isolate supports."
+        }
+
+        private fun engineFailureMessage(effective: EffectiveEngine, failure: Throwable): String {
             val artifact = "org.graalvm.polyglot:js-isolate-${isolatePlatform()}-community"
             val problem = when {
                 effective != EffectiveEngine.ISOLATE -> "Failed to create the JavaScript engine."
@@ -228,11 +259,13 @@ class RedoclyRuntime private constructor(
             return "$problem Cause: ${failure.message}"
         }
 
-        private fun describe(engine: EffectiveEngine): String = when (engine) {
+        private fun describe(runtime: RedoclyRuntime): String = when (runtime.effectiveEngine) {
             EffectiveEngine.JIT -> "GraalJS with runtime compilation"
             EffectiveEngine.ISOLATE -> "GraalJS native isolate"
-            EffectiveEngine.INTERPRETER ->
-                "GraalJS interpreter (add org.graalvm.polyglot:js-isolate-${isolatePlatform()}-community to the plugin dependencies for faster runs)"
+            EffectiveEngine.INTERPRETER -> when (runtime.isolateFailure) {
+                null -> "GraalJS interpreter (add org.graalvm.polyglot:js-isolate-${isolatePlatform()}-community to the plugin dependencies for faster runs)"
+                else -> "GraalJS interpreter (the native isolate could not start; see the warning above)"
+            }
         }
 
         private fun loadBundle(): Source {
