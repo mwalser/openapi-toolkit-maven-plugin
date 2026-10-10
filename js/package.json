@@ -10,9 +10,9 @@
     "build": "node build.mjs"
   },
   "dependencies": {
-    "@redocly/openapi-core": "2.57.0",
+    "@redocly/openapi-core": "2.59.0",
     "buffer": "^6.0.3",
-    "handlebars": "^4.7.9",
+    "handlebars": "^4.7.10",
     "mobx": "^6.16.1",
     "path-browserify": "^1.0.1",
     "react": "^19.3.0",
