@@ -7,6 +7,7 @@ import { createElement } from 'react';
 import { renderToString } from 'react-dom/server';
 import { convertSwagger2OpenAPI, logoFromSpec, prepareApiDocs, RedoclyApiDocsStandalone, ServerStyleSheet } from 'redoc';
 import redocStandalone from 'redoc/bundles/redoc.standalone.js';
+import { removeRedoclyLogo as withoutRedoclyLogo } from './redocly-logo.js';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 
@@ -41,12 +42,14 @@ const DEFAULT_TEMPLATE_SOURCE = `<!DOCTYPE html>
  *
  * @param options {{
  *   definition: object|string, title?: string, templateFile?: string, templateOptions: object,
- *   redocOptions: object, configPath?: string, disableTelemetry: boolean, inlineBundle: boolean
+ *   redocOptions: object, configPath?: string, disableTelemetry: boolean, inlineBundle: boolean,
+ *   removeRedoclyLogo: boolean
  * }} `definition` is the bundled OpenAPI 3 or AsyncAPI document, or the GraphQL schema source;
- * `templateFile` an absolute path.
+ * `templateFile` an absolute path. `removeRedoclyLogo` requires `inlineBundle`: the script from the CDN would
+ * add the link back when the page hydrates.
  * @returns {Promise<{ page: string, title: string }>}
  */
-export async function renderPage({ definition, title, templateFile, templateOptions, redocOptions, configPath, disableTelemetry, inlineBundle }) {
+export async function renderPage({ definition, title, templateFile, templateOptions, redocOptions, configPath, disableTelemetry, inlineBundle, removeRedoclyLogo }) {
   const pageOptions = { ...redocOptions, skipBundle: true };
   const prepared = await prepareApiDocs({ spec: definition, options: pageOptions });
   const app = createElement(RedoclyApiDocsStandalone, {
@@ -59,7 +62,13 @@ export async function renderPage({ definition, title, templateFile, templateOpti
     spec: prepared.document,
   });
   const sheet = new ServerStyleSheet();
-  const html = renderToString(sheet.collectStyles(app));
+  let html;
+  globalThis.__openapiToolkitRemoveRedoclyLogo = !!removeRedoclyLogo; // read by the patched library (see build.mjs)
+  try {
+    html = renderToString(sheet.collectStyles(app));
+  } finally {
+    globalThis.__openapiToolkitRemoveRedoclyLogo = false;
+  }
   const css = sheet.getStyleTags();
 
   const customTemplate =
@@ -71,7 +80,8 @@ export async function renderPage({ definition, title, templateFile, templateOpti
   const template = handlebars.compile(templateSource);
 
   const redocBundleUrl = `https://cdn.redocly.com/redoc/v${__REDOC_VERSION__}/bundles/redoc.standalone.js`;
-  const redocScript = inlineBundle ? escapeClosingScriptTag(redocStandalone) : `import { hydrate } from "${redocBundleUrl}";`;
+  const inlinedScript = () => (removeRedoclyLogo ? withoutRedoclyLogo(redocStandalone, 'redoc.standalone.js') : redocStandalone);
+  const redocScript = inlineBundle ? escapeClosingScriptTag(inlinedScript()) : `import { hydrate } from "${redocBundleUrl}";`;
   const redocHead = inlineBundle
     ? css
     : `<link rel="modulepreload" href="${redocBundleUrl}" integrity="${__REDOC_STANDALONE_SRI__}" crossorigin="anonymous" />` + css;

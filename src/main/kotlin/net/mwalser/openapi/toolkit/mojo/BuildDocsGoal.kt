@@ -11,6 +11,9 @@ internal class BuildDocsGoal(mojo: BuildDocsMojo) : ApiGoal<BuildDocsMojo>(mojo)
     override fun validate() {
         super.validate()
         if (mojo.outputFile != null) requireSingleApi("openapi.toolkit.buildDocs.outputFile", mojo.apis.size)
+        if (mojo.removeRedoclyLogo && !mojo.inlineBundle) {
+            throw MojoExecutionException("openapi.toolkit.buildDocs.removeRedoclyLogo requires openapi.toolkit.buildDocs.inlineBundle: the Redoc script from the CDN adds the logo back")
+        }
         mojo.template?.let(::resolve)?.let { template ->
             if (!Files.isRegularFile(template)) throw MojoExecutionException("Template not found: $template (set by openapi.toolkit.buildDocs.template)")
         }
@@ -32,6 +35,7 @@ internal class BuildDocsGoal(mojo: BuildDocsMojo) : ApiGoal<BuildDocsMojo>(mojo)
                 templateOptions = mojo.templateOptions,
                 redocOptions = mojo.redocOptions,
                 inlineBundle = mojo.inlineBundle,
+                removeRedoclyLogo = mojo.removeRedoclyLogo,
                 telemetry = mojo.telemetry,
                 lintConfig = lintConfig,
                 maxProblems = maxProblems,

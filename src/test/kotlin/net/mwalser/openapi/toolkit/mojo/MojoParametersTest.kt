@@ -138,7 +138,7 @@ class MojoParametersTest {
         assertEquals(api + setOf("skipJoin", "outputFile", "prefixTagsWithInfoProp", "prefixTagsWithFilename", "prefixComponentsWithInfoProp", "withoutXTagGroups"), parameters("join"))
         assertEquals(runtime + setOf("skipSplit", "api", "outputDirectory", "separator", "fileNameConflictsSeverity"), parameters("split"))
         assertEquals(
-            api + setOf("skipBuildDocs", "outputDirectory", "outputFile", "title", "template", "templateOptions", "redocOptions", "inlineBundle", "telemetry", "addResource", "resourceTargetPath"),
+            api + setOf("skipBuildDocs", "outputDirectory", "outputFile", "title", "template", "templateOptions", "redocOptions", "inlineBundle", "removeRedoclyLogo", "telemetry", "addResource", "resourceTargetPath"),
             parameters("build-docs"),
         )
 

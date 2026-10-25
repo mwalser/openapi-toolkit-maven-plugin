@@ -43,7 +43,8 @@ class BuildDocsCommandTest {
     /**
      * The fixture's `expected-pages.sha256` holds the pages `redocly build-docs` renders with telemetry off
      * (`scripts/build-docs-expected.sh`). They are rendered one after another in the shared context, with a failed
-     * render in between, since Redoc keeps state in modules: every page must come out as from a fresh CLI process.
+     * render and one without the Redocly logo in between, since Redoc keeps state in modules: every page must come
+     * out as from a fresh CLI process.
      */
     @Test
     fun `pages are identical to the Redocly CLI's, also after earlier and failed renders`(@TempDir dir: Path) {
@@ -57,6 +58,7 @@ class BuildDocsCommandTest {
         assertEquals(listOf("Pets", "Legacy Pets", "Pet Events", "ReDoc documentation"), result.apis.map { it.title })
         Files.writeString(project.resolve("invalid.yaml"), "openapi: 3.1.0\ninfo: {title: [unclosed\n")
         assertFailsWith<RedoclyException> { redocly().buildDocs(options(project, "invalid.yaml")) }
+        redocly().buildDocs(options(project, "events") { copy(outputFile = "other/events.html", inlineBundle = true, removeRedoclyLogo = true) })
         redocly().buildDocs(options(project, "pets") { copy(outputFile = "docs/pets-inline.html", inlineBundle = true) })
 
         val pages = expected.keys.associateWith { project.resolve("docs/$it") }
@@ -108,6 +110,23 @@ class BuildDocsCommandTest {
         assertFalse(telemetryDisabled(page(redocly().buildDocs(options(project) { copy(telemetry = true) }))))
         Files.writeString(project.resolve("redocly.yaml"), Files.readString(project.resolve("redocly.yaml")) + "telemetry: off\n")
         assertTrue(telemetryDisabled(page(redocly().buildDocs(options(project) { copy(telemetry = true) }))))
+    }
+
+    @Test
+    fun `removes the Redocly logo link from the rendered reference and the inlined script`(@TempDir dir: Path) {
+        val project = fixture("petstore", dir)
+        val attribution = "href:`https://redocly.com/redoc/`"
+        val withLogo = page(redocly().buildDocs(options(project) { copy(outputFile = "docs/with.html", inlineBundle = true) }))
+        assertContains(withLogo, "API docs by")
+        assertContains(withLogo, attribution)
+
+        val without = page(redocly().buildDocs(options(project) { copy(outputFile = "docs/without.html", inlineBundle = true, removeRedoclyLogo = true) }))
+        assertFalse(without.contains("API docs by"), "the server-rendered link is left out")
+        assertFalse(without.contains(attribution), "the inlined script does not add it back")
+        assertContains(without, "List pets")
+
+        val cdn = assertFailsWith<RedoclyException> { redocly().buildDocs(options(project) { copy(removeRedoclyLogo = true) }) }
+        assertContains(cdn.message!!, "removeRedoclyLogo requires inlineBundle")
     }
 
     @Test

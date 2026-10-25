@@ -29,6 +29,9 @@ bundled package; CI rebuilds all three files and fails when they differ from the
   Handlebars page template. Loading, bundling and the Swagger 2 conversion happen in `src/api/build-docs.js`. It is
   built from styled-components' server build and react-router's production build; the Redoc version, the integrity
   hash of the CDN script and the script itself (for `inlineBundle`) are embedded at build time.
+  `src/docs/redocly-logo.js` cuts the "API docs by Redocly" link out of Redoc's code for `removeRedoclyLogo`: the
+  build makes it conditional in the library that renders on the server and checks that the inlined script contains
+  it once; a Redoc upgrade that changes the link fails the build.
 - `vendor/redocly-cli/` – command sources from the `@redocly/cli` 2.71.0 release (MIT) for
   stats/join/split/score, compiled by esbuild from TypeScript. `types.ts`, `wrapper.ts` and
   `utils/miscellaneous.ts` are plugin-authored compatibility replacements;

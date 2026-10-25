@@ -227,8 +227,9 @@ GraphQL schema in a `.graphql` or `.gql` file) as an HTML reference page with [R
 as `redocly build-docs` does, and writes `target/generated-resources/redoc/<alias>.html` (or `<basename>.html` for
 paths). The description is bundled first, with the decorators configured in `redocly.yaml`. The reference is
 pre-rendered into the page. When opened, the page loads the Redoc script from Redocly's CDN, so viewers need
-internet access; `inlineBundle=true` embeds the script instead (about 2.2 MB per page), and only the Redocly logo
-in the sidebar is then loaded from the CDN.
+internet access; `inlineBundle=true` embeds the script instead (about 2.2 MB per page), and only the logo of the
+"API docs by Redocly" link at the foot of the sidebar is then loaded from the CDN. With `removeRedoclyLogo=true`
+as well, that link is left out and the page makes no requests of its own.
 
 ```xml
 <execution>

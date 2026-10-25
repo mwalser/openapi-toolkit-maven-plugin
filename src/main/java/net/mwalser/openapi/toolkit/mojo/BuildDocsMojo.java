@@ -54,6 +54,14 @@ public final class BuildDocsMojo extends AbstractApiMojo {
     boolean inlineBundle;
 
     /**
+     * Leave out the "API docs by Redocly" link at the foot of the sidebar, whose logo the page otherwise loads from
+     * Redocly's CDN; with {@code inlineBundle}, the page then makes no requests of its own. Requires
+     * {@code inlineBundle}, since the Redoc script from the CDN would add the link back.
+     */
+    @Parameter(property = "openapi.toolkit.buildDocs.removeRedoclyLogo", defaultValue = "false")
+    boolean removeRedoclyLogo;
+
+    /**
      * Let the pages send <a href="https://redocly.com/docs/redoc/telemetry">Redoc telemetry</a> from readers'
      * browsers. {@code telemetry: off} in the configuration file or the environment variable
      * {@code REDOCLY_TELEMETRY=off} keep it off even when this is set.

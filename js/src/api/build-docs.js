@@ -18,7 +18,7 @@ import {
  * @param opts {{
  *   cwd: string, configPath?: string, apis?: string[], outputDirectory: string, outputFile?: string,
  *   title?: string, template?: string, templateOptions?: Record<string, string>,
- *   redocOptions?: Record<string, string>, inlineBundle?: boolean, telemetry?: boolean,
+ *   redocOptions?: Record<string, string>, inlineBundle?: boolean, removeRedoclyLogo?: boolean, telemetry?: boolean,
  *   lintConfig?: 'warn'|'error'|'off', maxProblems?: number
  * }}
  */
@@ -35,6 +35,9 @@ export async function runBuildDocs(opts) {
   }
   const targets = apis.map((api) => ({ ...api, outputFile: outputFileFor(api, opts, 'html', 'documentation') }));
   rejectCollidingOutputs(targets, 'documented');
+  if (opts.removeRedoclyLogo && !opts.inlineBundle) {
+    throw new CommandError('openapi.toolkit.buildDocs.removeRedoclyLogo requires inlineBundle: the Redoc script from the CDN adds the logo back.');
+  }
   const overrides = parseRedocOptions(opts.redocOptions || {});
   // unlike the CLI, the pages send Redoc telemetry only when asked to; the CLI's off switches still apply
   const disableTelemetry = !opts.telemetry || !isTelemetryEnabled(config);
@@ -60,6 +63,7 @@ export async function runBuildDocs(opts) {
         configPath: config.configPath,
         disableTelemetry,
         inlineBundle: !!opts.inlineBundle,
+        removeRedoclyLogo: !!opts.removeRedoclyLogo,
       });
     } catch (e) {
       if (e instanceof CommandError) throw e;

@@ -230,6 +230,8 @@ data class BuildDocsOptions(
     val redocOptions: Map<String, String> = emptyMap(),
     /** Embed Redoc's page script instead of loading it from Redocly's CDN. */
     val inlineBundle: Boolean = false,
+    /** Leave out the "API docs by Redocly" link and its logo from the CDN; requires [inlineBundle]. */
+    val removeRedoclyLogo: Boolean = false,
     /** Let the page send Redoc telemetry from readers' browsers; `telemetry: off` or `REDOCLY_TELEMETRY=off` still turn it off. */
     val telemetry: Boolean = false,
     val lintConfig: String = "warn",

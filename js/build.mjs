@@ -9,6 +9,7 @@ import * as esbuild from 'esbuild';
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import * as path from 'node:path';
+import { removeRedoclyLogo, replaceRedoclyLogo } from './src/docs/redocly-logo.js';
 
 const coreVersion = packageVersion('@redocly/openapi-core');
 const pomVersion = readFileSync('../pom.xml', 'utf8').match(/<redocly\.version>([^<]+)<\/redocly\.version>/)?.[1];
@@ -18,6 +19,8 @@ if (pomVersion !== coreVersion) {
 const redocVersion = packageVersion('redoc');
 // The page loads redoc.standalone.js from Redocly's CDN with this subresource integrity hash, as the CLI does.
 const redocStandaloneSri = 'sha384-' + createHash('sha384').update(readFileSync('node_modules/redoc/bundles/redoc.standalone.js')).digest('base64');
+// renderPage removes the Redocly logo link from the inlined script at run time; fail here if it cannot
+removeRedoclyLogo(readFileSync('node_modules/redoc/bundles/redoc.standalone.js', 'utf8'), 'redoc.standalone.js');
 
 const [coreFile = 'dist/redocly-core.mjs', docsFile = 'dist/redocly-docs.mjs', noticesFile = 'dist/THIRD-PARTY-NOTICES.txt'] = process.argv.slice(2);
 for (const file of [coreFile, docsFile, noticesFile]) mkdirSync(path.dirname(file), { recursive: true });
@@ -44,10 +47,11 @@ const docs = await build({
   define: { __REDOC_VERSION__: JSON.stringify(redocVersion), __REDOC_STANDALONE_SRI__: JSON.stringify(redocStandaloneSri) },
   // the page script that `inlineBundle` embeds instead of loading it from the CDN
   loader: { '.standalone.js': 'text' },
+  plugins: [redocWithOptionalLogo()],
 });
 writeFileSync(noticesFile, thirdPartyNotices([core.metafile, docs.metafile]));
 
-async function build({ entry, outfile, alias = {}, define = {}, loader = {} }) {
+async function build({ entry, outfile, alias = {}, define = {}, loader = {}, plugins = [] }) {
   const result = await esbuild.build({
     entryPoints: [entry],
     bundle: true,
@@ -60,7 +64,7 @@ async function build({ entry, outfile, alias = {}, define = {}, loader = {} }) {
     metafile: true,
     legalComments: 'none', // every license is reproduced in THIRD-PARTY-NOTICES.txt instead
     loader,
-    plugins: [browserEnvWithHostVariables()],
+    plugins: [browserEnvWithHostVariables(), ...plugins],
     alias: {
       'node:fs': './src/shims/fs.js',
       fs: './src/shims/fs.js',
@@ -97,6 +101,23 @@ function browserEnvWithHostVariables() {
     setup(build) {
       build.onLoad({ filter: /@redocly\/openapi-core\/lib\/env\.js$/ }, () => ({
         contents: 'export const isBrowser = true; export const env = globalThis.process.env;',
+        loader: 'js',
+      }));
+    },
+  };
+}
+
+/** Redoc's library with the Redocly logo link left out while `globalThis.__openapiToolkitRemoveRedoclyLogo` is set. */
+function redocWithOptionalLogo() {
+  return {
+    name: 'redoc-with-optional-logo',
+    setup(build) {
+      build.onLoad({ filter: /node_modules[\\/]redoc[\\/]bundles[\\/]redoc\.js$/ }, (args) => ({
+        contents: replaceRedoclyLogo(
+          readFileSync(args.path, 'utf8'),
+          (element) => `(globalThis.__openapiToolkitRemoveRedoclyLogo?null:${element})`,
+          'redoc.js',
+        ),
         loader: 'js',
       }));
     },

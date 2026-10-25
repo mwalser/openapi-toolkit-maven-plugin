@@ -63336,6 +63336,9 @@ async function runBuildDocs(opts) {
   }
   const targets = apis.map((api) => ({ ...api, outputFile: outputFileFor(api, opts, "html", "documentation") }));
   rejectCollidingOutputs(targets, "documented");
+  if (opts.removeRedoclyLogo && !opts.inlineBundle) {
+    throw new CommandError("openapi.toolkit.buildDocs.removeRedoclyLogo requires inlineBundle: the Redoc script from the CDN adds the logo back.");
+  }
   const overrides = parseRedocOptions(opts.redocOptions || {});
   const disableTelemetry = !opts.telemetry || !isTelemetryEnabled(config);
   const results = [];
@@ -63356,7 +63359,8 @@ async function runBuildDocs(opts) {
         redocOptions,
         configPath: config.configPath,
         disableTelemetry,
-        inlineBundle: !!opts.inlineBundle
+        inlineBundle: !!opts.inlineBundle,
+        removeRedoclyLogo: !!opts.removeRedoclyLogo
       });
     } catch (e2) {
       if (e2 instanceof CommandError) throw e2;
