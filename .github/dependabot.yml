@@ -13,6 +13,9 @@ updates:
         update-types: [version-update:semver-major, version-update:semver-minor]
       - dependency-name: org.apache.maven:maven-plugin-api
         update-types: [version-update:semver-major, version-update:semver-minor]
+      # Binds the slf4j-api 1.7 that maven-core brings; slf4j-nop 2 no longer silences it.
+      - dependency-name: org.slf4j:slf4j-nop
+        update-types: [version-update:semver-major]
   # A Redocly bump also needs the vendored CLI sources and the embedded bundle refreshed (see js/README.md);
   # the bundle job fails on the pull request until that is done.
   - package-ecosystem: npm
@@ -22,6 +25,11 @@ updates:
     groups:
       minor-and-patch:
         update-types: [minor, patch]
+    ignore:
+      # build-docs renders pages identical to the Redocly CLI's, so these follow the versions it pins
+      # (packages/cli/package.json); BuildDocsCommandTest fails on any other.
+      - dependency-name: redoc
+      - dependency-name: styled-components
   - package-ecosystem: github-actions
     directory: /
     schedule:

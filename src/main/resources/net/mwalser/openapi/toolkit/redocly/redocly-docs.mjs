@@ -6282,7 +6282,7 @@ var require_react_production = __commonJS({
     exports.useTransition = function() {
       return ReactSharedInternals.H.useTransition();
     };
-    exports.version = "19.3.0";
+    exports.version = "19.3.1";
   }
 });
 
@@ -6451,7 +6451,7 @@ var require_react_dom_production = __commonJS({
     exports.useFormStatus = function() {
       return ReactSharedInternals.H.useHostTransitionStatus();
     };
-    exports.version = "19.3.0";
+    exports.version = "19.3.1";
   }
 });
 
@@ -11638,7 +11638,7 @@ A.finished.finally(function(){document.__reactViewTransition===A&&(document.__re
         'The server used "renderToString" which does not support Suspense. If you intended for this Suspense boundary to render the fallback content on the server consider throwing an Error somewhere within the Suspense boundary. If you intended to have the server wait for the suspended component please switch to "renderToReadableStream" which supports Suspense on the server'
       );
     };
-    exports.version = "19.3.0";
+    exports.version = "19.3.1";
   }
 });
 
@@ -11683,6 +11683,7 @@ var require_react_dom_server_browser_production = __commonJS({
     }
     var REACT_OPTIMISTIC_KEY = /* @__PURE__ */ Symbol.for("react.optimistic_key");
     var isArrayImpl = Array.isArray;
+    var hasOwnProperty = Object.prototype.hasOwnProperty;
     function murmurhash3_32_gc(key, seed) {
       var remainder = key.length & 3;
       var bytes = key.length - remainder;
@@ -11720,6 +11721,10 @@ var require_react_dom_server_browser_production = __commonJS({
       var task = taskQueue.shift();
       task && task();
     };
+    var supportsArrayBufferDetached = hasOwnProperty.call(
+      ArrayBuffer.prototype,
+      "detached"
+    );
     function scheduleWork(callback) {
       taskQueue.push(callback);
       channel.port2.postMessage(null);
@@ -11736,17 +11741,17 @@ var require_react_dom_server_browser_production = __commonJS({
     var currentView = null;
     var writtenBytes = 0;
     function writeChunk(destination, chunk) {
-      if (0 !== chunk.byteLength)
-        if (2048 < chunk.byteLength)
-          0 < writtenBytes && (destination.enqueue(
-            new Uint8Array(currentView.buffer, 0, writtenBytes)
-          ), currentView = new Uint8Array(2048), writtenBytes = 0), destination.enqueue(chunk);
-        else {
-          var allowableBytes = currentView.length - writtenBytes;
-          allowableBytes < chunk.byteLength && (0 === allowableBytes ? destination.enqueue(currentView) : (currentView.set(chunk.subarray(0, allowableBytes), writtenBytes), destination.enqueue(currentView), chunk = chunk.subarray(allowableBytes)), currentView = new Uint8Array(2048), writtenBytes = 0);
-          currentView.set(chunk, writtenBytes);
-          writtenBytes += chunk.byteLength;
-        }
+      if (0 === chunk.byteLength) {
+        if (supportsArrayBufferDetached && chunk.buffer.detached)
+          throw Error(formatProdErrorMessage(612));
+      } else if (2048 < chunk.byteLength)
+        0 < writtenBytes && (destination.enqueue(new Uint8Array(currentView.buffer, 0, writtenBytes)), currentView = new Uint8Array(2048), writtenBytes = 0), destination.enqueue(chunk);
+      else {
+        var allowableBytes = currentView.length - writtenBytes;
+        allowableBytes < chunk.byteLength && (0 === allowableBytes ? destination.enqueue(currentView) : (currentView.set(chunk.subarray(0, allowableBytes), writtenBytes), destination.enqueue(currentView), chunk = chunk.subarray(allowableBytes)), currentView = new Uint8Array(2048), writtenBytes = 0);
+        currentView.set(chunk, writtenBytes);
+        writtenBytes += chunk.byteLength;
+      }
     }
     function writeChunkAndReturn(destination, chunk) {
       writeChunk(destination, chunk);
@@ -11769,7 +11774,6 @@ var require_react_dom_server_browser_production = __commonJS({
       "function" === typeof destination.error ? destination.error(error) : destination.close();
     }
     var assign2 = Object.assign;
-    var hasOwnProperty = Object.prototype.hasOwnProperty;
     var VALID_ATTRIBUTE_NAME_REGEX = RegExp(
       "^[:A-Z_a-z\\u00C0-\\u00D6\\u00D8-\\u00F6\\u00F8-\\u02FF\\u0370-\\u037D\\u037F-\\u1FFF\\u200C-\\u200D\\u2070-\\u218F\\u2C00-\\u2FEF\\u3001-\\uD7FF\\uF900-\\uFDCF\\uFDF0-\\uFFFD][:A-Z_a-z\\u00C0-\\u00D6\\u00D8-\\u00F6\\u00F8-\\u02FF\\u0370-\\u037D\\u037F-\\u1FFF\\u200C-\\u200D\\u2070-\\u218F\\u2C00-\\u2FEF\\u3001-\\uD7FF\\uF900-\\uFDCF\\uFDF0-\\uFFFD\\-.0-9\\u00B7\\u0300-\\u036F\\u203F-\\u2040]*$"
     );
@@ -17294,12 +17298,12 @@ A.finished.finally(function(){document.__reactViewTransition===A&&(document.__re
     }
     function ensureCorrectIsomorphicReactVersion() {
       var isomorphicReactPackageVersion = React13.version;
-      if ("19.3.0" !== isomorphicReactPackageVersion)
+      if ("19.3.1" !== isomorphicReactPackageVersion)
         throw Error(
           formatProdErrorMessage(
             527,
             isomorphicReactPackageVersion,
-            "19.3.0"
+            "19.3.1"
           )
         );
     }
@@ -17504,7 +17508,7 @@ A.finished.finally(function(){document.__reactViewTransition===A&&(document.__re
         startWork(request);
       });
     };
-    exports.version = "19.3.0";
+    exports.version = "19.3.1";
   }
 });
 
