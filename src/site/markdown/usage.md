@@ -177,8 +177,8 @@ A schema that the root file lists under `components` as a `$ref` to a file, whil
 file directly, ends up twice in the bundle: under its component name as a reference, and under a name derived
 from the file name with the schema itself (`Pet` and `pet`). Reference the component
 (`#/components/schemas/Pet`) from the paths, or give the schemas a `title` and set
-`componentNamesStrategy=title`. Splitting such a bundle writes `Pet.yaml` next to `pet.yaml`, which collide on
-case-insensitive file systems.
+`componentNamesStrategy=title`. Splitting such a bundle reports that `Pet` and `pet` would share one file on
+case-insensitive file systems and writes `pet-2.yaml` for the second (see [split](#Split_a_description)).
 
 ### Attach bundles for other modules
 
@@ -222,10 +222,13 @@ otherwise `mvn install` the producer.
 
 ## Render API documentation
 
-[build-docs](build-docs-mojo.html) renders each API description as an HTML reference page with
-[Redoc](https://redocly.com/redoc) and writes `target/generated-resources/redoc/<alias>.html` (or
-`<basename>.html` for paths). The reference is pre-rendered into the page. When opened, the page loads the Redoc
-script from Redocly's CDN and the Montserrat and Roboto fonts from Google Fonts, so viewers need internet access.
+[build-docs](build-docs-mojo.html) renders each API description (OpenAPI 3, Swagger 2, AsyncAPI 2 and 3, or a
+GraphQL schema in a `.graphql` or `.gql` file) as an HTML reference page with [Redoc](https://redocly.com/redoc) 3,
+as `redocly build-docs` does, and writes `target/generated-resources/redoc/<alias>.html` (or `<basename>.html` for
+paths). The description is bundled first, with the decorators configured in `redocly.yaml`. The reference is
+pre-rendered into the page. When opened, the page loads the Redoc script from Redocly's CDN, so viewers need
+internet access; `inlineBundle=true` embeds the script instead (about 2.2 MB per page), and only the Redocly logo
+in the sidebar is then loaded from the CDN.
 
 ```xml
 <execution>
@@ -238,9 +241,9 @@ script from Redocly's CDN and the Montserrat and Roboto fonts from Google Fonts,
     <addResource>true</addResource>
     <resourceTargetPath>META-INF/resources</resourceTargetPath>  <!-- served at /petstore.html -->
     <redocOptions>
-      <hideDownloadButton>true</hideDownloadButton>
-      <expandResponses>200,201</expandResponses>
-      <theme>{"colors":{"primary":{"main":"#1f6feb"}}}</theme>
+      <hideDownloadButtons>true</hideDownloadButtons>
+      <jsonSamplesExpandLevel>all</jsonSamplesExpandLevel>
+      <downloadUrls>[{"title":"OpenAPI","url":"openapi.yaml"}]</downloadUrls>
     </redocOptions>
   </configuration>
 </execution>
@@ -255,26 +258,32 @@ of a single API, use `outputFile`:
 mvn openapi-toolkit:build-docs -Dopenapi.toolkit.apis=petstore -Dopenapi.toolkit.buildDocs.outputFile=target/site/api.html
 ```
 
-[Redoc options](https://redocly.com/docs/redoc/config) come from the `openapi` section of `redocly.yaml`;
-`redocOptions` overrides them top-level option by top-level option, so a `theme` in the POM replaces the configured
-`theme` as a whole. Values are strings, which Redoc converts; nested options are given as JSON in the POM and as
-YAML in the configuration file:
+Redoc options come from the section of `redocly.yaml` that matches the type of the description:
+[`openapi`](https://redocly.com/docs/realm/config/openapi) (also for Swagger 2),
+[`asyncapi`](https://redocly.com/docs/realm/config/asyncapi) or [`graphql`](https://redocly.com/docs/realm/config/graphql).
+`redocOptions` overrides them top-level option by top-level option, so a nested option in the POM replaces the
+configured one as a whole. Values are strings, which Redoc converts; nested options are given as JSON in the POM
+and as YAML in the configuration file:
 
 ```yaml
 # redocly.yaml
 openapi:
-  hideDownloadButton: true
-  theme:
-    colors:
-      primary:
-        main: '#1f6feb'
+  hideDownloadButtons: true
+  downloadUrls:
+    - title: OpenAPI
+      url: openapi.yaml
+asyncapi:
+  jsonSamplesDepth: 4
 ```
 
-`disableGoogleFont=true` leaves the font link out. `template` replaces the built-in
-[Handlebars](https://handlebarsjs.com/) page template (`htmlTemplate` in the `openapi` section of `redocly.yaml`
-does the same). It receives `title`, `redocHead` and `redocHTML` (insert these two unescaped, with triple braces),
-`disableGoogleFont` for the template's own font link, and `templateOptions` with the values of the parameter of
-the same name. The viewport meta tag keeps the layout responsive:
+Unlike `redocly build-docs`, the pages do not send [Redoc telemetry](https://redocly.com/docs/redoc/telemetry)
+from readers' browsers unless `telemetry=true` is set. `telemetry: off` in `redocly.yaml` or the environment
+variable `REDOCLY_TELEMETRY=off` keep it off even then.
+
+`template` replaces the built-in [Handlebars](https://handlebarsjs.com/) page template (`htmlTemplate` in the
+`openapi` section of `redocly.yaml` does the same). It receives `title`, `redocHead` and `redocHTML` (insert these
+two unescaped, with triple braces), and `templateOptions` with the values of the parameter of the same name. The
+viewport meta tag keeps the layout responsive:
 
 ```html
 <!DOCTYPE html>
@@ -284,7 +293,6 @@ the same name. The viewport meta tag keeps the layout responsive:
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{title}}</title>
   {{{redocHead}}}
-  {{#unless disableGoogleFont}}<link href="https://fonts.googleapis.com/css?family=Montserrat:300,400,700|Roboto:300,400,700" rel="stylesheet">{{/unless}}
 </head>
 <body>
   <header>{{templateOptions.company}}</header>
@@ -293,8 +301,7 @@ the same name. The viewport meta tag keeps the layout responsive:
 </html>
 ```
 
-Rendering is the slowest goal of the plugin (see [performance](performance.html)); the OpenAPI versions Redoc 2
-accepts are listed under [limitations](limitations.html).
+Rendering is the slowest goal of the plugin; see [performance](performance.html).
 
 ## Multi-module projects
 
@@ -396,6 +403,11 @@ mvn openapi-toolkit:split -Dopenapi.toolkit.split.api=src/main/openapi/petstore-
 
 `api` and `outputDirectory` are required. `separator` (default `_`) joins path segments in generated file
 names: `/users/{id}` becomes `users_{id}.yaml`. Split does not read `redocly.yaml`.
+
+Names that differ only by case, such as the schemas `User` and `user`, would share one file on a case-insensitive
+file system. By default split logs a warning and saves the later ones with a numbered suffix (`user-2.yaml`);
+`fileNameConflictsSeverity=off` does the same without the warning, `fileNameConflictsSeverity=error` fails without
+writing any files.
 
 ## Skip goals
 

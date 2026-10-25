@@ -27,7 +27,7 @@
               <title>Petstore reference</title>
               <addResource>true</addResource>
               <redocOptions>
-                <expandResponses>all</expandResponses>
+                <jsonSamplesExpandLevel>all</jsonSamplesExpandLevel>
               </redocOptions>
             </configuration>
           </execution>

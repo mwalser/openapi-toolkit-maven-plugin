@@ -61,8 +61,8 @@ globalThis.console = {
 
 /**
  * Runs `fn` and returns its value together with what it printed: `output` is the payload channel alone (what the
- * CLI writes to stdout), `transcript` is everything in order. When `fn` throws, the transcript is attached to the
- * error as `details.output` so that the host can still show it.
+ * CLI writes to stdout), `transcript` is everything in order and `entries` the same as one `{ channel, text }` per
+ * call. When `fn` throws, the transcript is attached to the error as `details.output` so that the host can still show it.
  */
 export async function captureOutput(fn) {
   const outer = captured;
@@ -70,7 +70,7 @@ export async function captureOutput(fn) {
   const text = (channel) => entries.filter((entry) => !channel || entry.channel === channel).map((entry) => entry.text).join('');
   try {
     const value = await fn();
-    return { value, output: text('output'), transcript: text() };
+    return { value, output: text('output'), transcript: text(), entries };
   } catch (error) {
     if (error && typeof error === 'object') error.details = { ...error.details, output: text() };
     throw error;
@@ -129,6 +129,25 @@ if (typeof globalThis.TextEncoder === 'undefined') {
 }
 if (typeof globalThis.TextDecoder === 'undefined') {
   globalThis.TextDecoder = class TextDecoder { decode(bytes) { return Buffer.from(bytes).toString('utf8'); } };
+}
+
+// --- crypto ------------------------------------------------------------------------------------
+// Redoc creates ids while it renders (search session, telemetry ulids); the bytes come from the host's SecureRandom.
+if (typeof globalThis.crypto === 'undefined') {
+  const getRandomValues = (array) => {
+    const bytes = new Uint8Array(array.buffer, array.byteOffset, array.byteLength);
+    const hex = host.randomHex(bytes.length);
+    for (let i = 0; i < bytes.length; i++) bytes[i] = parseInt(hex.substr(i * 2, 2), 16);
+    return array;
+  };
+  const randomUUID = () => {
+    const bytes = getRandomValues(new Uint8Array(16));
+    bytes[6] = (bytes[6] & 0x0f) | 0x40;
+    bytes[8] = (bytes[8] & 0x3f) | 0x80;
+    const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+    return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+  };
+  globalThis.crypto = { getRandomValues, randomUUID };
 }
 
 // --- structuredClone ---------------------------------------------------------------------------

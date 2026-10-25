@@ -1,0 +1,11 @@
+type: object
+required: [id, name]
+properties:
+  id:
+    type: string
+    examples: [p-1]
+  name:
+    type: string
+    examples: [Rex]
+  tag:
+    type: string

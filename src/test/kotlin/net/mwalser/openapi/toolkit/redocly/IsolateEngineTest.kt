@@ -28,7 +28,7 @@ class IsolateEngineTest {
             assertEquals(0, deepResult.totals.errors, deepResult.apis.single().problems.toString())
             // the second bundle (Redoc with React) is evaluated into the isolate on first use
             val docs = redocly.buildDocs(BuildDocsOptions(cwd = project.toString(), configPath = project.resolve("redocly.yaml").toString(), outputDirectory = "docs"))
-            assertContains(Files.readString(Path.of(docs.apis.single().outputFile)), "Redoc.hydrate(__redoc_state, container);")
+            assertContains(Files.readString(Path.of(docs.apis.single().outputFile)), "hydrate(__redoc_definition, __redoc_options, document.getElementById('redoc'));")
         }
         RedoclyRuntime.create(EngineMode.AUTO).use { runtime ->
             val expected = if (Engine.supportsCompilation()) RedoclyRuntime.EffectiveEngine.JIT else RedoclyRuntime.EffectiveEngine.ISOLATE

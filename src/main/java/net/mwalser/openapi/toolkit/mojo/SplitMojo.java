@@ -23,6 +23,14 @@ public final class SplitMojo extends AbstractRedoclyMojo {
     @Parameter(property = "openapi.toolkit.split.separator", defaultValue = "_")
     String separator = "_";
 
+    /**
+     * How names that differ only by case, such as {@code User} and {@code user}, are handled, since they would share
+     * one file on a case-insensitive file system: {@code warn} reports them and saves the later ones with a numbered
+     * suffix ({@code user-2.yaml}), {@code off} does the same silently, {@code error} fails without writing files.
+     */
+    @Parameter(property = "openapi.toolkit.split.fileNameConflictsSeverity", defaultValue = "warn")
+    String fileNameConflictsSeverity = "warn";
+
     /** Skip this goal only; {@code openapi.toolkit.skip} skips every goal of the plugin. */
     @Parameter(property = "openapi.toolkit.split.skip", defaultValue = "false")
     boolean skipSplit;

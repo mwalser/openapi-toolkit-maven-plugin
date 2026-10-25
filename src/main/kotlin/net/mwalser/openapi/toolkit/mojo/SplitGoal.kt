@@ -11,12 +11,20 @@ internal class SplitGoal(mojo: SplitMojo) : Goal<SplitMojo>(mojo) {
     override fun validate() {
         super.validate()
         if (mojo.separator.isNullOrBlank()) throw MojoExecutionException("Invalid value for openapi.toolkit.split.separator; must not be blank")
+        requireOneOf("openapi.toolkit.split.fileNameConflictsSeverity", mojo.fileNameConflictsSeverity, SEVERITIES)
     }
 
     override fun run() {
         val result = redocly().split(
-            SplitOptions(cwd = jsCwd, api = JsPaths.toJs(mojo.api), outDir = jsPath(resolve(mojo.outputDirectory)), separator = mojo.separator),
+            SplitOptions(
+                cwd = jsCwd,
+                api = JsPaths.toJs(mojo.api),
+                outDir = jsPath(resolve(mojo.outputDirectory)),
+                separator = mojo.separator,
+                fileNameConflictsSeverity = mojo.fileNameConflictsSeverity,
+            ),
         )
+        MavenJsLog.problems(log, result.problems, MavenJsLog.Level.WARN)
         MavenJsLog.block(log, result.output, MavenJsLog.Level.DEBUG) // upstream progress lines; the outcome is reported below
         log.info("Split ${display(result.api)} into ${display(result.outDir)}")
     }

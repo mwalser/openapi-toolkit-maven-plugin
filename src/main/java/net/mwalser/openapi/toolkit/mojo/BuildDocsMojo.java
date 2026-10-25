@@ -8,9 +8,10 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
 /**
- * Renders each API description as an HTML reference page with Redoc ({@code redocly build-docs}). The page is
- * pre-rendered and self-contained apart from the Redoc script, which it loads from Redocly's CDN, and the
- * Google Fonts stylesheet.
+ * Renders each API description (OpenAPI, Swagger 2, AsyncAPI or GraphQL) as an HTML reference page with Redoc 3
+ * ({@code redocly build-docs}), after bundling it with the configured decorators and preprocessors. The page is
+ * pre-rendered and loads the Redoc script from Redocly's CDN unless {@code inlineBundle} embeds it. Unlike the
+ * Redocly CLI, the pages send Redoc's telemetry from readers' browsers only when {@code telemetry} is set.
  */
 @Mojo(name = "build-docs", defaultPhase = LifecyclePhase.GENERATE_RESOURCES, threadSafe = true)
 public final class BuildDocsMojo extends AbstractApiMojo {
@@ -27,15 +28,10 @@ public final class BuildDocsMojo extends AbstractApiMojo {
     @Parameter(property = "openapi.toolkit.buildDocs.title")
     String title;
 
-    /** Leave out the link to the Google Fonts stylesheet; the page then renders in the viewer's fallback fonts. */
-    @Parameter(property = "openapi.toolkit.buildDocs.disableGoogleFont", defaultValue = "false")
-    boolean disableGoogleFont;
-
     /**
      * Handlebars template of the page instead of the built-in one (or instead of {@code htmlTemplate} from the
      * {@code openapi} section of the configuration file). It receives {@code title}, {@code redocHead} and
-     * {@code redocHTML} (both to be inserted unescaped, with triple braces), {@code disableGoogleFont} for the
-     * template's own font link, and {@code templateOptions}.
+     * {@code redocHTML} (both to be inserted unescaped, with triple braces), and {@code templateOptions}.
      */
     @Parameter(property = "openapi.toolkit.buildDocs.template")
     File template;
@@ -45,13 +41,25 @@ public final class BuildDocsMojo extends AbstractApiMojo {
     Map<String, String> templateOptions = new LinkedHashMap<>();
 
     /**
-     * Redoc options such as {@code hideDownloadButton} or {@code expandResponses}. They override the options of the
-     * {@code openapi} section of the configuration file top-level option by top-level option: a {@code theme}
-     * given here replaces the configured {@code theme} as a whole. Values are strings; nested options such as
-     * {@code theme} are given as JSON.
+     * Redoc options such as {@code hideDownloadButtons} or {@code jsonSamplesDepth}. They override the options of
+     * the configuration file section that matches the description's type ({@code openapi}, {@code asyncapi} or
+     * {@code graphql}) top-level option by top-level option: a nested option given here replaces the configured one
+     * as a whole. Values are strings; nested options are given as JSON.
      */
     @Parameter
     Map<String, String> redocOptions = new LinkedHashMap<>();
+
+    /** Embed the Redoc script (about 2.2 MB) in each page instead of loading it from Redocly's CDN. */
+    @Parameter(property = "openapi.toolkit.buildDocs.inlineBundle", defaultValue = "false")
+    boolean inlineBundle;
+
+    /**
+     * Let the pages send <a href="https://redocly.com/docs/redoc/telemetry">Redoc telemetry</a> from readers'
+     * browsers. {@code telemetry: off} in the configuration file or the environment variable
+     * {@code REDOCLY_TELEMETRY=off} keep it off even when this is set.
+     */
+    @Parameter(property = "openapi.toolkit.buildDocs.telemetry", defaultValue = "false")
+    boolean telemetry;
 
     /**
      * Add the pages as project resources, packaged under their file names at the root of the JAR or under

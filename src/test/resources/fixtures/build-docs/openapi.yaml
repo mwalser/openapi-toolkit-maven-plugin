@@ -1,0 +1,51 @@
+openapi: 3.1.0
+info:
+  title: Pets
+  version: 1.0.0
+  description: A small multi-file description.
+servers:
+  - url: https://pets.example.test/v1
+paths:
+  /pets:
+    get:
+      operationId: listPets
+      summary: List pets
+      tags: [pets]
+      responses:
+        '200':
+          description: The pets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: ./schemas/pet.yaml
+  /pets/{petId}:
+    get:
+      operationId: getPet
+      summary: Get a pet
+      tags: [pets]
+      parameters:
+        - name: petId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The pet
+          content:
+            application/json:
+              schema:
+                $ref: ./schemas/pet.yaml
+  /admin/reindex:
+    post:
+      operationId: reindexPets
+      summary: Rebuild the search index
+      x-internal: true
+      responses:
+        '204':
+          description: Done
+tags:
+  - name: pets
+    description: Everything about pets

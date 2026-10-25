@@ -1,0 +1,20 @@
+extends:
+  - minimal
+apis:
+  pets:
+    root: openapi.yaml
+    decorators:
+      remove-x-internal: on
+  legacy:
+    root: swagger.json
+  events:
+    root: asyncapi.yaml
+  schema:
+    root: schema.graphql
+openapi:
+  hideDownloadButtons: true
+  hideSchemaTitles: true
+asyncapi:
+  jsonSamplesDepth: 4
+graphql:
+  showBuiltInScalars: true

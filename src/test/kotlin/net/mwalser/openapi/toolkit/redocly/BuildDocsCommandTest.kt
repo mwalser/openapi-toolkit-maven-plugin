@@ -7,17 +7,19 @@ import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.StandardCopyOption
+import java.security.MessageDigest
 import kotlin.io.path.readBytes
+import kotlin.io.path.readLines
 import kotlin.io.path.readText
 import kotlin.test.assertContains
-import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
-/** The build-docs command: Redoc's server-side rendering inside the plugin's context. */
+/** The build-docs command: Redoc 3's server-side rendering inside the plugin's context. */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class BuildDocsCommandTest {
 
@@ -36,8 +38,41 @@ class BuildDocsCommandTest {
     private fun options(project: Path, vararg apis: String, configure: BuildDocsOptions.() -> BuildDocsOptions = { this }) =
         BuildDocsOptions(cwd = project.js, configPath = project.resolve("redocly.yaml").js, apis = apis.toList(), outputDirectory = "docs").configure()
 
+    private fun page(result: BuildDocsResult) = hostPath(result.apis.single().outputFile).readText()
+
+    /**
+     * The fixture's `expected-pages.sha256` holds the pages `redocly build-docs` renders with telemetry off
+     * (`scripts/build-docs-expected.sh`). They are rendered one after another in the shared context, with a failed
+     * render in between, since Redoc keeps state in modules: every page must come out as from a fresh CLI process.
+     */
     @Test
-    fun `renders a page per api that hydrates from the cdn, and leaves the context fit for other goals`(@TempDir dir: Path) {
+    fun `pages are identical to the Redocly CLI's, also after earlier and failed renders`(@TempDir dir: Path) {
+        val project = fixture("build-docs", dir)
+        val expected = project.resolve("expected-pages.sha256").readLines().filter { it.isNotBlank() }
+            .associate { line -> line.substringAfter("  ") to line.substringBefore("  ") }
+
+        val result = redocly().buildDocs(options(project))
+        assertEquals(listOf("pets", "legacy", "events", "schema"), result.apis.map { it.alias })
+        assertEquals(listOf("openapi", "openapi", "asyncapi", "graphql"), result.apis.map { it.specType })
+        assertEquals(listOf("Pets", "Legacy Pets", "Pet Events", "ReDoc documentation"), result.apis.map { it.title })
+        Files.writeString(project.resolve("invalid.yaml"), "openapi: 3.1.0\ninfo: {title: [unclosed\n")
+        assertFailsWith<RedoclyException> { redocly().buildDocs(options(project, "invalid.yaml")) }
+        redocly().buildDocs(options(project, "pets") { copy(outputFile = "docs/pets-inline.html", inlineBundle = true) })
+
+        val pages = expected.keys.associateWith { project.resolve("docs/$it") }
+        val actual = pages.mapValues { (_, page) -> sha256(page.readBytes()) }
+        if (actual != expected) {
+            val kept = Files.createDirectories(Path.of("target/build-docs-pages"))
+            pages.values.forEach { Files.copy(it, kept.resolve(it.fileName), StandardCopyOption.REPLACE_EXISTING) }
+            assertEquals(expected, actual, "pages differ from the CLI's; compare $kept with the output of scripts/build-docs-expected.sh")
+        }
+        assertFalse(pages.getValue("pets.html").readText().contains("reindexPets"), "the remove-x-internal decorator applies")
+    }
+
+    private fun sha256(bytes: ByteArray) = MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }
+
+    @Test
+    fun `renders a page that hydrates from the cdn, and leaves the context fit for other goals`(@TempDir dir: Path) {
         val project = fixture("petstore", dir)
         val result = redocly().buildDocs(options(project))
         val api = result.apis.single()
@@ -45,68 +80,46 @@ class BuildDocsCommandTest {
         assertEquals(project.resolve("openapi.yaml").js, api.path)
         assertEquals(project.resolve("docs/petstore.html").js, api.outputFile)
         assertEquals("Petstore", api.title)
+        assertEquals("openapi", api.specType)
         assertTrue(api.durationMillis > 0)
-        assertTrue(result.redocVersion.matches(Regex("""\d+\.\d+\.\d+""")), result.redocVersion)
+        assertTrue(result.redocVersion.matches(Regex("""3\.\d+\.\d+""")), result.redocVersion)
 
-        val page = hostPath(api.outputFile).readText()
+        val page = page(result)
         assertContains(page, "<title>Petstore</title>")
-        assertContains(page, """<script src="https://cdn.redocly.com/redoc/v${result.redocVersion}/bundles/redoc.standalone.js" integrity="sha384-""")
-        assertContains(page, "fonts.googleapis.com")
+        val script = "https://cdn.redocly.com/redoc/v${result.redocVersion}/bundles/redoc.standalone.js"
+        assertContains(page, """<link rel="modulepreload" href="$script" integrity="sha384-""")
+        assertContains(page, """import { hydrate } from "$script";""")
         assertContains(page, """<div id="redoc">""")
-        assertContains(page, "Redoc.hydrate(__redoc_state, container);")
-        assertContains(page, "List pets") // pre-rendered reference, not just the state
-        assertContains(page, "/pets/{petId}")
-        assertContains(page, """"operationId":"getPet"""") // the state the page hydrates from
+        assertContains(page, "List pets") // pre-rendered reference, not just the definition
+        assertContains(page, """"operationId":"getPet"""") // the definition the page hydrates from
 
         // the globals the docs bundle installs leave the other commands untouched
         val lint = redocly().lint(LintOptions(cwd = project.js, configPath = project.resolve("redocly.yaml").js))
         assertEquals(1, lint.apis.size)
     }
 
-    /** Redoc keeps page state in module singletons; the shared runtime renders many pages, also after failures. */
+    /** Unlike the CLI, the pages send Redoc telemetry only when asked to; the CLI's switches still turn it off. */
     @Test
-    fun `pages inherit nothing from earlier renders, failed ones included`(@TempDir dir: Path) {
-        val petstore = fixture("petstore", dir.resolve("petstore"))
-        val petstore3 = fixture("petstore3", dir.resolve("petstore3"))
-        fun render(project: Path, api: String) =
-            hostPath(redocly().buildDocs(BuildDocsOptions(cwd = project.js, apis = listOf(api), outputDirectory = "docs")).apis.single().outputFile).readBytes()
+    fun `sends telemetry only when it is turned on and not turned off in the configuration`(@TempDir dir: Path) {
+        val project = fixture("petstore", dir)
+        fun telemetryDisabled(page: String) = Regex(""""disableTelemetry":(true|false)""").find(page)!!.groupValues[1].toBoolean()
 
-        val first = render(petstore, "openapi.yaml")
-        val state = searchIndex(String(render(petstore3, "openapi.json")))
-        val store = state["store"] as List<*>
-        assertTrue(store.any { it.toString().contains("addPet") }, store.toString())
-        assertFalse(store.any { it.toString().contains("listPets") }, "search entries of the previous page: $store")
-        @Suppress("UNCHECKED_CAST")
-        val indexed = ((state["index"] as Map<String, Any?>)["fieldVectors"] as List<List<Any?>>).map { it[0].toString().substringAfter('/') }.toSet()
-        assertEquals(store.size, indexed.size, "every search entry is indexed once")
-        assertContentEquals(first, render(petstore, "openapi.yaml"))
-
-        val broken = fixture("broken", dir.resolve("broken"))
-        val failure = assertFailsWith<RedoclyException> { render(broken, "openapi.yaml") }
-        assertContains(failure.message!!, "Could not build the documentation for openapi.yaml")
-        assertContentEquals(first, render(petstore, "openapi.yaml"))
+        assertTrue(telemetryDisabled(page(redocly().buildDocs(options(project)))))
+        assertFalse(telemetryDisabled(page(redocly().buildDocs(options(project) { copy(telemetry = true) }))))
+        Files.writeString(project.resolve("redocly.yaml"), Files.readString(project.resolve("redocly.yaml")) + "telemetry: off\n")
+        assertTrue(telemetryDisabled(page(redocly().buildDocs(options(project) { copy(telemetry = true) }))))
     }
 
     @Test
-    fun `takes the template from the configuration and renders without a search index`(@TempDir dir: Path) {
+    fun `takes the template from the configuration`(@TempDir dir: Path) {
         val project = fixture("petstore", dir)
         Files.writeString(
             project.resolve("redocly.yaml"),
-            "extends: [minimal]\napis:\n  petstore:\n    root: openapi.yaml\nopenapi:\n  disableSearch: true\n  htmlTemplate: templates/page.hbs\n",
+            "extends: [minimal]\napis:\n  petstore:\n    root: openapi.yaml\nopenapi:\n  htmlTemplate: templates/page.hbs\n",
         )
         Files.createDirectories(project.resolve("templates"))
         Files.writeString(project.resolve("templates/page.hbs"), "<!DOCTYPE html>\n<html><head><title>{{title}}</title>{{{redocHead}}}</head><body><!-- from redocly.yaml -->{{{redocHTML}}}</body></html>\n")
-        val page = hostPath(redocly().buildDocs(options(project)).apis.single().outputFile).readText()
-        assertContains(page, "<!-- from redocly.yaml -->")
-        assertFalse(page.contains("searchIndex"), "disableSearch leaves the index out of the state")
-    }
-
-    /** The `__redoc_state` the page hydrates from, reduced to its search index. */
-    @Suppress("UNCHECKED_CAST")
-    private fun searchIndex(page: String): Map<String, Any?> {
-        val json = Regex("const __redoc_state = (.*?);\n", RegexOption.DOT_MATCHES_ALL).find(page)!!.groupValues[1]
-        val state = Json.mapper.readValue(json, Map::class.java) as Map<String, Any?>
-        return state["searchIndex"] as Map<String, Any?>
+        assertContains(page(redocly().buildDocs(options(project))), "<!-- from redocly.yaml -->")
     }
 
     @Test
@@ -114,65 +127,33 @@ class BuildDocsCommandTest {
         val project = fixture("petstore", dir)
         Files.writeString(
             project.resolve("redocly.yaml"),
-            "extends: [minimal]\napis:\n  petstore:\n    root: openapi.yaml\nopenapi:\n  hideDownloadButton: true\n  expandResponses: all\n",
+            "extends: [minimal]\napis:\n  petstore:\n    root: openapi.yaml\nopenapi:\n  hideDownloadButtons: true\n  jsonSamplesExpandLevel: 3\n",
         )
         val template = Files.writeString(
             project.resolve("page.hbs"),
             "<!DOCTYPE html>\n<html><head><title>{{title}}</title>{{{redocHead}}}</head>\n" +
-                "<body><h1>{{templateOptions.company}} reference{{#if disableGoogleFont}} (system fonts){{/if}}</h1>{{{redocHTML}}}</body></html>\n",
+                "<body><h1>{{templateOptions.company}} reference</h1>{{{redocHTML}}}</body></html>\n",
         )
         val result = redocly().buildDocs(
             options(project, "petstore") {
                 copy(
                     outputFile = "site/reference.html",
                     title = "Pets API",
-                    disableGoogleFont = true,
                     template = template.js,
                     templateOptions = mapOf("company" to "ACME"),
-                    redocOptions = mapOf("expandResponses" to "200", "theme" to """{"colors":{"primary":{"main":"#ff0000"}}}"""),
+                    redocOptions = mapOf("jsonSamplesExpandLevel" to "all", "downloadUrls" to """[{"title":"YAML","url":"openapi.yaml"}]"""),
                 )
             },
         )
         val api = result.apis.single()
         assertEquals(project.resolve("site/reference.html").js, api.outputFile)
         assertEquals("Pets API", api.title)
-        val page = hostPath(api.outputFile).readText()
+        val page = page(result)
         assertContains(page, "<title>Pets API</title>")
-        assertContains(page, "<h1>ACME reference (system fonts)</h1>")
-        assertFalse(page.contains("fonts.googleapis.com"), "Google Fonts link should be left out")
-        assertContains(page, """"hideDownloadButton":true""") // from redocly.yaml
-        assertContains(page, """"expandResponses":"200"""") // the Maven parameter wins over redocly.yaml
-        assertContains(page, "#ff0000") // nested option given as JSON
-    }
-
-    @Test
-    fun `converts swagger 2 before rendering`(@TempDir dir: Path) {
-        Files.writeString(
-            dir.resolve("swagger.json"),
-            """
-            {
-              "swagger": "2.0",
-              "info": { "title": "Legacy Pets", "version": "1.0" },
-              "host": "example.com",
-              "basePath": "/v1",
-              "schemes": ["https"],
-              "paths": {
-                "/pets": {
-                  "get": {
-                    "summary": "List pets",
-                    "produces": ["application/json"],
-                    "responses": { "200": { "description": "ok", "schema": { "type": "array", "items": { "${'$'}ref": "#/definitions/Pet" } } } }
-                  }
-                }
-              },
-              "definitions": { "Pet": { "type": "object", "properties": { "name": { "type": "string" } } } }
-            }
-            """.trimIndent(),
-        )
-        val result = redocly().buildDocs(BuildDocsOptions(cwd = dir.js, apis = listOf("swagger.json"), outputDirectory = "docs"))
-        val page = hostPath(result.apis.single().outputFile).readText()
-        assertContains(page, "<title>Legacy Pets</title>")
-        assertContains(page, """"openapi":"3.0.0"""")
+        assertContains(page, "<h1>ACME reference</h1>")
+        assertContains(page, """"hideDownloadButtons":true""") // from redocly.yaml
+        assertContains(page, """"jsonSamplesExpandLevel":"all"""") // the Maven parameter wins over redocly.yaml
+        assertContains(page, """"downloadUrls":[{"title":"YAML","url":"openapi.yaml"}]""") // nested option given as JSON
     }
 
     @Test
@@ -186,15 +167,24 @@ class BuildDocsCommandTest {
         val missing = assertFailsWith<RedoclyException> { redocly().buildDocs(options(project, "nope.yaml")) }
         assertContains(missing.message!!, "API description not found: nope.yaml (not an alias in the configuration file (known: one, two) and not an existing file)")
 
-        val badJson = assertFailsWith<RedoclyException> { redocly().buildDocs(options(project, "one") { copy(redocOptions = mapOf("theme" to "{oops")) }) }
-        assertContains(badJson.message!!, "Invalid JSON in the build-docs parameter redocOptions, option 'theme'")
-
-        val broken = fixture("broken", dir.resolve("broken"))
-        val unreadable = assertFailsWith<RedoclyException> {
-            redocly().buildDocs(BuildDocsOptions(cwd = broken.js, apis = listOf("missing-file.yaml"), outputDirectory = "docs"))
-        }
-        assertContains(unreadable.message!!, "API description not found")
+        val badJson = assertFailsWith<RedoclyException> { redocly().buildDocs(options(project, "one") { copy(redocOptions = mapOf("downloadUrls" to "[oops")) }) }
+        assertContains(badJson.message!!, "Invalid JSON in the build-docs parameter redocOptions, option 'downloadUrls'")
         assertFalse(Files.exists(project.resolve("docs")), "nothing is written when the input is rejected")
+    }
+
+    @Test
+    fun `names the description that could not be rendered`(@TempDir dir: Path) {
+        Files.writeString(dir.resolve("invalid.yaml"), "openapi: 3.1.0\ninfo: {title: [unclosed\n")
+        val invalid = assertFailsWith<RedoclyException> { redocly().buildDocs(BuildDocsOptions(cwd = dir.js, apis = listOf("invalid.yaml"), outputDirectory = "docs")) }
+        assertContains(invalid.message!!, "Could not build the documentation for invalid.yaml")
+
+        Files.writeString(
+            dir.resolve("workflow.yaml"),
+            "arazzo: 1.0.1\ninfo: {title: Flows, version: '1'}\nsourceDescriptions: [{name: api, url: openapi.yaml, type: openapi}]\nworkflows: []\n",
+        )
+        val arazzo = assertFailsWith<RedoclyException> { redocly().buildDocs(BuildDocsOptions(cwd = dir.js, apis = listOf("workflow.yaml"), outputDirectory = "docs")) }
+        assertContains(arazzo.message!!, "build-docs renders OpenAPI, AsyncAPI, and GraphQL. This file is Arazzo.")
+        assertFalse(Files.exists(dir.resolve("docs")))
     }
 
     @Test

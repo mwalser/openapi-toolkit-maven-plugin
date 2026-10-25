@@ -31,11 +31,10 @@ const docs = await build({
   entry: 'src/docs.js',
   outfile: docsFile,
   alias: {
-    // The Node library build: server-side rendering needs it; the `browser` field names the build for pages.
-    // Absolute paths, because esbuild applies a package's `browser` field remapping to relative alias targets.
-    redoc: path.resolve('node_modules/redoc/bundles/redoc.lib.js'),
     // the server build; the browser build inserts its styles into a document
     'styled-components': path.resolve('node_modules/styled-components/dist/styled-components.esm.js'),
+    // its package exports only name the development build
+    'react-router': path.resolve('node_modules/react-router/dist/production/index.mjs'),
     http: './src/shims/empty.js',
     https: './src/shims/empty.js',
     os: './src/shims/empty.js',
@@ -43,10 +42,12 @@ const docs = await build({
     'node:stream': './src/shims/stream.js',
   },
   define: { __REDOC_VERSION__: JSON.stringify(redocVersion), __REDOC_STANDALONE_SRI__: JSON.stringify(redocStandaloneSri) },
+  // the page script that `inlineBundle` embeds instead of loading it from the CDN
+  loader: { '.standalone.js': 'text' },
 });
 writeFileSync(noticesFile, thirdPartyNotices([core.metafile, docs.metafile]));
 
-async function build({ entry, outfile, alias = {}, define = {} }) {
+async function build({ entry, outfile, alias = {}, define = {}, loader = {} }) {
   const result = await esbuild.build({
     entryPoints: [entry],
     bundle: true,
@@ -58,6 +59,7 @@ async function build({ entry, outfile, alias = {}, define = {} }) {
     logLevel: 'info',
     metafile: true,
     legalComments: 'none', // every license is reproduced in THIRD-PARTY-NOTICES.txt instead
+    loader,
     plugins: [browserEnvWithHostVariables()],
     alias: {
       'node:fs': './src/shims/fs.js',

@@ -20,7 +20,9 @@ import java.nio.file.Files
 import java.nio.file.NoSuchFileException
 import java.nio.file.NotDirectoryException
 import java.nio.file.Path
+import java.security.SecureRandom
 import java.time.Duration
+import java.util.HexFormat
 import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.name
 
@@ -42,6 +44,8 @@ internal class HostBridge {
 
     private var httpClient: HttpClient? = null
 
+    private val random by lazy { SecureRandom() }
+
     fun asProxy(): ProxyObject = ProxyObject.fromMap(
         mapOf<String, Any>(
             "cwd" to function { JsPaths.toJs(workingDirectory) },
@@ -55,6 +59,7 @@ internal class HostBridge {
             "readdir" to function { args -> readdir(path(args[0])) },
             "writeFile" to action { args -> writeFile(path(args[0]), args[1].asString()) },
             "mkdirs" to action { args -> Files.createDirectories(path(args[0])) },
+            "randomHex" to function { args -> randomHex(args[0].asInt()) },
         ),
     )
 
@@ -71,6 +76,9 @@ internal class HostBridge {
     }
 
     private fun path(value: Value): Path = workingDirectory.resolve(JsPaths.toHostPath(value.asString())).normalize()
+
+    /** [byteCount] random bytes as hex digits, for `crypto.getRandomValues` (Redoc's search session and telemetry ids). */
+    private fun randomHex(byteCount: Int): String = HexFormat.of().formatHex(ByteArray(byteCount).also(random::nextBytes))
 
     private fun log(level: String, message: String) = when (level) {
         "output" -> log.output(message)

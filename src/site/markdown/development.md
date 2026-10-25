@@ -15,7 +15,7 @@ on Temurin and GraalVM, and rebuilds the embedded bundles to compare them with t
 ## Implementation
 
 The plugin embeds `@redocly/openapi-core` and selected `@redocly/cli` commands as a JavaScript bundle executed
-by GraalJS. build-docs adds a second bundle with Redoc and React that is evaluated when the goal first runs,
+by GraalJS. build-docs adds a second bundle with Redoc 3 and React that is evaluated when the goal first runs,
 so the other goals start as fast as before. The embedded Redocly version is set by `redocly.version` in [pom.xml](https://github.com/mwalser/openapi-toolkit-maven-plugin/blob/main/pom.xml),
 GraalJS by `graalvm.version`, Redoc by `redoc` in `js/package.json`; a GraalJS upgrade also updates the JDK range of the native isolate on the
 [performance](performance.html) page.

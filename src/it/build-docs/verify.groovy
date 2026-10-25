@@ -6,9 +6,10 @@ assert log.contains('BUILD SUCCESS')
 def page = new File(basedir, 'target/generated-resources/redoc/petstore.html').text
 assert page.contains('<title>Petstore reference</title>')
 assert page.contains('<div id="redoc">')
-assert page.contains('Redoc.hydrate(__redoc_state, container);')
-assert page.contains('"hideDownloadButton":true') // from redocly.yaml
-assert page.contains('"expandResponses":"all"')   // from the POM
+assert page.contains("hydrate(__redoc_definition, __redoc_options, document.getElementById('redoc'));")
+assert page.contains('"hideDownloadButtons":true')       // from redocly.yaml
+assert page.contains('"jsonSamplesExpandLevel":"all"')   // from the POM
+assert page.contains('"disableTelemetry":true')          // telemetry is opt-in
 assert page.contains('List pets')
 
 // addResource=true: the page ends up at the root of the jar

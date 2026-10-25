@@ -1,0 +1,18 @@
+{
+  "swagger": "2.0",
+  "info": { "title": "Legacy Pets", "version": "1.0" },
+  "host": "example.com",
+  "basePath": "/v1",
+  "schemes": ["https"],
+  "paths": {
+    "/pets": {
+      "get": {
+        "operationId": "listLegacyPets",
+        "summary": "List pets",
+        "produces": ["application/json"],
+        "responses": { "200": { "description": "ok", "schema": { "type": "array", "items": { "$ref": "#/definitions/Pet" } } } }
+      }
+    }
+  },
+  "definitions": { "Pet": { "type": "object", "properties": { "name": { "type": "string" } } } }
+}

@@ -1,0 +1,16 @@
+"""A pet in the shelter."""
+type Pet {
+  id: ID!
+  name: String!
+  tag: String
+}
+
+type Query {
+  """All pets, optionally filtered by tag."""
+  pets(tag: String): [Pet!]!
+  pet(id: ID!): Pet
+}
+
+type Mutation {
+  adoptPet(id: ID!): Pet
+}

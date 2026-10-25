@@ -199,9 +199,17 @@ data class JoinResult(
 
 // ---- split --------------------------------------------------------------------------------------
 
-data class SplitOptions(override val cwd: String, val api: String, val outDir: String, val separator: String = "_") : CommandOptions
+data class SplitOptions(
+    override val cwd: String,
+    val api: String,
+    val outDir: String,
+    val separator: String = "_",
+    /** How names that differ only by case are reported: `warn` (a numbered file name), `error` (nothing is written) or `off`. */
+    val fileNameConflictsSeverity: String = "warn",
+) : CommandOptions
 
-data class SplitResult(val api: String, val outDir: String, val output: String = "")
+/** [problems] holds the reported file name conflicts (codeframe format), [output] the command's progress lines. */
+data class SplitResult(val api: String, val outDir: String, val output: String = "", val problems: String = "")
 
 // ---- build-docs ---------------------------------------------------------------------------------
 
@@ -212,12 +220,18 @@ data class BuildDocsOptions(
     val outputDirectory: String,
     val outputFile: String? = null,
     val title: String? = null,
-    val disableGoogleFont: Boolean = false,
     /** Handlebars template of the page; the built-in one when null. */
     val template: String? = null,
     val templateOptions: Map<String, String> = emptyMap(),
-    /** Redoc options, merged over the `openapi` section of the configuration file; JSON values are parsed. */
+    /**
+     * Redoc options, merged over the section of the configuration file that matches the description's type
+     * (`openapi`, `asyncapi` or `graphql`); JSON values are parsed.
+     */
     val redocOptions: Map<String, String> = emptyMap(),
+    /** Embed Redoc's page script instead of loading it from Redocly's CDN. */
+    val inlineBundle: Boolean = false,
+    /** Let the page send Redoc telemetry from readers' browsers; `telemetry: off` or `REDOCLY_TELEMETRY=off` still turn it off. */
+    val telemetry: Boolean = false,
     val lintConfig: String = "warn",
     val maxProblems: Int = 100,
 ) : CommandOptions
@@ -228,6 +242,8 @@ data class ApiBuildDocsResult(
     val outputFile: String,
     /** The title the page ended up with. */
     val title: String,
+    /** The configuration section the Redoc options came from: `openapi`, `asyncapi` or `graphql`. */
+    val specType: String,
     val durationMillis: Long = 0,
 )
 

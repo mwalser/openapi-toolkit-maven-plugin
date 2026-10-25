@@ -1,0 +1,30 @@
+asyncapi: 3.0.0
+info:
+  title: Pet Events
+  version: 1.0.0
+defaultContentType: application/json
+servers:
+  broker:
+    host: broker.example.test
+    protocol: kafka
+channels:
+  petAdopted:
+    address: pets.adopted
+    messages:
+      petAdopted:
+        name: PetAdopted
+        title: A pet was adopted
+        payload:
+          type: object
+          properties:
+            petId:
+              type: string
+            adoptedAt:
+              type: string
+              format: date-time
+operations:
+  onPetAdopted:
+    action: receive
+    channel:
+      $ref: '#/channels/petAdopted'
+    summary: Notifies about adoptions

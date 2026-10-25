@@ -18,16 +18,18 @@ bundled package; CI rebuilds all three files and fails when they differ from the
 - `src/host.js` – access to the host object `globalThis.__jvm` installed by `HostBridge.kt`, and the
   conversion of host failures into Node-style errors (`ENOENT: …`, `error.code`).
 - `src/polyfills.js` – globals GraalJS lacks (`process`, `console`, timers, `structuredClone`, `URL`, `fetch`, and
-  the `global`, `MessageChannel` and `TextEncoder` that Redoc's server-side rendering reaches).
+  the `global`, `MessageChannel`, `TextEncoder` and `crypto` that Redoc's server-side rendering reaches; `crypto`
+  takes its bytes from the host's `SecureRandom`).
 - `src/shims/` – replacements for Node built-ins (`fs`, `process`, `perf_hooks`, `stream`) and `colorette`.
 - `src/api/` – the command layer (`lint`, `bundle`, `check-config`, `stats`, `join`, `split`, `score`,
   `build-docs`) mirroring `packages/cli/src/commands` of redocly-cli; every command takes plain options and returns
   JSON-serializable data.
-- `src/docs.js`, `src/docs/render.js` – the entry of `redocly-docs.mjs` and the port of build-docs' rendering:
-  Redoc's loader, React's `renderToString` with styled-components, and the Handlebars page template. It is built
-  from Redoc's Node library (`redoc.lib.js`) and styled-components' server build; the Redoc version and the
-  integrity hash of the CDN script are computed at build time.
-- `vendor/redocly-cli/` – command sources from the `@redocly/cli` 2.57.0 release (MIT) for
+- `src/docs.js`, `src/docs/render.js` – the entry of `redocly-docs.mjs` and the port of the rendering half of
+  build-docs (`utils.ts`): Redoc 3's `prepareApiDocs`, React's `renderToString` with styled-components, and the
+  Handlebars page template. Loading, bundling and the Swagger 2 conversion happen in `src/api/build-docs.js`. It is
+  built from styled-components' server build and react-router's production build; the Redoc version, the integrity
+  hash of the CDN script and the script itself (for `inlineBundle`) are embedded at build time.
+- `vendor/redocly-cli/` – command sources from the `@redocly/cli` 2.71.0 release (MIT) for
   stats/join/split/score, compiled by esbuild from TypeScript. `types.ts`, `wrapper.ts` and
   `utils/miscellaneous.ts` are plugin-authored compatibility replacements;
   the remaining files track the matching upstream release. The only edit to an upstream file is marked with
@@ -37,4 +39,6 @@ Upgrading Redocly: bump `@redocly/openapi-core` in `package.json`, refresh `vend
 matching `@redocly/cli` tag (and the release named above), rebuild, run `mvn verify -Prun-its`, and update
 `redocly.version` in `pom.xml`.
 Upgrading Redoc: bump `redoc` in `package.json` (an exact version: the page loads `redoc.standalone.js` of the same
-version from the CDN) and rebuild; the Redocly CLI pins the Redoc it ships in `packages/cli/package.json`.
+version from the CDN) and rebuild; the Redocly CLI pins the Redoc it ships, and the styled-components version, in
+`packages/cli/package.json`. After either upgrade, `scripts/build-docs-expected.sh` records the pages of the matching
+CLI, which `BuildDocsCommandTest` requires the goal to reproduce byte for byte.
