@@ -215,9 +215,9 @@ var require_block_helper_missing = __commonJS({
           }
         } else {
           if (options.data && options.ids) {
-            var data2 = _utils.createFrame(options.data);
-            data2.contextPath = _utils.appendContextPath(options.data.contextPath, options.name);
-            options = { data: data2 };
+            var data = _utils.createFrame(options.data);
+            data.contextPath = _utils.appendContextPath(options.data.contextPath, options.name);
+            options = { data };
           }
           return fn(context, options);
         }
@@ -252,7 +252,7 @@ var require_each = __commonJS({
         if (!options) {
           throw new _exception2["default"]("Must pass iterator to #each");
         }
-        var fn = options.fn, inverse = options.inverse, i2 = 0, ret = "", data2 = void 0, contextPath = void 0;
+        var fn = options.fn, inverse = options.inverse, i2 = 0, ret = "", data = void 0, contextPath = void 0;
         if (options.data && options.ids) {
           contextPath = _utils.appendContextPath(options.data.contextPath, options.ids[0]) + ".";
         }
@@ -260,20 +260,20 @@ var require_each = __commonJS({
           context = context.call(this);
         }
         if (options.data) {
-          data2 = _utils.createFrame(options.data);
+          data = _utils.createFrame(options.data);
         }
         function execIteration(field, index, last, value) {
-          if (data2) {
-            data2.key = field;
-            data2.index = index;
-            data2.first = index === 0;
-            data2.last = !!last;
+          if (data) {
+            data.key = field;
+            data.index = index;
+            data.first = index === 0;
+            data.last = !!last;
             if (contextPath) {
-              data2.contextPath = contextPath + field;
+              data.contextPath = contextPath + field;
             }
           }
           ret = ret + fn(value, {
-            data: data2,
+            data,
             blockParams: _utils.blockParams([value, field], [contextPath + field, null])
           });
         }
@@ -452,14 +452,14 @@ var require_with = __commonJS({
         }
         var fn = options.fn;
         if (!_utils.isEmpty(context)) {
-          var data2 = options.data;
+          var data = options.data;
           if (options.data && options.ids) {
-            data2 = _utils.createFrame(options.data);
-            data2.contextPath = _utils.appendContextPath(options.data.contextPath, options.ids[0]);
+            data = _utils.createFrame(options.data);
+            data.contextPath = _utils.appendContextPath(options.data.contextPath, options.ids[0]);
           }
           return fn(context, {
-            data: data2,
-            blockParams: _utils.blockParams([context], [data2 && data2.contextPath])
+            data,
+            blockParams: _utils.blockParams([context], [data && data.contextPath])
           });
         } else {
           return options.inverse(this);
@@ -945,16 +945,16 @@ var require_runtime = __commonJS({
           return ret2;
         },
         programs: [],
-        program: function program(i2, data2, declaredBlockParams, blockParams, depths) {
+        program: function program(i2, data, declaredBlockParams, blockParams, depths) {
           var programWrapper = this.programs[i2], fn = this.fn(i2);
-          if (data2 || depths || blockParams || declaredBlockParams) {
-            programWrapper = wrapProgram(this, i2, fn, data2, declaredBlockParams, blockParams, depths);
+          if (data || depths || blockParams || declaredBlockParams) {
+            programWrapper = wrapProgram(this, i2, fn, data, declaredBlockParams, blockParams, depths);
           } else if (!programWrapper) {
             programWrapper = this.programs[i2] = wrapProgram(this, i2, fn);
           }
           return programWrapper;
         },
-        data: function data2(value, depth) {
+        data: function data(value, depth) {
           while (value && depth--) {
             value = value._parent;
           }
@@ -974,10 +974,10 @@ var require_runtime = __commonJS({
       };
       function ret(context) {
         var options = arguments.length <= 1 || arguments[1] === void 0 ? {} : arguments[1];
-        var data2 = options.data;
+        var data = options.data;
         ret._setup(options);
         if (!options.partial && templateSpec.useData) {
-          data2 = initData(context, data2);
+          data = initData(context, data);
         }
         var depths = void 0, blockParams = templateSpec.useBlockParams ? [] : void 0;
         if (templateSpec.useDepths) {
@@ -988,9 +988,9 @@ var require_runtime = __commonJS({
           }
         }
         function main(context2) {
-          return "" + templateSpec.main(container, context2, container.helpers, container.partials, data2, blockParams, depths);
+          return "" + templateSpec.main(container, context2, container.helpers, container.partials, data, blockParams, depths);
         }
-        main = executeDecorators(templateSpec.main, main, container, options.depths || [], data2, blockParams);
+        main = executeDecorators(templateSpec.main, main, container, options.depths || [], data, blockParams);
         return main(context, options);
       }
       ret.isTop = true;
@@ -1019,27 +1019,27 @@ var require_runtime = __commonJS({
           container.hooks = options.hooks;
         }
       };
-      ret._child = function(i2, data2, blockParams, depths) {
+      ret._child = function(i2, data, blockParams, depths) {
         if (templateSpec.useBlockParams && !blockParams) {
           throw new _exception2["default"]("must pass block params");
         }
         if (templateSpec.useDepths && !depths) {
           throw new _exception2["default"]("must pass parent depths");
         }
-        return wrapProgram(container, i2, templateSpec[i2], data2, 0, blockParams, depths);
+        return wrapProgram(container, i2, templateSpec[i2], data, 0, blockParams, depths);
       };
       return ret;
     }
-    function wrapProgram(container, i2, fn, data2, declaredBlockParams, blockParams, depths) {
+    function wrapProgram(container, i2, fn, data, declaredBlockParams, blockParams, depths) {
       function prog(context) {
         var options = arguments.length <= 1 || arguments[1] === void 0 ? {} : arguments[1];
         var currentDepths = depths;
         if (depths && context != depths[0] && !(context === container.nullContext && depths[0] === null)) {
           currentDepths = [context].concat(depths);
         }
-        return fn(container, context, container.helpers, container.partials, options.data || data2, blockParams && [options.blockParams].concat(blockParams), currentDepths);
+        return fn(container, context, container.helpers, container.partials, options.data || data, blockParams && [options.blockParams].concat(blockParams), currentDepths);
       }
-      prog = executeDecorators(fn, prog, container, depths, data2, blockParams);
+      prog = executeDecorators(fn, prog, container, depths, data, blockParams);
       prog.program = i2;
       prog.depth = depths ? depths.length : 0;
       prog.blockParams = declaredBlockParams || 0;
@@ -1097,17 +1097,17 @@ var require_runtime = __commonJS({
         return obj[name];
       }
     }
-    function initData(context, data2) {
-      if (!data2 || !("root" in data2)) {
-        data2 = data2 ? _base.createFrame(data2) : {};
-        data2.root = context;
+    function initData(context, data) {
+      if (!data || !("root" in data)) {
+        data = data ? _base.createFrame(data) : {};
+        data.root = context;
       }
-      return data2;
+      return data;
     }
-    function executeDecorators(fn, prog, container, depths, data2, blockParams) {
+    function executeDecorators(fn, prog, container, depths, data, blockParams) {
       if (fn.decorator) {
         var props = {};
-        prog = fn.decorator(prog, props, container, depths && depths[0], data2, blockParams, depths);
+        prog = fn.decorator(prog, props, container, depths && depths[0], data, blockParams, depths);
         Utils.extend(prog, props);
       }
       return prog;
@@ -2291,9 +2291,9 @@ var require_helpers2 = __commonJS({
     function stripComment(comment2) {
       return comment2.replace(/^\{\{~?!-?-?/, "").replace(/-?-?~?\}\}$/, "");
     }
-    function preparePath(data2, parts, loc) {
+    function preparePath(data, parts, loc) {
       loc = this.locInfo(loc);
-      var original = data2 ? "@" : "", dig = [], depth = 0;
+      var original = data ? "@" : "", dig = [], depth = 0;
       for (var i2 = 0, l2 = parts.length; i2 < l2; i2++) {
         var part = parts[i2].part, isLiteral = parts[i2].original !== part;
         original += (parts[i2].separator || "") + part;
@@ -2309,7 +2309,7 @@ var require_helpers2 = __commonJS({
       }
       return {
         type: "PathExpression",
-        data: data2,
+        data,
         depth,
         parts: dig,
         original,
@@ -2888,11 +2888,11 @@ var require_compiler = __commonJS({
         }
         return compiled._setup(setupOptions);
       };
-      ret._child = function(i2, data2, blockParams, depths) {
+      ret._child = function(i2, data, blockParams, depths) {
         if (!compiled) {
           compiled = compileInput();
         }
-        return compiled._child(i2, data2, blockParams, depths);
+        return compiled._child(i2, data, blockParams, depths);
       };
       return ret;
     }
@@ -5870,26 +5870,26 @@ var require_react_production = __commonJS({
     };
     var assign2 = Object.assign;
     var emptyObject = {};
-    function Component5(props, context, updater) {
+    function Component4(props, context, updater) {
       this.props = props;
       this.context = context;
       this.refs = emptyObject;
       this.updater = updater || ReactNoopUpdateQueue;
     }
-    Component5.prototype.isReactComponent = {};
-    Component5.prototype.setState = function(partialState, callback) {
+    Component4.prototype.isReactComponent = {};
+    Component4.prototype.setState = function(partialState, callback) {
       if ("object" !== typeof partialState && "function" !== typeof partialState && null != partialState)
         throw Error(
           "takes an object of state variables to update or a function which returns an object of state variables."
         );
       this.updater.enqueueSetState(this, partialState, callback, "setState");
     };
-    Component5.prototype.forceUpdate = function(callback) {
+    Component4.prototype.forceUpdate = function(callback) {
       this.updater.enqueueForceUpdate(this, callback, "forceUpdate");
     };
     function ComponentDummy() {
     }
-    ComponentDummy.prototype = Component5.prototype;
+    ComponentDummy.prototype = Component4.prototype;
     function PureComponent(props, context, updater) {
       this.props = props;
       this.context = context;
@@ -5898,7 +5898,7 @@ var require_react_production = __commonJS({
     }
     var pureComponentPrototype = PureComponent.prototype = new ComponentDummy();
     pureComponentPrototype.constructor = PureComponent;
-    assign2(pureComponentPrototype, Component5.prototype);
+    assign2(pureComponentPrototype, Component4.prototype);
     pureComponentPrototype.isPureReactComponent = true;
     var isArrayImpl = Array.isArray;
     function noop() {
@@ -6123,7 +6123,7 @@ var require_react_production = __commonJS({
     };
     exports.Activity = REACT_ACTIVITY_TYPE;
     exports.Children = Children2;
-    exports.Component = Component5;
+    exports.Component = Component4;
     exports.Fragment = REACT_FRAGMENT_TYPE;
     exports.Profiler = REACT_PROFILER_TYPE;
     exports.PureComponent = PureComponent;
@@ -6302,7 +6302,7 @@ var require_react = __commonJS({
 var require_react_dom_production = __commonJS({
   "node_modules/react-dom/cjs/react-dom.production.js"(exports) {
     "use strict";
-    var React13 = require_react();
+    var React2 = require_react();
     function formatProdErrorMessage(code) {
       var url = "https://react.dev/errors/" + code;
       if (1 < arguments.length) {
@@ -6344,7 +6344,7 @@ var require_react_dom_production = __commonJS({
         implementation
       };
     }
-    var ReactSharedInternals = React13.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE;
+    var ReactSharedInternals = React2.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE;
     function getCrossOriginStringAs(as, input) {
       if ("font" === as) return "";
       if ("string" === typeof input)
@@ -6485,7 +6485,7 @@ var require_react_dom = __commonJS({
 var require_react_dom_server_legacy_browser_production = __commonJS({
   "node_modules/react-dom/cjs/react-dom-server-legacy.browser.production.js"(exports) {
     "use strict";
-    var React13 = require_react();
+    var React2 = require_react();
     var ReactDOM = require_react_dom();
     function formatProdErrorMessage(code) {
       var url = "https://react.dev/errors/" + code;
@@ -6697,7 +6697,7 @@ var require_react_dom_server_legacy_browser_production = __commonJS({
     function sanitizeURL(url) {
       return isJavaScriptProtocol.test("" + url) ? "javascript:throw new Error('React has blocked a javascript: URL as a security precaution.')" : url;
     }
-    var ReactSharedInternals = React13.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE;
+    var ReactSharedInternals = React2.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE;
     var ReactDOMSharedInternals = ReactDOM.__DOM_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE;
     var sharedNotPendingObject = {
       pending: false,
@@ -7063,7 +7063,7 @@ var require_react_dom_server_legacy_browser_production = __commonJS({
     }
     function flattenOptionChildren(children) {
       var content = "";
-      React13.Children.forEach(children, function(child) {
+      React2.Children.forEach(children, function(child) {
         null != child && (content += child);
       });
       return content;
@@ -9143,9 +9143,9 @@ var require_react_dom_server_legacy_browser_production = __commonJS({
         return sharedNotPendingObject;
       },
       useMemoCache: function(size) {
-        for (var data2 = Array(size), i2 = 0; i2 < size; i2++)
-          data2[i2] = REACT_MEMO_CACHE_SENTINEL;
-        return data2;
+        for (var data = Array(size), i2 = 0; i2 < size; i2++)
+          data[i2] = REACT_MEMO_CACHE_SENTINEL;
+        return data;
       },
       useCacheRefresh: function() {
         return unsupportedRefresh;
@@ -9694,7 +9694,7 @@ var require_react_dom_server_legacy_browser_production = __commonJS({
       task.row = prevRow;
       task.keyPath = prevKeyPath;
     }
-    function renderWithHooks(request, task, keyPath, Component5, props, secondArg) {
+    function renderWithHooks(request, task, keyPath, Component4, props, secondArg) {
       var prevThenableState = task.thenableState;
       task.thenableState = null;
       currentlyRenderingComponent = {};
@@ -9705,8 +9705,8 @@ var require_react_dom_server_legacy_browser_production = __commonJS({
       actionStateMatchingIndex = -1;
       thenableIndexCounter = 0;
       thenableState = prevThenableState;
-      for (request = Component5(props, secondArg); didScheduleRenderPhaseUpdate; )
-        didScheduleRenderPhaseUpdate = false, actionStateCounter = localIdCounter = 0, actionStateMatchingIndex = -1, thenableIndexCounter = 0, numberOfReRenders += 1, workInProgressHook = null, request = Component5(props, secondArg);
+      for (request = Component4(props, secondArg); didScheduleRenderPhaseUpdate; )
+        didScheduleRenderPhaseUpdate = false, actionStateCounter = localIdCounter = 0, actionStateMatchingIndex = -1, thenableIndexCounter = 0, numberOfReRenders += 1, workInProgressHook = null, request = Component4(props, secondArg);
       resetHooksState();
       return request;
     }
@@ -10240,9 +10240,9 @@ var require_react_dom_server_legacy_browser_production = __commonJS({
               return;
             case REACT_LAZY_TYPE:
               var init = type._init;
-              var Component5 = init(type._payload);
+              var Component4 = init(type._payload);
               if (request.aborted) throw null;
-              renderElement(request, task, keyPath, Component5, props, ref);
+              renderElement(request, task, keyPath, Component4, props, ref);
               return;
           }
         throw Error(
@@ -11646,7 +11646,7 @@ A.finished.finally(function(){document.__reactViewTransition===A&&(document.__re
 var require_react_dom_server_browser_production = __commonJS({
   "node_modules/react-dom/cjs/react-dom-server.browser.production.js"(exports) {
     "use strict";
-    var React13 = require_react();
+    var React2 = require_react();
     var ReactDOM = require_react_dom();
     function formatProdErrorMessage(code) {
       var url = "https://react.dev/errors/" + code;
@@ -11916,7 +11916,7 @@ var require_react_dom_server_browser_production = __commonJS({
     function sanitizeURL(url) {
       return isJavaScriptProtocol.test("" + url) ? "javascript:throw new Error('React has blocked a javascript: URL as a security precaution.')" : url;
     }
-    var ReactSharedInternals = React13.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE;
+    var ReactSharedInternals = React2.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE;
     var ReactDOMSharedInternals = ReactDOM.__DOM_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE;
     var sharedNotPendingObject = {
       pending: false,
@@ -12517,7 +12517,7 @@ var require_react_dom_server_browser_production = __commonJS({
     }
     function flattenOptionChildren(children) {
       var content = "";
-      React13.Children.forEach(children, function(child) {
+      React2.Children.forEach(children, function(child) {
         null != child && (content += child);
       });
       return content;
@@ -14645,9 +14645,9 @@ A.finished.finally(function(){document.__reactViewTransition===A&&(document.__re
         return sharedNotPendingObject;
       },
       useMemoCache: function(size) {
-        for (var data2 = Array(size), i2 = 0; i2 < size; i2++)
-          data2[i2] = REACT_MEMO_CACHE_SENTINEL;
-        return data2;
+        for (var data = Array(size), i2 = 0; i2 < size; i2++)
+          data[i2] = REACT_MEMO_CACHE_SENTINEL;
+        return data;
       },
       useCacheRefresh: function() {
         return unsupportedRefresh;
@@ -15314,7 +15314,7 @@ A.finished.finally(function(){document.__reactViewTransition===A&&(document.__re
       task.row = prevRow;
       task.keyPath = prevKeyPath;
     }
-    function renderWithHooks(request, task, keyPath, Component5, props, secondArg) {
+    function renderWithHooks(request, task, keyPath, Component4, props, secondArg) {
       var prevThenableState = task.thenableState;
       task.thenableState = null;
       currentlyRenderingComponent = {};
@@ -15325,8 +15325,8 @@ A.finished.finally(function(){document.__reactViewTransition===A&&(document.__re
       actionStateMatchingIndex = -1;
       thenableIndexCounter = 0;
       thenableState = prevThenableState;
-      for (request = Component5(props, secondArg); didScheduleRenderPhaseUpdate; )
-        didScheduleRenderPhaseUpdate = false, actionStateCounter = localIdCounter = 0, actionStateMatchingIndex = -1, thenableIndexCounter = 0, numberOfReRenders += 1, workInProgressHook = null, request = Component5(props, secondArg);
+      for (request = Component4(props, secondArg); didScheduleRenderPhaseUpdate; )
+        didScheduleRenderPhaseUpdate = false, actionStateCounter = localIdCounter = 0, actionStateMatchingIndex = -1, thenableIndexCounter = 0, numberOfReRenders += 1, workInProgressHook = null, request = Component4(props, secondArg);
       resetHooksState();
       return request;
     }
@@ -15884,9 +15884,9 @@ A.finished.finally(function(){document.__reactViewTransition===A&&(document.__re
               return;
             case REACT_LAZY_TYPE:
               var init = type._init;
-              var Component5 = init(type._payload);
+              var Component4 = init(type._payload);
               if (request.aborted) throw null;
-              renderElement(request, task, keyPath, Component5, props, ref);
+              renderElement(request, task, keyPath, Component4, props, ref);
               return;
           }
         throw Error(
@@ -17297,7 +17297,7 @@ A.finished.finally(function(){document.__reactViewTransition===A&&(document.__re
       return trackedPostpones;
     }
     function ensureCorrectIsomorphicReactVersion() {
-      var isomorphicReactPackageVersion = React13.version;
+      var isomorphicReactPackageVersion = React2.version;
       if ("19.3.1" !== isomorphicReactPackageVersion)
         throw Error(
           formatProdErrorMessage(
@@ -18002,11 +18002,11 @@ var require_path_browserify = __commonJS({
 
 // src/docs/render.js
 var import_handlebars = __toESM(require_handlebars(), 1);
-var import_react3 = __toESM(require_react(), 1);
+var import_react4 = __toESM(require_react(), 1);
 var import_server = __toESM(require_server_browser(), 1);
 
 // node_modules/redoc/bundles/redoc.js
-var import_react2 = __toESM(require_react(), 1);
+var import_react3 = __toESM(require_react(), 1);
 
 // node_modules/styled-components/dist/styled-components.esm.js
 var import_react = __toESM(require_react());
@@ -19542,23 +19542,14 @@ var Qt = `style[${l}]`;
 // node_modules/redoc/bundles/redoc.js
 var import_jsx_runtime = __toESM(require_jsx_runtime(), 1);
 
-// node_modules/react-router/dist/production/chunk-Q34X6AWR.mjs
-var React = __toESM(require_react(), 1);
-var React2 = __toESM(require_react(), 1);
-var React3 = __toESM(require_react(), 1);
-var React4 = __toESM(require_react(), 1);
-var React9 = __toESM(require_react(), 1);
-var React8 = __toESM(require_react(), 1);
-var React7 = __toESM(require_react(), 1);
-var React6 = __toESM(require_react(), 1);
-var React5 = __toESM(require_react(), 1);
-var React10 = __toESM(require_react(), 1);
-var React11 = __toESM(require_react(), 1);
+// node_modules/react-router/dist/production/lib/router/url.js
 var ABSOLUTE_URL_REGEX = /^(?:[a-z][a-z0-9+.-]*:|[\\/]{2})/i;
 var PROTOCOL_RELATIVE_URL_REGEX = /^[\\/]{2}/;
 function normalizeProtocolRelativeUrl(url, protocol) {
   return protocol + url.replace(/\\/g, "/");
 }
+
+// node_modules/react-router/dist/production/lib/router/history.js
 var PopStateEventType = "popstate";
 function isLocation(obj) {
   return typeof obj === "object" && obj != null && "pathname" in obj && "search" in obj && "hash" in obj && "state" in obj && "key" in obj;
@@ -19566,17 +19557,8 @@ function isLocation(obj) {
 function createMemoryHistory(options = {}) {
   let { initialEntries = ["/"], initialIndex, v5Compat = false } = options;
   let entries;
-  entries = initialEntries.map(
-    (entry, index2) => createMemoryLocation(
-      entry,
-      typeof entry === "string" ? null : entry.state,
-      index2 === 0 ? "default" : void 0,
-      typeof entry === "string" ? void 0 : entry.mask
-    )
-  );
-  let index = clampIndex(
-    initialIndex == null ? entries.length - 1 : initialIndex
-  );
+  entries = initialEntries.map((entry, index2) => createMemoryLocation(entry, typeof entry === "string" ? null : entry.state, index2 === 0 ? "default" : void 0, typeof entry === "string" ? void 0 : entry.mask));
+  let index = clampIndex(initialIndex == null ? entries.length - 1 : initialIndex);
   let action = "POP";
   let listener = null;
   function clampIndex(n2) {
@@ -19586,25 +19568,14 @@ function createMemoryHistory(options = {}) {
     return entries[index];
   }
   function createMemoryLocation(to, state = null, key, mask) {
-    let location2 = createLocation(
-      entries ? getCurrentLocation().pathname : "/",
-      to,
-      state,
-      key,
-      mask
-    );
-    warning(
-      location2.pathname.charAt(0) === "/",
-      `relative pathnames are not supported in memory history: ${JSON.stringify(
-        to
-      )}`
-    );
+    let location2 = createLocation(entries ? getCurrentLocation().pathname : "/", to, state, key, mask);
+    warning(location2.pathname.charAt(0) === "/", `relative pathnames are not supported in memory history: ${JSON.stringify(to)}`);
     return location2;
   }
-  function createHref2(to) {
+  function createHref(to) {
     return typeof to === "string" ? to : createPath(to);
   }
-  let history = {
+  return {
     get index() {
       return index;
     },
@@ -19614,9 +19585,9 @@ function createMemoryHistory(options = {}) {
     get location() {
       return getCurrentLocation();
     },
-    createHref: createHref2,
+    createHref,
     createURL(to) {
-      return new URL(createHref2(to), "http://localhost");
+      return new URL(createHref(to), "http://localhost");
     },
     encodeLocation(to) {
       let path3 = typeof to === "string" ? parsePath(to) : to;
@@ -19631,26 +19602,32 @@ function createMemoryHistory(options = {}) {
       let nextLocation = isLocation(to) ? to : createMemoryLocation(to, state);
       index += 1;
       entries.splice(index, entries.length, nextLocation);
-      if (v5Compat && listener) {
-        listener({ action, location: nextLocation, delta: 1 });
-      }
+      if (v5Compat && listener) listener({
+        action,
+        location: nextLocation,
+        delta: 1
+      });
     },
     replace(to, state) {
       action = "REPLACE";
       let nextLocation = isLocation(to) ? to : createMemoryLocation(to, state);
       entries[index] = nextLocation;
-      if (v5Compat && listener) {
-        listener({ action, location: nextLocation, delta: 0 });
-      }
+      if (v5Compat && listener) listener({
+        action,
+        location: nextLocation,
+        delta: 0
+      });
     },
     go(delta) {
       action = "POP";
       let nextIndex = clampIndex(index + delta);
       let nextLocation = entries[nextIndex];
       index = nextIndex;
-      if (listener) {
-        listener({ action, location: nextLocation, delta });
-      }
+      if (listener) listener({
+        action,
+        location: nextLocation,
+        delta
+      });
     },
     listen(fn) {
       listener = fn;
@@ -19659,46 +19636,35 @@ function createMemoryHistory(options = {}) {
       };
     }
   };
-  return history;
 }
 function createBrowserHistory(options = {}) {
   function createBrowserLocation(window2, globalHistory) {
     let maskedLocation = globalHistory.state?.masked;
     let { pathname, search, hash: hash2 } = maskedLocation || window2.location;
-    return createLocation(
-      "",
-      { pathname, search, hash: hash2 },
-      // state defaults to `null` because `window.history.state` does
-      globalHistory.state && globalHistory.state.usr || null,
-      globalHistory.state && globalHistory.state.key || "default",
-      maskedLocation ? {
-        pathname: window2.location.pathname,
-        search: window2.location.search,
-        hash: window2.location.hash
-      } : void 0
-    );
+    return createLocation("", {
+      pathname,
+      search,
+      hash: hash2
+    }, globalHistory.state && globalHistory.state.usr || null, globalHistory.state && globalHistory.state.key || "default", maskedLocation ? {
+      pathname: window2.location.pathname,
+      search: window2.location.search,
+      hash: window2.location.hash
+    } : void 0);
   }
   function createBrowserHref(window2, to) {
     return typeof to === "string" ? to : createPath(to);
   }
-  return getUrlBasedHistory(
-    createBrowserLocation,
-    createBrowserHref,
-    null,
-    options
-  );
+  return getUrlBasedHistory(createBrowserLocation, createBrowserHref, null, options);
 }
 function invariant(value, message) {
-  if (value === false || value === null || typeof value === "undefined") {
-    throw new Error(message);
-  }
+  if (value === false || value === null || typeof value === "undefined") throw new Error(message);
 }
 function warning(cond, message) {
   if (!cond) {
     if (typeof console !== "undefined") console.warn(message);
     try {
       throw new Error(message);
-    } catch (e) {
+    } catch {
     }
   }
 }
@@ -19718,30 +19684,19 @@ function getHistoryState(location2, index) {
   };
 }
 function createLocation(current, to, state = null, key, mask) {
-  let location2 = {
+  return {
     pathname: typeof current === "string" ? current : current.pathname,
     search: "",
     hash: "",
     ...typeof to === "string" ? parsePath(to) : to,
     state,
-    // TODO: This could be cleaned up.  push/replace should probably just take
-    // full Locations now and avoid the need to run through this flow at all
-    // But that's a pretty big refactor to the current test suite so going to
-    // keep as is for the time being and just let any incoming keys take precedence
     key: to && to.key || key || createKey(),
     mask
   };
-  return location2;
 }
-function createPath({
-  pathname = "/",
-  search = "",
-  hash: hash2 = ""
-}) {
-  if (search && search !== "?")
-    pathname += search.charAt(0) === "?" ? search : "?" + search;
-  if (hash2 && hash2 !== "#")
-    pathname += hash2.charAt(0) === "#" ? hash2 : "#" + hash2;
+function createPath({ pathname = "/", search = "", hash: hash2 = "" }) {
+  if (search && search !== "?") pathname += search.charAt(0) === "?" ? search : "?" + search;
+  if (hash2 && hash2 !== "#") pathname += hash2.charAt(0) === "#" ? hash2 : "#" + hash2;
   return pathname;
 }
 function parsePath(path3) {
@@ -19757,13 +19712,11 @@ function parsePath(path3) {
       parsedPath.search = path3.substring(searchIndex);
       path3 = path3.substring(0, searchIndex);
     }
-    if (path3) {
-      parsedPath.pathname = path3;
-    }
+    if (path3) parsedPath.pathname = path3;
   }
   return parsedPath;
 }
-function getUrlBasedHistory(getLocation, createHref2, validateLocation, options = {}) {
+function getUrlBasedHistory(getLocation, createHref, validateLocation, options = {}) {
   let { window: window2 = document.defaultView, v5Compat = false } = options;
   let globalHistory = window2.history;
   let action = "POP";
@@ -19771,20 +19724,24 @@ function getUrlBasedHistory(getLocation, createHref2, validateLocation, options 
   let index = getIndex();
   if (index == null) {
     index = 0;
-    globalHistory.replaceState({ ...globalHistory.state, idx: index }, "");
+    globalHistory.replaceState({
+      ...globalHistory.state,
+      idx: index
+    }, "");
   }
   function getIndex() {
-    let state = globalHistory.state || { idx: null };
-    return state.idx;
+    return (globalHistory.state || { idx: null }).idx;
   }
   function handlePop() {
     action = "POP";
     let nextIndex = getIndex();
     let delta = nextIndex == null ? null : nextIndex - index;
     index = nextIndex;
-    if (listener) {
-      listener({ action, location: history.location, delta });
-    }
+    if (listener) listener({
+      action,
+      location: history.location,
+      delta
+    });
   }
   function push(to, state) {
     action = "PUSH";
@@ -19796,16 +19753,16 @@ function getUrlBasedHistory(getLocation, createHref2, validateLocation, options 
     try {
       globalHistory.pushState(historyState, "", url);
     } catch (error) {
-      if (error instanceof DOMException && error.name === "DataCloneError") {
-        throw error;
-      }
+      if (error instanceof DOMException && error.name === "DataCloneError") throw error;
       window2.location.assign(url);
     }
-    if (v5Compat && listener) {
-      listener({ action, location: history.location, delta: 1 });
-    }
+    if (v5Compat && listener) listener({
+      action,
+      location: history.location,
+      delta: 1
+    });
   }
-  function replace22(to, state) {
+  function replace2(to, state) {
     action = "REPLACE";
     let location2 = isLocation(to) ? to : createLocation(history.location, to, state);
     if (validateLocation) validateLocation(location2, to);
@@ -19813,9 +19770,11 @@ function getUrlBasedHistory(getLocation, createHref2, validateLocation, options 
     let historyState = getHistoryState(location2, index);
     let url = history.createHref(location2.mask || location2);
     globalHistory.replaceState(historyState, "", url);
-    if (v5Compat && listener) {
-      listener({ action, location: history.location, delta: 0 });
-    }
+    if (v5Compat && listener) listener({
+      action,
+      location: history.location,
+      delta: 0
+    });
   }
   function createURL(to) {
     return createBrowserURLImpl(window2, to);
@@ -19828,9 +19787,7 @@ function getUrlBasedHistory(getLocation, createHref2, validateLocation, options 
       return getLocation(window2, globalHistory);
     },
     listen(fn) {
-      if (listener) {
-        throw new Error("A history only accepts one active listener");
-      }
+      if (listener) throw new Error("A history only accepts one active listener");
       window2.addEventListener(PopStateEventType, handlePop);
       listener = fn;
       return () => {
@@ -19839,7 +19796,7 @@ function getUrlBasedHistory(getLocation, createHref2, validateLocation, options 
       };
     },
     createHref(to) {
-      return createHref2(window2, to);
+      return createHref(window2, to);
     },
     createURL,
     encodeLocation(to) {
@@ -19851,7 +19808,7 @@ function getUrlBasedHistory(getLocation, createHref2, validateLocation, options 
       };
     },
     push,
-    replace: replace22,
+    replace: replace2,
     go(n2) {
       return globalHistory.go(n2);
     }
@@ -19860,38 +19817,26 @@ function getUrlBasedHistory(getLocation, createHref2, validateLocation, options 
 }
 function createBrowserURLImpl(windowImpl, to, isAbsolute = false) {
   let base = "http://localhost";
-  if (windowImpl) {
-    base = windowImpl.location.origin !== "null" ? windowImpl.location.origin : windowImpl.location.href;
-  }
+  if (windowImpl) base = windowImpl.location.origin !== "null" ? windowImpl.location.origin : windowImpl.location.href;
   invariant(base, "No window.location.(origin|href) available to create URL");
   let href = typeof to === "string" ? to : createPath(to);
   href = href.replace(/ $/, "%20");
-  if (!isAbsolute && PROTOCOL_RELATIVE_URL_REGEX.test(href)) {
-    href = base + href;
-  }
+  if (!isAbsolute && PROTOCOL_RELATIVE_URL_REGEX.test(href)) href = base + href;
   return new URL(href, base);
 }
-var _map;
-_map = /* @__PURE__ */ new WeakMap();
+
+// node_modules/react-router/dist/production/lib/router/utils.js
+var React$1 = __toESM(require_react(), 1);
 function matchRoutes(routes, locationArg, basename = "/") {
   return matchRoutesImpl(routes, locationArg, basename, false);
 }
 function matchRoutesImpl(routes, locationArg, basename, allowPartial, precomputedBranches) {
-  let location2 = typeof locationArg === "string" ? parsePath(locationArg) : locationArg;
-  let pathname = stripBasename(location2.pathname || "/", basename);
-  if (pathname == null) {
-    return null;
-  }
+  let pathname = stripBasename((typeof locationArg === "string" ? parsePath(locationArg) : locationArg).pathname || "/", basename);
+  if (pathname == null) return null;
   let branches = precomputedBranches ?? flattenAndRankRoutes(routes);
   let matches = null;
   let decoded = decodePath(pathname);
-  for (let i2 = 0; matches == null && i2 < branches.length; ++i2) {
-    matches = matchRouteBranch(
-      branches[i2],
-      decoded,
-      allowPartial
-    );
-  }
+  for (let i2 = 0; matches == null && i2 < branches.length; ++i2) matches = matchRouteBranch(branches[i2], decoded, allowPartial);
   return matches;
 }
 function convertRouteMatchToUiMatch(match2, loaderData) {
@@ -19900,7 +19845,6 @@ function convertRouteMatchToUiMatch(match2, loaderData) {
     id: route.id,
     pathname,
     params,
-    data: loaderData[route.id],
     loaderData: loaderData[route.id],
     handle: route.handle
   };
@@ -19919,44 +19863,22 @@ function flattenRoutes(routes, branches = [], parentsMeta = [], parentPath = "",
       route
     };
     if (meta.relativePath.startsWith("/")) {
-      if (!meta.relativePath.startsWith(parentPath) && hasParentOptionalSegments) {
-        return;
-      }
-      invariant(
-        meta.relativePath.startsWith(parentPath),
-        `Absolute route path "${meta.relativePath}" nested under path "${parentPath}" is not valid. An absolute child route path must start with the combined path of all its parent routes.`
-      );
+      if (!meta.relativePath.startsWith(parentPath) && hasParentOptionalSegments) return;
+      invariant(meta.relativePath.startsWith(parentPath), `Absolute route path "${meta.relativePath}" nested under path "${parentPath}" is not valid. An absolute child route path must start with the combined path of all its parent routes.`);
       meta.relativePath = meta.relativePath.slice(parentPath.length);
     }
     let path3 = joinPaths([parentPath, meta.relativePath]);
     let routesMeta = parentsMeta.concat(meta);
     if (route.children && route.children.length > 0) {
-      invariant(
-        // Our types know better, but runtime JS may not!
-        // @ts-expect-error
-        route.index !== true,
-        `Index routes must not have child routes. Please remove all child routes from route path "${path3}".`
-      );
-      flattenRoutes(
-        route.children,
-        branches,
-        routesMeta,
-        path3,
-        hasParentOptionalSegments
-      );
+      invariant(route.index !== true, `Index routes must not have child routes. Please remove all child routes from route path "${path3}".`);
+      flattenRoutes(route.children, branches, routesMeta, path3, hasParentOptionalSegments);
     }
-    if (route.path == null && !route.index) {
-      return;
-    }
+    if (route.path == null && !route.index) return;
     branches.push({
       path: path3,
       score: computeScore(path3, route.index),
       routesMeta: routesMeta.map((meta2, i2) => {
-        let [matcher, params] = compilePath(
-          meta2.relativePath,
-          meta2.caseSensitive,
-          i2 === routesMeta.length - 1
-        );
+        let [matcher, params] = compilePath(meta2.relativePath, meta2.caseSensitive, i2 === routesMeta.length - 1);
         return {
           ...meta2,
           matcher,
@@ -19966,13 +19888,8 @@ function flattenRoutes(routes, branches = [], parentsMeta = [], parentPath = "",
     });
   };
   routes.forEach((route, index) => {
-    if (route.path === "" || !route.path?.includes("?")) {
-      flattenRoute(route, index);
-    } else {
-      for (let exploded of explodeOptionalSegments(route.path)) {
-        flattenRoute(route, index, true, exploded);
-      }
-    }
+    if (route.path === "" || !route.path?.includes("?")) flattenRoute(route, index);
+    else for (let exploded of explodeOptionalSegments(route.path)) flattenRoute(route, index, true, exploded);
   });
   return branches;
 }
@@ -19982,32 +19899,19 @@ function explodeOptionalSegments(path3) {
   let [first, ...rest] = segments;
   let isOptional = first.endsWith("?");
   let required = first.replace(/\?$/, "");
-  if (rest.length === 0) {
-    return isOptional ? [required, ""] : [required];
-  }
+  if (rest.length === 0) return isOptional ? [required, ""] : [required];
   let restExploded = explodeOptionalSegments(rest.join("/"));
   let result = [];
-  result.push(
-    ...restExploded.map(
-      (subpath) => subpath === "" ? required : [required, subpath].join("/")
-    )
-  );
-  if (isOptional) {
-    result.push(...restExploded);
-  }
-  return result.map(
-    (exploded) => path3.startsWith("/") && exploded === "" ? "/" : exploded
-  );
+  result.push(...restExploded.map((subpath) => subpath === "" ? required : [required, subpath].join("/")));
+  if (isOptional) result.push(...restExploded);
+  return result.map((exploded) => path3.startsWith("/") && exploded === "" ? "/" : exploded);
 }
 function rankRouteBranches(branches) {
-  branches.sort(
-    (a2, b2) => a2.score !== b2.score ? b2.score - a2.score : compareIndexes(
-      a2.routesMeta.map((meta) => meta.childrenIndex),
-      b2.routesMeta.map((meta) => meta.childrenIndex)
-    )
-  );
+  branches.sort((a2, b2) => a2.score !== b2.score ? b2.score - a2.score : compareIndexes(a2.routesMeta.map((meta) => meta.childrenIndex), b2.routesMeta.map((meta) => meta.childrenIndex)));
 }
 var paramRe = /^:[\w-]+$/;
+var partialParamRe = /^:[\w-]+/;
+var partialDynamicSegmentValue = 3.5;
 var dynamicSegmentValue = 3;
 var indexRouteValue = 2;
 var emptySegmentValue = 1;
@@ -20017,30 +19921,12 @@ var isSplat = (s) => s === "*";
 function computeScore(path3, index) {
   let segments = path3.split("/");
   let initialScore = segments.length;
-  if (segments.some(isSplat)) {
-    initialScore += splatPenalty;
-  }
-  if (index) {
-    initialScore += indexRouteValue;
-  }
-  return segments.filter((s) => !isSplat(s)).reduce(
-    (score, segment) => score + (paramRe.test(segment) ? dynamicSegmentValue : segment === "" ? emptySegmentValue : staticSegmentValue),
-    initialScore
-  );
+  if (segments.some(isSplat)) initialScore += splatPenalty;
+  if (index) initialScore += indexRouteValue;
+  return segments.filter((s) => !isSplat(s)).reduce((score, segment) => score + (paramRe.test(segment) ? dynamicSegmentValue : partialParamRe.test(segment) ? partialDynamicSegmentValue : segment === "" ? emptySegmentValue : staticSegmentValue), initialScore);
 }
 function compareIndexes(a2, b2) {
-  let siblings = a2.length === b2.length && a2.slice(0, -1).every((n2, i2) => n2 === b2[i2]);
-  return siblings ? (
-    // If two routes are siblings, we should try to match the earlier sibling
-    // first. This allows people to have fine-grained control over the matching
-    // behavior by simply putting routes with identical paths in the order they
-    // want them tried.
-    a2[a2.length - 1] - b2[b2.length - 1]
-  ) : (
-    // Otherwise, it doesn't really make sense to rank non-siblings by index,
-    // so they sort equally.
-    0
-  );
+  return a2.length === b2.length && a2.slice(0, -1).every((n2, i2) => n2 === b2[i2]) ? a2[a2.length - 1] - b2[b2.length - 1] : 0;
 }
 function matchRouteBranch(branch, pathname, allowPartial = false) {
   let { routesMeta } = branch;
@@ -20056,54 +19942,32 @@ function matchRouteBranch(branch, pathname, allowPartial = false) {
       caseSensitive: meta.caseSensitive,
       end
     };
-    let match2 = (
-      // Use precomputed matcher if it exists
-      meta.matcher && meta.compiledParams ? matchPathImpl(
-        pattern,
-        remainingPathname,
-        meta.matcher,
-        meta.compiledParams
-      ) : matchPath(pattern, remainingPathname)
-    );
+    let match2 = meta.matcher && meta.compiledParams ? matchPathImpl(pattern, remainingPathname, meta.matcher, meta.compiledParams) : matchPath(pattern, remainingPathname);
     let route = meta.route;
-    if (!match2 && end && allowPartial && !routesMeta[routesMeta.length - 1].route.index) {
-      match2 = matchPath(
-        {
-          path: meta.relativePath,
-          caseSensitive: meta.caseSensitive,
-          end: false
-        },
-        remainingPathname
-      );
-    }
-    if (!match2) {
-      return null;
-    }
+    if (!match2 && end && allowPartial && !routesMeta[routesMeta.length - 1].route.index) match2 = matchPath({
+      path: meta.relativePath,
+      caseSensitive: meta.caseSensitive,
+      end: false
+    }, remainingPathname);
+    if (!match2) return null;
     Object.assign(matchedParams, match2.params);
     matches.push({
-      // TODO: Can this as be avoided?
       params: matchedParams,
       pathname: joinPaths([matchedPathname, match2.pathname]),
-      pathnameBase: normalizePathname(
-        joinPaths([matchedPathname, match2.pathnameBase])
-      ),
+      pathnameBase: normalizePathname(joinPaths([matchedPathname, match2.pathnameBase])),
       route
     });
-    if (match2.pathnameBase !== "/") {
-      matchedPathname = joinPaths([matchedPathname, match2.pathnameBase]);
-    }
+    if (match2.pathnameBase !== "/") matchedPathname = joinPaths([matchedPathname, match2.pathnameBase]);
   }
   return matches;
 }
 function matchPath(pattern, pathname) {
-  if (typeof pattern === "string") {
-    pattern = { path: pattern, caseSensitive: false, end: true };
-  }
-  let [matcher, compiledParams] = compilePath(
-    pattern.path,
-    pattern.caseSensitive,
-    pattern.end
-  );
+  if (typeof pattern === "string") pattern = {
+    path: pattern,
+    caseSensitive: false,
+    end: true
+  };
+  let [matcher, compiledParams] = compilePath(pattern.path, pattern.caseSensitive, pattern.end);
   return matchPathImpl(pattern, pathname, matcher, compiledParams);
 }
 function matchPathImpl(pattern, pathname, matcher, compiledParams) {
@@ -20112,104 +19976,68 @@ function matchPathImpl(pattern, pathname, matcher, compiledParams) {
   let matchedPathname = match2[0];
   let pathnameBase = removeTrailingSlash(matchedPathname, 1);
   let captureGroups = match2.slice(1);
-  let params = compiledParams.reduce(
-    (memo22, { paramName, isOptional }, index) => {
+  return {
+    params: compiledParams.reduce((memo3, { paramName, isOptional }, index) => {
       if (paramName === "*") {
         let splatValue = captureGroups[index] || "";
-        pathnameBase = removeTrailingSlash(
-          matchedPathname.slice(0, matchedPathname.length - splatValue.length),
-          1
-        );
+        pathnameBase = removeTrailingSlash(matchedPathname.slice(0, matchedPathname.length - splatValue.length), 1);
       }
       const value = captureGroups[index];
-      if (isOptional && !value) {
-        memo22[paramName] = void 0;
-      } else {
-        memo22[paramName] = (value || "").replace(/%2F/g, "/");
-      }
-      return memo22;
-    },
-    {}
-  );
-  return {
-    params,
+      if (isOptional && !value) memo3[paramName] = void 0;
+      else memo3[paramName] = (value || "").replace(/%2F/g, "/");
+      return memo3;
+    }, {}),
     pathname: matchedPathname,
     pathnameBase,
     pattern
   };
 }
 function compilePath(path3, caseSensitive = false, end = true) {
-  warning(
-    path3 === "*" || !path3.endsWith("*") || path3.endsWith("/*"),
-    `Route path "${path3}" will be treated as if it were "${path3.replace(/\*$/, "/*")}" because the \`*\` character must always follow a \`/\` in the pattern. To get rid of this warning, please change the route path to "${path3.replace(/\*$/, "/*")}".`
-  );
+  warning(path3 === "*" || !path3.endsWith("*") || path3.endsWith("/*"), `Route path "${path3}" will be treated as if it were "${path3.replace(/\*$/, "/*")}" because the \`*\` character must always follow a \`/\` in the pattern. To get rid of this warning, please change the route path to "${path3.replace(/\*$/, "/*")}".`);
   let params = [];
-  let regexpSource = "^" + path3.replace(/\/*\*?$/, "").replace(/^\/*/, "/").replace(/[\\.*+^${}|()[\]]/g, "\\$&").replace(
-    /\/:([\w-]+)(\?)?/g,
-    (match2, paramName, isOptional, index, str) => {
-      params.push({ paramName, isOptional: isOptional != null });
-      if (isOptional) {
-        let nextChar = str.charAt(index + match2.length);
-        if (nextChar && nextChar !== "/") {
-          return "/([^\\/]*)";
-        }
-        return "(?:/([^\\/]*))?";
-      }
-      return "/([^\\/]+)";
+  let regexpSource = "^" + path3.replace(/\/*\*?$/, "").replace(/^\/*/, "/").replace(/[\\.*+^${}|()[\]]/g, "\\$&").replace(/\/:([\w-]+)(\?)?/g, (match2, paramName, isOptional, index, str) => {
+    params.push({
+      paramName,
+      isOptional: isOptional != null
+    });
+    if (isOptional) {
+      let nextChar = str.charAt(index + match2.length);
+      if (nextChar && nextChar !== "/") return "/([^\\/]*)";
+      return "(?:/([^\\/]*))?";
     }
-  ).replace(/\/([\w-]+)\?(\/|$)/g, "(/$1)?$2");
+    return "/([^\\/]+)";
+  }).replace(/\/((?:[^/?()[\]*^\\]|\\.)+)\?(?=\/|$|\()/g, "(?:/$1)?");
   if (path3.endsWith("*")) {
     params.push({ paramName: "*" });
     regexpSource += path3 === "*" || path3 === "/*" ? "(.*)$" : "(?:\\/(.+)|\\/*)$";
-  } else if (end) {
-    regexpSource += "\\/*$";
-  } else if (path3 !== "" && path3 !== "/") {
-    regexpSource += "(?:(?=\\/|$))";
-  } else {
-  }
-  let matcher = new RegExp(regexpSource, caseSensitive ? void 0 : "i");
-  return [matcher, params];
+  } else if (end) regexpSource += "\\/*$";
+  else if (path3 !== "" && path3 !== "/") regexpSource += "(?:(?=\\/|$))";
+  return [new RegExp(regexpSource, caseSensitive ? void 0 : "i"), params];
 }
 function decodePath(value) {
   try {
     return value.split("/").map((v) => decodeURIComponent(v).replace(/\//g, "%2F")).join("/");
   } catch (error) {
-    warning(
-      false,
-      `The URL path "${value}" could not be decoded because it is a malformed URL segment. This is probably due to a bad percent encoding (${error}).`
-    );
+    warning(false, `The URL path "${value}" could not be decoded because it is a malformed URL segment. This is probably due to a bad percent encoding (${error}).`);
     return value;
   }
 }
 function stripBasename(pathname, basename) {
   if (basename === "/") return pathname;
-  if (!pathname.toLowerCase().startsWith(basename.toLowerCase())) {
-    return null;
-  }
+  if (!pathname.toLowerCase().startsWith(basename.toLowerCase())) return null;
   let startIndex = basename.endsWith("/") ? basename.length - 1 : basename.length;
   let nextChar = pathname.charAt(startIndex);
-  if (nextChar && nextChar !== "/") {
-    return null;
-  }
+  if (nextChar && nextChar !== "/") return null;
   return pathname.slice(startIndex) || "/";
 }
 function resolvePath(to, fromPathname = "/") {
-  let {
-    pathname: toPathname,
-    search = "",
-    hash: hash2 = ""
-  } = typeof to === "string" ? parsePath(to) : to;
+  let { pathname: toPathname, search = "", hash: hash2 = "" } = typeof to === "string" ? parsePath(to) : to;
   let pathname;
   if (toPathname) {
     toPathname = removeDoubleSlashes(toPathname);
-    if (toPathname.startsWith("/") || toPathname.startsWith("\\")) {
-      pathname = resolvePathname(toPathname.substring(1), "/");
-    } else {
-      pathname = resolvePathname(toPathname, fromPathname);
-    }
-  } else {
-    pathname = fromPathname;
-  }
+    if (toPathname.startsWith("/") || toPathname.startsWith("\\")) pathname = resolvePathname(toPathname.substring(1), "/");
+    else pathname = resolvePathname(toPathname, fromPathname);
+  } else pathname = fromPathname;
   return {
     pathname,
     search: normalizeSearch(search),
@@ -20218,57 +20046,37 @@ function resolvePath(to, fromPathname = "/") {
 }
 function resolvePathname(relativePath, fromPathname) {
   let segments = removeTrailingSlash(fromPathname).split("/");
-  let relativeSegments = relativePath.split("/");
-  relativeSegments.forEach((segment) => {
+  relativePath.split("/").forEach((segment) => {
     if (segment === "..") {
       if (segments.length > 1) segments.pop();
-    } else if (segment !== ".") {
-      segments.push(segment);
-    }
+    } else if (segment !== ".") segments.push(segment);
   });
   return segments.length > 1 ? segments.join("/") : "/";
 }
 function getInvalidPathError(char2, field, dest, path3) {
-  return `Cannot include a '${char2}' character in a manually specified \`to.${field}\` field [${JSON.stringify(
-    path3
-  )}].  Please separate it out to the \`to.${dest}\` field. Alternatively you may provide the full path as a string in <Link to="..."> and the router will parse it for you.`;
+  return `Cannot include a '${char2}' character in a manually specified \`to.${field}\` field [${JSON.stringify(path3)}].  Please separate it out to the \`to.${dest}\` field. Alternatively you may provide the full path as a string in <Link to="..."> and the router will parse it for you.`;
 }
 function getPathContributingMatches(matches) {
-  return matches.filter(
-    (match2, index) => index === 0 || match2.route.path && match2.route.path.length > 0
-  );
+  return matches.filter((match2, index) => index === 0 || match2.route.path && match2.route.path.length > 0);
 }
 function getResolveToMatches(matches) {
   let pathMatches = getPathContributingMatches(matches);
-  return pathMatches.map(
-    (match2, idx) => idx === pathMatches.length - 1 ? match2.pathname : match2.pathnameBase
-  );
+  return pathMatches.map((match2, idx) => idx === pathMatches.length - 1 ? match2.pathname : match2.pathnameBase);
 }
 function resolveTo(toArg, routePathnames, locationPathname, isPathRelative = false) {
   let to;
-  if (typeof toArg === "string") {
-    to = parsePath(toArg);
-  } else {
+  if (typeof toArg === "string") to = parsePath(toArg);
+  else {
     to = { ...toArg };
-    invariant(
-      !to.pathname || !to.pathname.includes("?"),
-      getInvalidPathError("?", "pathname", "search", to)
-    );
-    invariant(
-      !to.pathname || !to.pathname.includes("#"),
-      getInvalidPathError("#", "pathname", "hash", to)
-    );
-    invariant(
-      !to.search || !to.search.includes("#"),
-      getInvalidPathError("#", "search", "hash", to)
-    );
+    invariant(!to.pathname || !to.pathname.includes("?"), getInvalidPathError("?", "pathname", "search", to));
+    invariant(!to.pathname || !to.pathname.includes("#"), getInvalidPathError("#", "pathname", "hash", to));
+    invariant(!to.search || !to.search.includes("#"), getInvalidPathError("#", "search", "hash", to));
   }
   let isEmptyPath = toArg === "" || to.pathname === "";
   let toPathname = isEmptyPath ? "/" : to.pathname;
   let from2;
-  if (toPathname == null) {
-    from2 = locationPathname;
-  } else {
+  if (toPathname == null) from2 = locationPathname;
+  else {
     let routePathnameIndex = routePathnames.length - 1;
     if (!isPathRelative && toPathname.startsWith("..")) {
       let toSegments = toPathname.split("/");
@@ -20283,71 +20091,59 @@ function resolveTo(toArg, routePathnames, locationPathname, isPathRelative = fal
   let path3 = resolvePath(to, from2);
   let hasExplicitTrailingSlash = toPathname && toPathname !== "/" && toPathname.endsWith("/");
   let hasCurrentTrailingSlash = (isEmptyPath || toPathname === ".") && locationPathname.endsWith("/");
-  if (!path3.pathname.endsWith("/") && (hasExplicitTrailingSlash || hasCurrentTrailingSlash)) {
-    path3.pathname += "/";
-  }
+  if (!path3.pathname.endsWith("/") && (hasExplicitTrailingSlash || hasCurrentTrailingSlash)) path3.pathname += "/";
   return path3;
 }
 var removeDoubleSlashes = (path3) => path3.replace(/[\\/]{2,}/g, "/");
 var joinPaths = (paths) => removeDoubleSlashes(paths.join("/"));
 function removeTrailingSlash(path3, minLength = 0) {
   let end = path3.length;
-  while (end > minLength && path3.charCodeAt(end - 1) === 47) {
-    end--;
-  }
+  while (end > minLength && path3.charCodeAt(end - 1) === 47) end--;
   return end === path3.length ? path3 : path3.slice(0, end);
 }
 var normalizePathname = (pathname) => removeTrailingSlash(pathname).replace(/^\/*/, "/");
 var normalizeSearch = (search) => !search || search === "?" ? "" : search.startsWith("?") ? search : "?" + search;
 var normalizeHash = (hash2) => !hash2 || hash2 === "#" ? "" : hash2.startsWith("#") ? hash2 : "#" + hash2;
 var ErrorResponseImpl = class {
-  constructor(status, statusText, data2, internal = false) {
+  status;
+  statusText;
+  data;
+  error;
+  internal;
+  constructor(status, statusText, data, internal = false) {
     this.status = status;
     this.statusText = statusText || "";
     this.internal = internal;
-    if (data2 instanceof Error) {
-      this.data = data2.toString();
-      this.error = data2;
-    } else {
-      this.data = data2;
-    }
+    if (data instanceof Error) {
+      this.data = data.toString();
+      this.error = data;
+    } else this.data = data;
   }
 };
 function isRouteErrorResponse(error) {
   return error != null && typeof error.status === "number" && typeof error.statusText === "string" && typeof error.internal === "boolean" && "data" in error;
 }
 function getRoutePattern(matches) {
-  let parts = matches.map((m2) => m2.route.path).filter(Boolean);
-  return joinPaths(parts) || "/";
+  return joinPaths(matches.map((m2) => m2.route.path).filter(Boolean)) || "/";
 }
 var isBrowser = typeof window !== "undefined" && typeof window.document !== "undefined" && typeof window.document.createElement !== "undefined";
 function parseToInfo(_to, basename) {
   let to = _to;
-  if (typeof to !== "string" || !ABSOLUTE_URL_REGEX.test(to)) {
-    return {
-      absoluteURL: void 0,
-      isExternal: false,
-      to
-    };
-  }
+  if (typeof to !== "string" || !ABSOLUTE_URL_REGEX.test(to)) return {
+    absoluteURL: void 0,
+    isExternal: false,
+    to
+  };
   let absoluteURL = to;
   let isExternal = false;
-  if (isBrowser) {
-    try {
-      let currentUrl = new URL(window.location.href);
-      let targetUrl = PROTOCOL_RELATIVE_URL_REGEX.test(to) ? new URL(normalizeProtocolRelativeUrl(to, currentUrl.protocol)) : new URL(to);
-      let path3 = stripBasename(targetUrl.pathname, basename);
-      if (targetUrl.origin === currentUrl.origin && path3 != null) {
-        to = path3 + targetUrl.search + targetUrl.hash;
-      } else {
-        isExternal = true;
-      }
-    } catch (e) {
-      warning(
-        false,
-        `<Link to="${to}"> contains an invalid URL which will probably break when clicked - please update to a valid URL path.`
-      );
-    }
+  if (isBrowser) try {
+    let currentUrl = new URL(window.location.href);
+    let targetUrl = PROTOCOL_RELATIVE_URL_REGEX.test(to) ? new URL(normalizeProtocolRelativeUrl(to, currentUrl.protocol)) : new URL(to);
+    let path3 = stripBasename(targetUrl.pathname, basename);
+    if (targetUrl.origin === currentUrl.origin && path3 != null) to = path3 + targetUrl.search + targetUrl.hash;
+    else isExternal = true;
+  } catch {
+    warning(false, `<Link to="${to}"> contains an invalid URL which will probably break when clicked - please update to a valid URL path.`);
   }
   return {
     absoluteURL,
@@ -20355,12 +20151,11 @@ function parseToInfo(_to, basename) {
     to
   };
 }
-var objectProtoNames = Object.getOwnPropertyNames(Object.prototype).sort().join("\0");
+
+// node_modules/react-router/dist/production/lib/router/navigation.js
 var DEFAULT_NAVIGATION_URL = new URL("http://localhost");
 function getNavigatorCurrentUrl(navigator2) {
-  if (navigator2.createURL) {
-    return navigator2.createURL("/");
-  }
+  if (navigator2.createURL) return navigator2.createURL("/");
   try {
     return new URL(navigator2.createHref("/"), DEFAULT_NAVIGATION_URL);
   } catch {
@@ -20371,13 +20166,9 @@ function isSameOrigin(a2, b2) {
   return a2.origin === b2.origin && (a2.origin !== "null" || a2.protocol === b2.protocol && a2.host === b2.host);
 }
 function isExplicitUrl(destination, target) {
-  if (destination.startsWith("//")) {
-    return true;
-  }
+  if (destination.startsWith("//")) return true;
   let protocol = target.protocol.toLowerCase();
-  if (!destination.toLowerCase().startsWith(protocol)) {
-    return false;
-  }
+  if (!destination.toLowerCase().startsWith(protocol)) return false;
   return target.host === "" || destination.slice(protocol.length).startsWith("//");
 }
 function validateNavigationTarget(original, resolved, currentUrl, externalPolicy) {
@@ -20390,37 +20181,22 @@ function validateNavigationTarget(original, resolved, currentUrl, externalPolicy
   let originalIsExternal = originalUrl != null && !isSameOrigin(originalUrl, currentUrl);
   let resolvedIsExternal = !isSameOrigin(resolvedUrl, currentUrl);
   if (externalPolicy === "reject") {
-    if (originalIsExternal || resolvedIsExternal) {
-      throw new Error("External navigation is not allowed");
-    }
+    if (originalIsExternal || resolvedIsExternal) throw new Error("External navigation is not allowed");
   } else if (resolvedIsExternal) {
-    if (originalUrl == null || !isExplicitUrl(original, originalUrl) || !isSameOrigin(originalUrl, resolvedUrl)) {
-      throw new Error("External navigation is not allowed");
-    }
+    if (originalUrl == null || !isExplicitUrl(original, originalUrl) || !isSameOrigin(originalUrl, resolvedUrl)) throw new Error("External navigation is not allowed");
   }
 }
+
+// node_modules/react-router/dist/production/lib/router/router.js
 var validMutationMethodsArr = [
   "POST",
   "PUT",
   "PATCH",
   "DELETE"
 ];
-var validMutationMethods = new Set(
-  validMutationMethodsArr
-);
-var validRequestMethodsArr = [
-  "GET",
-  ...validMutationMethodsArr
-];
+var validMutationMethods = new Set(validMutationMethodsArr);
+var validRequestMethodsArr = ["GET", ...validMutationMethodsArr];
 var validRequestMethods = new Set(validRequestMethodsArr);
-var _routes;
-var _branches;
-var _hmrRoutes;
-var _hmrBranches;
-_routes = /* @__PURE__ */ new WeakMap();
-_branches = /* @__PURE__ */ new WeakMap();
-_hmrRoutes = /* @__PURE__ */ new WeakMap();
-_hmrBranches = /* @__PURE__ */ new WeakMap();
 var invalidProtocols = [
   "about:",
   "blob:",
@@ -20431,7 +20207,6 @@ var invalidProtocols = [
   "devtools:",
   "file:",
   "filesystem:",
-  // eslint-disable-next-line no-script-url
   "javascript:"
 ];
 function hasInvalidProtocol(location2) {
@@ -20441,316 +20216,189 @@ function hasInvalidProtocol(location2) {
     return false;
   }
 }
-var DataRouterContext = React.createContext(null);
+
+// node_modules/react-router/dist/production/lib/context.js
+var React$12 = __toESM(require_react(), 1);
+var DataRouterContext = React$12.createContext(null);
 DataRouterContext.displayName = "DataRouter";
-var DataRouterStateContext = React.createContext(null);
+var DataRouterStateContext = React$12.createContext(null);
 DataRouterStateContext.displayName = "DataRouterState";
-var RSCRouterContext = React.createContext(false);
+var DataRouterDataContext = React$12.createContext(null);
+DataRouterDataContext.displayName = "DataRouterData";
+var DataRouterNavigationContext = React$12.createContext(null);
+DataRouterNavigationContext.displayName = "DataRouterNavigation";
+var RSCRouterContext = React$12.createContext(false);
 function useIsRSCRouterContext() {
-  return React.useContext(RSCRouterContext);
+  return React$12.useContext(RSCRouterContext);
 }
-var ViewTransitionContext = React.createContext({
-  isTransitioning: false
-});
+var ViewTransitionContext = React$12.createContext({ isTransitioning: false });
 ViewTransitionContext.displayName = "ViewTransition";
-var FetchersContext = React.createContext(
-  /* @__PURE__ */ new Map()
-);
+var FetchersContext = React$12.createContext(null);
 FetchersContext.displayName = "Fetchers";
-var AwaitContext = React.createContext(null);
+var AwaitContext = React$12.createContext(null);
 AwaitContext.displayName = "Await";
-var NavigationContext = React.createContext(
-  null
-);
+var NavigationContext = React$12.createContext(null);
 NavigationContext.displayName = "Navigation";
-var LocationContext = React.createContext(
-  null
-);
+var LocationContext = React$12.createContext(null);
 LocationContext.displayName = "Location";
-var RouteContext = React.createContext({
+var RouteContext = React$12.createContext({
   outlet: null,
   matches: [],
   isDataRoute: false
 });
 RouteContext.displayName = "Route";
-var RouteErrorContext = React.createContext(null);
+var IsDataRouteContext = React$12.createContext(false);
+IsDataRouteContext.displayName = "IsDataRoute";
+var RouteIdContext = React$12.createContext(void 0);
+RouteIdContext.displayName = "RouteId";
+var RouteErrorContext = React$12.createContext(null);
 RouteErrorContext.displayName = "RouteError";
-var ENABLE_DEV_WARNINGS = false;
+
+// node_modules/react-router/dist/production/lib/errors.js
 var ERROR_DIGEST_BASE = "REACT_ROUTER_ERROR";
 var ERROR_DIGEST_REDIRECT = "REDIRECT";
 var ERROR_DIGEST_ROUTE_ERROR_RESPONSE = "ROUTE_ERROR_RESPONSE";
 function decodeRedirectErrorDigest(digest) {
-  if (digest.startsWith(`${ERROR_DIGEST_BASE}:${ERROR_DIGEST_REDIRECT}:{`)) {
-    try {
-      let parsed = JSON.parse(digest.slice(28));
-      if (typeof parsed === "object" && parsed && typeof parsed.status === "number" && typeof parsed.statusText === "string" && typeof parsed.location === "string" && typeof parsed.reloadDocument === "boolean" && typeof parsed.replace === "boolean") {
-        return parsed;
-      }
-    } catch {
-    }
+  if (digest.startsWith(`${ERROR_DIGEST_BASE}:${ERROR_DIGEST_REDIRECT}:{`)) try {
+    let parsed = JSON.parse(digest.slice(28));
+    if (typeof parsed === "object" && parsed && typeof parsed.status === "number" && typeof parsed.statusText === "string" && typeof parsed.location === "string" && typeof parsed.reloadDocument === "boolean" && typeof parsed.replace === "boolean") return parsed;
+  } catch {
   }
 }
 function decodeRouteErrorResponseDigest(digest) {
-  if (digest.startsWith(
-    `${ERROR_DIGEST_BASE}:${ERROR_DIGEST_ROUTE_ERROR_RESPONSE}:{`
-  )) {
-    try {
-      let parsed = JSON.parse(digest.slice(40));
-      if (typeof parsed === "object" && parsed && typeof parsed.status === "number" && typeof parsed.statusText === "string") {
-        return new ErrorResponseImpl(
-          parsed.status,
-          parsed.statusText,
-          parsed.data
-        );
-      }
-    } catch {
-    }
+  if (digest.startsWith(`${ERROR_DIGEST_BASE}:${ERROR_DIGEST_ROUTE_ERROR_RESPONSE}:{`)) try {
+    let parsed = JSON.parse(digest.slice(40));
+    if (typeof parsed === "object" && parsed && typeof parsed.status === "number" && typeof parsed.statusText === "string") return new ErrorResponseImpl(parsed.status, parsed.statusText, parsed.data);
+  } catch {
   }
 }
+
+// node_modules/react-router/dist/production/lib/hooks.js
+var React$13 = __toESM(require_react(), 1);
 function useHref(to, { relative } = {}) {
-  invariant(
-    useInRouterContext(),
-    // TODO: This error is probably because they somehow have 2 versions of the
-    // router loaded. We can help them understand how to avoid that.
-    `useHref() may be used only in the context of a <Router> component.`
-  );
-  let { basename, navigator: navigator2 } = React2.useContext(NavigationContext);
+  invariant(useInRouterContext(), `useHref() may be used only in the context of a <Router> component.`);
+  let { basename, navigator: navigator2 } = React$13.useContext(NavigationContext);
   let { hash: hash2, pathname, search } = useResolvedPath(to, { relative });
   let joinedPathname = pathname;
-  if (basename !== "/") {
-    joinedPathname = pathname === "/" ? basename : joinPaths([basename, pathname]);
-  }
-  return navigator2.createHref({ pathname: joinedPathname, search, hash: hash2 });
+  if (basename !== "/") joinedPathname = pathname === "/" ? basename : joinPaths([basename, pathname]);
+  return navigator2.createHref({
+    pathname: joinedPathname,
+    search,
+    hash: hash2
+  });
 }
 function useInRouterContext() {
-  return React2.useContext(LocationContext) != null;
+  return React$13.useContext(LocationContext) != null;
 }
 function useLocation() {
-  invariant(
-    useInRouterContext(),
-    // TODO: This error is probably because they somehow have 2 versions of the
-    // router loaded. We can help them understand how to avoid that.
-    `useLocation() may be used only in the context of a <Router> component.`
-  );
-  return React2.useContext(LocationContext).location;
+  invariant(useInRouterContext(), `useLocation() may be used only in the context of a <Router> component.`);
+  return React$13.useContext(LocationContext).location;
 }
 function useNavigationType() {
-  return React2.useContext(LocationContext).navigationType;
+  return React$13.useContext(LocationContext).navigationType;
 }
-var navigateEffectWarning = `You should call navigate() in a React.useEffect(), not when your component is first rendered.`;
-function useIsomorphicLayoutEffect(cb) {
-  let isStatic = React2.useContext(NavigationContext).static;
-  if (!isStatic) {
-    React2.useLayoutEffect(cb);
-  }
-}
+var navigateEffectWarning = "You should call navigate() in a React.useEffect(), not when your component is first rendered.";
 function useNavigate() {
-  let { isDataRoute } = React2.useContext(RouteContext);
-  return isDataRoute ? useNavigateStable() : useNavigateUnstable();
+  return React$13.useContext(IsDataRouteContext) ? useNavigateStable() : useNavigateUnstable();
 }
 function useNavigateUnstable() {
-  invariant(
-    useInRouterContext(),
-    // TODO: This error is probably because they somehow have 2 versions of the
-    // router loaded. We can help them understand how to avoid that.
-    `useNavigate() may be used only in the context of a <Router> component.`
-  );
-  let dataRouterContext = React2.useContext(DataRouterContext);
-  let { basename, navigator: navigator2 } = React2.useContext(NavigationContext);
-  let { matches } = React2.useContext(RouteContext);
+  invariant(useInRouterContext(), `useNavigate() may be used only in the context of a <Router> component.`);
+  let dataRouterContext = React$13.useContext(DataRouterContext);
+  let { basename, navigator: navigator2 } = React$13.useContext(NavigationContext);
+  let { matches } = React$13.useContext(RouteContext);
   let { pathname: locationPathname } = useLocation();
   let routePathnamesJson = JSON.stringify(getResolveToMatches(matches));
-  let activeRef = React2.useRef(false);
-  useIsomorphicLayoutEffect(() => {
+  let activeRef = React$13.useRef(false);
+  React$13.useLayoutEffect(() => {
     activeRef.current = true;
   });
-  let navigate = React2.useCallback(
-    (to, options = {}) => {
-      warning(activeRef.current, navigateEffectWarning);
-      if (!activeRef.current) return;
-      if (typeof to === "number") {
-        navigator2.go(to);
-        return;
-      }
-      let path3 = resolveTo(
-        to,
-        JSON.parse(routePathnamesJson),
-        locationPathname,
-        options.relative === "path"
-      );
-      if (dataRouterContext == null && basename !== "/") {
-        path3.pathname = path3.pathname === "/" ? basename : joinPaths([basename, path3.pathname]);
-      }
-      validateNavigationTarget(
-        typeof to === "string" ? to : createPath(to),
-        navigator2.createHref(path3),
-        getNavigatorCurrentUrl(navigator2),
-        "reject"
-      );
-      (!!options.replace ? navigator2.replace : navigator2.push)(
-        path3,
-        options.state,
-        options
-      );
-    },
-    [
-      basename,
-      navigator2,
-      routePathnamesJson,
-      locationPathname,
-      dataRouterContext
-    ]
-  );
-  return navigate;
+  return React$13.useCallback((to, options = {}) => {
+    warning(activeRef.current, navigateEffectWarning);
+    if (!activeRef.current) return;
+    if (typeof to === "number") {
+      navigator2.go(to);
+      return;
+    }
+    let path3 = resolveTo(to, JSON.parse(routePathnamesJson), locationPathname, options.relative === "path");
+    if (dataRouterContext == null && basename !== "/") path3.pathname = path3.pathname === "/" ? basename : joinPaths([basename, path3.pathname]);
+    validateNavigationTarget(typeof to === "string" ? to : createPath(to), navigator2.createHref(path3), getNavigatorCurrentUrl(navigator2), "reject");
+    (!!options.replace ? navigator2.replace : navigator2.push)(path3, options.state, options);
+  }, [
+    basename,
+    navigator2,
+    routePathnamesJson,
+    locationPathname,
+    dataRouterContext
+  ]);
 }
-var OutletContext = React2.createContext(null);
+var OutletContext = React$13.createContext(null);
 function useResolvedPath(to, { relative } = {}) {
-  let { matches } = React2.useContext(RouteContext);
+  let { matches } = React$13.useContext(RouteContext);
   let { pathname: locationPathname } = useLocation();
   let routePathnamesJson = JSON.stringify(getResolveToMatches(matches));
-  return React2.useMemo(
-    () => resolveTo(
-      to,
-      JSON.parse(routePathnamesJson),
-      locationPathname,
-      relative === "path"
-    ),
-    [to, routePathnamesJson, locationPathname, relative]
-  );
+  return React$13.useMemo(() => resolveTo(to, JSON.parse(routePathnamesJson), locationPathname, relative === "path"), [
+    to,
+    routePathnamesJson,
+    locationPathname,
+    relative
+  ]);
 }
 function useRoutesImpl(routes, locationArg, dataRouterOpts) {
-  invariant(
-    useInRouterContext(),
-    // TODO: This error is probably because they somehow have 2 versions of the
-    // router loaded. We can help them understand how to avoid that.
-    `useRoutes() may be used only in the context of a <Router> component.`
-  );
-  let { navigator: navigator2 } = React2.useContext(NavigationContext);
-  let { matches: parentMatches } = React2.useContext(RouteContext);
+  invariant(useInRouterContext(), `useRoutes() may be used only in the context of a <Router> component.`);
+  let { navigator: navigator2 } = React$13.useContext(NavigationContext);
+  let { matches: parentMatches } = React$13.useContext(RouteContext);
   let routeMatch = parentMatches[parentMatches.length - 1];
   let parentParams = routeMatch ? routeMatch.params : {};
-  let parentPathname = routeMatch ? routeMatch.pathname : "/";
+  routeMatch && routeMatch.pathname;
   let parentPathnameBase = routeMatch ? routeMatch.pathnameBase : "/";
-  let parentRoute = routeMatch && routeMatch.route;
-  if (ENABLE_DEV_WARNINGS) {
-    let parentPath = parentRoute && parentRoute.path || "";
-    warningOnce(
-      parentPathname,
-      !parentRoute || parentPath.endsWith("*") || parentPath.endsWith("*?"),
-      `You rendered descendant <Routes> (or called \`useRoutes()\`) at "${parentPathname}" (under <Route path="${parentPath}">) but the parent route path has no trailing "*". This means if you navigate deeper, the parent won't match anymore and therefore the child routes will never render.
-
-Please change the parent <Route path="${parentPath}"> to <Route path="${parentPath === "/" ? "*" : `${parentPath}/*`}">.`
-    );
-  }
+  routeMatch && routeMatch.route;
   let locationFromContext = useLocation();
   let location2;
   if (locationArg) {
     let parsedLocationArg = typeof locationArg === "string" ? parsePath(locationArg) : locationArg;
-    invariant(
-      parentPathnameBase === "/" || parsedLocationArg.pathname?.startsWith(parentPathnameBase),
-      `When overriding the location using \`<Routes location>\` or \`useRoutes(routes, location)\`, the location pathname must begin with the portion of the URL pathname that was matched by all parent routes. The current pathname base is "${parentPathnameBase}" but pathname "${parsedLocationArg.pathname}" was given in the \`location\` prop.`
-    );
+    invariant(parentPathnameBase === "/" || parsedLocationArg.pathname?.startsWith(parentPathnameBase), `When overriding the location using \`<Routes location>\` or \`useRoutes(routes, location)\`, the location pathname must begin with the portion of the URL pathname that was matched by all parent routes. The current pathname base is "${parentPathnameBase}" but pathname "${parsedLocationArg.pathname}" was given in the \`location\` prop.`);
     location2 = parsedLocationArg;
-  } else {
-    location2 = locationFromContext;
-  }
+  } else location2 = locationFromContext;
   let pathname = location2.pathname || "/";
   let remainingPathname = pathname;
   if (parentPathnameBase !== "/") {
     let parentSegments = parentPathnameBase.replace(/^\//, "").split("/");
-    let segments = pathname.replace(/^\//, "").split("/");
-    remainingPathname = "/" + segments.slice(parentSegments.length).join("/");
+    remainingPathname = "/" + pathname.replace(/^\//, "").split("/").slice(parentSegments.length).join("/");
   }
-  let matches = dataRouterOpts && dataRouterOpts.state.matches.length ? (
-    // If we're in a data router, use the matches we've already identified but ensure
-    // we have the latest route instances from the manifest in case elements have changed
-    dataRouterOpts.state.matches.map(
-      (m2) => Object.assign(m2, {
-        route: dataRouterOpts.manifest[m2.route.id] || m2.route
-      })
-    )
-  ) : matchRoutes(routes, { pathname: remainingPathname });
-  if (ENABLE_DEV_WARNINGS) {
-    warning(
-      parentRoute || matches != null,
-      `No routes matched location "${location2.pathname}${location2.search}${location2.hash}" `
-    );
-    warning(
-      matches == null || matches[matches.length - 1].route.element !== void 0 || matches[matches.length - 1].route.Component !== void 0 || matches[matches.length - 1].route.lazy !== void 0,
-      `Matched leaf route at location "${location2.pathname}${location2.search}${location2.hash}" does not have an element or Component. This means it will render an <Outlet /> with a null value by default resulting in an "empty" page.`
-    );
-  }
-  let renderedMatches = _renderMatches(
-    matches && matches.map(
-      (match2) => Object.assign({}, match2, {
-        params: Object.assign({}, parentParams, match2.params),
-        pathname: joinPaths([
-          parentPathnameBase,
-          // Re-encode pathnames that were decoded inside matchRoutes.
-          // Pre-encode `%`, `?` and `#` ahead of `encodeLocation` because it uses
-          // `new URL()` internally and we need to prevent it from treating
-          // them as separators
-          navigator2.encodeLocation ? navigator2.encodeLocation(
-            match2.pathname.replace(/%/g, "%25").replace(/\?/g, "%3F").replace(/#/g, "%23")
-          ).pathname : match2.pathname
-        ]),
-        pathnameBase: match2.pathnameBase === "/" ? parentPathnameBase : joinPaths([
-          parentPathnameBase,
-          // Re-encode pathnames that were decoded inside matchRoutes
-          // Pre-encode `%`, `?` and `#` ahead of `encodeLocation` because it uses
-          // `new URL()` internally and we need to prevent it from treating
-          // them as separators
-          navigator2.encodeLocation ? navigator2.encodeLocation(
-            match2.pathnameBase.replace(/%/g, "%25").replace(/\?/g, "%3F").replace(/#/g, "%23")
-          ).pathname : match2.pathnameBase
-        ])
-      })
-    ),
-    parentMatches,
-    dataRouterOpts
-  );
-  if (locationArg && renderedMatches) {
-    return /* @__PURE__ */ React2.createElement(
-      LocationContext.Provider,
-      {
-        value: {
-          location: {
-            pathname: "/",
-            search: "",
-            hash: "",
-            state: null,
-            key: "default",
-            mask: void 0,
-            ...location2
-          },
-          navigationType: "POP"
-          /* Pop */
-        }
-      },
-      renderedMatches
-    );
-  }
+  let matches;
+  if (dataRouterOpts) if (dataRouterOpts.state.matches.length) matches = dataRouterOpts.state.matches.map((m2) => Object.assign(m2, { route: dataRouterOpts.manifest[m2.route.id] || m2.route }));
+  else matches = dataRouterOpts.router.match(dataRouterOpts.state.location);
+  else matches = matchRoutes(routes, { pathname: remainingPathname });
+  let renderedMatches = _renderMatches(matches && matches.map((match2) => Object.assign({}, match2, {
+    params: Object.assign({}, parentParams, match2.params),
+    pathname: joinPaths([parentPathnameBase, navigator2.encodeLocation ? navigator2.encodeLocation(match2.pathname.replace(/%/g, "%25").replace(/\?/g, "%3F").replace(/#/g, "%23")).pathname : match2.pathname]),
+    pathnameBase: match2.pathnameBase === "/" ? parentPathnameBase : joinPaths([parentPathnameBase, navigator2.encodeLocation ? navigator2.encodeLocation(match2.pathnameBase.replace(/%/g, "%25").replace(/\?/g, "%3F").replace(/#/g, "%23")).pathname : match2.pathnameBase])
+  })), parentMatches, dataRouterOpts);
+  if (locationArg && renderedMatches) return /* @__PURE__ */ React$13.createElement(LocationContext.Provider, { value: {
+    location: {
+      pathname: "/",
+      search: "",
+      hash: "",
+      state: null,
+      key: "default",
+      mask: void 0,
+      ...location2
+    },
+    navigationType: "POP"
+  } }, renderedMatches);
   return renderedMatches;
 }
 function DefaultErrorComponent() {
   let error = useRouteError();
   let message = isRouteErrorResponse(error) ? `${error.status} ${error.statusText}` : error instanceof Error ? error.message : JSON.stringify(error);
   let stack = error instanceof Error ? error.stack : null;
-  let lightgrey = "rgba(200,200,200, 0.5)";
-  let preStyles = { padding: "0.5rem", backgroundColor: lightgrey };
-  let codeStyles = { padding: "2px 4px", backgroundColor: lightgrey };
-  let devInfo = null;
-  if (ENABLE_DEV_WARNINGS) {
-    console.error(
-      "Error handled by React Router default ErrorBoundary:",
-      error
-    );
-    devInfo = /* @__PURE__ */ React2.createElement(React2.Fragment, null, /* @__PURE__ */ React2.createElement("p", null, "\u{1F4BF} Hey developer \u{1F44B}"), /* @__PURE__ */ React2.createElement("p", null, "You can provide a way better UX than this when your app throws errors by providing your own ", /* @__PURE__ */ React2.createElement("code", { style: codeStyles }, "ErrorBoundary"), " or", " ", /* @__PURE__ */ React2.createElement("code", { style: codeStyles }, "errorElement"), " prop on your route."));
-  }
-  return /* @__PURE__ */ React2.createElement(React2.Fragment, null, /* @__PURE__ */ React2.createElement("h2", null, "Unexpected Application Error!"), /* @__PURE__ */ React2.createElement("h3", { style: { fontStyle: "italic" } }, message), stack ? /* @__PURE__ */ React2.createElement("pre", { style: preStyles }, stack) : null, devInfo);
+  return /* @__PURE__ */ React$13.createElement(React$13.Fragment, null, /* @__PURE__ */ React$13.createElement("h2", null, "Unexpected Application Error!"), /* @__PURE__ */ React$13.createElement("h3", { style: { fontStyle: "italic" } }, message), stack ? /* @__PURE__ */ React$13.createElement("pre", { style: {
+    padding: "0.5rem",
+    backgroundColor: "rgba(200,200,200, 0.5)"
+  } }, stack) : null, null);
 }
-var defaultErrorElement = /* @__PURE__ */ React2.createElement(DefaultErrorComponent, null);
-var RenderErrorBoundary = class extends React2.Component {
+var defaultErrorElement = /* @__PURE__ */ React$13.createElement(DefaultErrorComponent, null);
+var RenderErrorBoundary = class extends React$13.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -20759,17 +20407,16 @@ var RenderErrorBoundary = class extends React2.Component {
       error: props.error
     };
   }
+  static contextType = RSCRouterContext;
   static getDerivedStateFromError(error) {
     return { error };
   }
   static getDerivedStateFromProps(props, state) {
-    if (state.location !== props.location || state.revalidation !== "idle" && props.revalidation === "idle") {
-      return {
-        error: props.error,
-        location: props.location,
-        revalidation: props.revalidation
-      };
-    }
+    if (state.location !== props.location || state.revalidation !== "idle" && props.revalidation === "idle") return {
+      error: props.error,
+      location: props.location,
+      revalidation: props.revalidation
+    };
     return {
       error: props.error !== void 0 ? props.error : state.error,
       location: state.location,
@@ -20777,14 +20424,8 @@ var RenderErrorBoundary = class extends React2.Component {
     };
   }
   componentDidCatch(error, errorInfo) {
-    if (this.props.onError) {
-      this.props.onError(error, errorInfo);
-    } else {
-      console.error(
-        "React Router caught the following error during render",
-        error
-      );
-    }
+    if (this.props.onError) this.props.onError(error, errorInfo);
+    else console.error("React Router caught the following error during render", error);
   }
   render() {
     let error = this.state.error;
@@ -20792,97 +20433,59 @@ var RenderErrorBoundary = class extends React2.Component {
       const decoded = decodeRouteErrorResponseDigest(error.digest);
       if (decoded) error = decoded;
     }
-    let result = error !== void 0 ? /* @__PURE__ */ React2.createElement(RouteContext.Provider, { value: this.props.routeContext }, /* @__PURE__ */ React2.createElement(
-      RouteErrorContext.Provider,
-      {
-        value: error,
-        children: this.props.component
-      }
-    )) : this.props.children;
-    if (this.context) {
-      return /* @__PURE__ */ React2.createElement(RSCErrorHandler, { error }, result);
-    }
+    let result = error !== void 0 ? /* @__PURE__ */ React$13.createElement(RouteContext.Provider, { value: this.props.routeContext }, /* @__PURE__ */ React$13.createElement(IsDataRouteContext.Provider, { value: this.props.routeContext.isDataRoute }, /* @__PURE__ */ React$13.createElement(RouteIdContext.Provider, { value: this.props.routeContext.matches[this.props.routeContext.matches.length - 1]?.route.id }, /* @__PURE__ */ React$13.createElement(RouteErrorContext.Provider, {
+      value: error,
+      children: this.props.component
+    })))) : this.props.children;
+    if (this.context) return /* @__PURE__ */ React$13.createElement(RSCErrorHandler, { error }, result);
     return result;
   }
 };
-RenderErrorBoundary.contextType = RSCRouterContext;
 var errorRedirectHandledMap = /* @__PURE__ */ new WeakMap();
-function RSCErrorHandler({
-  children,
-  error
-}) {
-  let { basename, navigator: navigator2 } = React2.useContext(NavigationContext);
+function RSCErrorHandler({ children, error }) {
+  let { basename, navigator: navigator2 } = React$13.useContext(NavigationContext);
   if (typeof error === "object" && error && "digest" in error && typeof error.digest === "string") {
-    let redirect2 = decodeRedirectErrorDigest(error.digest);
-    if (redirect2) {
+    let redirect = decodeRedirectErrorDigest(error.digest);
+    if (redirect) {
       let existingRedirect = errorRedirectHandledMap.get(error);
       if (existingRedirect) throw existingRedirect;
-      let parsed = parseToInfo(redirect2.location, basename);
+      let parsed = parseToInfo(redirect.location, basename);
       let target = parsed.absoluteURL || parsed.to;
-      validateNavigationTarget(
-        redirect2.location,
-        target,
-        getNavigatorCurrentUrl(navigator2),
-        "allow-explicit"
-      );
-      if (hasInvalidProtocol(target)) {
-        throw new Error("Invalid redirect location");
+      validateNavigationTarget(redirect.location, target, getNavigatorCurrentUrl(navigator2), "allow-explicit");
+      if (hasInvalidProtocol(target)) throw new Error("Invalid redirect location");
+      if (isBrowser && !errorRedirectHandledMap.get(error)) if (parsed.isExternal || redirect.reloadDocument) window.location.href = target;
+      else {
+        const redirectPromise = Promise.resolve().then(() => window.__reactRouterDataRouter.navigate(parsed.to, { replace: redirect.replace }));
+        errorRedirectHandledMap.set(error, redirectPromise);
+        throw redirectPromise;
       }
-      if (isBrowser && !errorRedirectHandledMap.get(error)) {
-        if (parsed.isExternal || redirect2.reloadDocument) {
-          window.location.href = target;
-        } else {
-          const redirectPromise = Promise.resolve().then(
-            () => window.__reactRouterDataRouter.navigate(parsed.to, {
-              replace: redirect2.replace
-            })
-          );
-          errorRedirectHandledMap.set(error, redirectPromise);
-          throw redirectPromise;
-        }
-      }
-      return /* @__PURE__ */ React2.createElement("meta", { httpEquiv: "refresh", content: `0;url=${target}` });
+      return /* @__PURE__ */ React$13.createElement("meta", {
+        httpEquiv: "refresh",
+        content: `0;url=${target}`
+      });
     }
   }
   return children;
 }
 function RenderedRoute({ routeContext, match: match2, children }) {
-  let dataRouterContext = React2.useContext(DataRouterContext);
-  if (dataRouterContext && dataRouterContext.static && dataRouterContext.staticContext && (match2.route.errorElement || match2.route.ErrorBoundary)) {
-    dataRouterContext.staticContext._deepestRenderedBoundaryId = match2.route.id;
-  }
-  return /* @__PURE__ */ React2.createElement(RouteContext.Provider, { value: routeContext }, children);
+  let dataRouterContext = React$13.useContext(DataRouterContext);
+  if (dataRouterContext && dataRouterContext.static && dataRouterContext.staticContext && (match2.route.errorElement || match2.route.ErrorBoundary)) dataRouterContext.staticContext._deepestRenderedBoundaryId = match2.route.id;
+  return /* @__PURE__ */ React$13.createElement(RouteContext.Provider, { value: routeContext }, /* @__PURE__ */ React$13.createElement(IsDataRouteContext.Provider, { value: routeContext.isDataRoute }, /* @__PURE__ */ React$13.createElement(RouteIdContext.Provider, { value: match2.route.id }, children)));
 }
 function _renderMatches(matches, parentMatches = [], dataRouterOpts) {
   let dataRouterState = dataRouterOpts?.state;
   if (matches == null) {
-    if (!dataRouterState) {
-      return null;
-    }
-    if (dataRouterState.errors) {
-      matches = dataRouterState.matches;
-    } else if (parentMatches.length === 0 && !dataRouterState.initialized && dataRouterState.matches.length > 0) {
-      matches = dataRouterState.matches;
-    } else {
-      return null;
-    }
+    if (!dataRouterState) return null;
+    if (dataRouterState.errors) matches = dataRouterState.matches;
+    else if (parentMatches.length === 0 && !dataRouterState.initialized && dataRouterState.matches.length > 0) matches = dataRouterState.matches;
+    else return null;
   }
   let renderedMatches = matches;
   let errors = dataRouterState?.errors;
   if (errors != null) {
-    let errorIndex = renderedMatches.findIndex(
-      (m2) => m2.route.id && errors?.[m2.route.id] !== void 0
-    );
-    invariant(
-      errorIndex >= 0,
-      `Could not find a matching route for errors on route IDs: ${Object.keys(
-        errors
-      ).join(",")}`
-    );
-    renderedMatches = renderedMatches.slice(
-      0,
-      Math.min(renderedMatches.length, errorIndex + 1)
-    );
+    let errorIndex = renderedMatches.findIndex((m2) => m2.route.id && errors?.[m2.route.id] !== void 0);
+    invariant(errorIndex >= 0, `Could not find a matching route for errors on route IDs: ${Object.keys(errors).join(",")}`);
+    renderedMatches = renderedMatches.slice(0, Math.min(renderedMatches.length, errorIndex + 1));
   }
   let renderFallback = false;
   let fallbackIndex = -1;
@@ -20890,21 +20493,14 @@ function _renderMatches(matches, parentMatches = [], dataRouterOpts) {
     renderFallback = dataRouterState.renderFallback;
     for (let i2 = 0; i2 < renderedMatches.length; i2++) {
       let match2 = renderedMatches[i2];
-      if (match2.route.HydrateFallback || match2.route.hydrateFallbackElement) {
-        fallbackIndex = i2;
-      }
+      if (match2.route.HydrateFallback || match2.route.hydrateFallbackElement) fallbackIndex = i2;
       if (match2.route.id) {
         let { loaderData, errors: errors2 } = dataRouterState;
         let needsToRunLoader = match2.route.loader && !loaderData.hasOwnProperty(match2.route.id) && (!errors2 || errors2[match2.route.id] === void 0);
         if (match2.route.lazy || needsToRunLoader) {
-          if (dataRouterOpts.isStatic) {
-            renderFallback = true;
-          }
-          if (fallbackIndex >= 0) {
-            renderedMatches = renderedMatches.slice(0, fallbackIndex + 1);
-          } else {
-            renderedMatches = [renderedMatches[0]];
-          }
+          if (dataRouterOpts.isStatic) renderFallback = true;
+          if (fallbackIndex >= 0) renderedMatches = renderedMatches.slice(0, fallbackIndex + 1);
+          else renderedMatches = [renderedMatches[0]];
           break;
         }
       }
@@ -20919,167 +20515,121 @@ function _renderMatches(matches, parentMatches = [], dataRouterOpts) {
       errorInfo
     });
   } : void 0;
-  return renderedMatches.reduceRight(
-    (outlet, match2, index) => {
-      let error;
-      let shouldRenderHydrateFallback = false;
-      let errorElement = null;
-      let hydrateFallbackElement = null;
-      if (dataRouterState) {
-        error = errors && match2.route.id ? errors[match2.route.id] : void 0;
-        errorElement = match2.route.errorElement || defaultErrorElement;
-        if (renderFallback) {
-          if (fallbackIndex < 0 && index === 0) {
-            warningOnce(
-              "route-fallback",
-              false,
-              "No `HydrateFallback` element provided to render during initial hydration"
-            );
-            shouldRenderHydrateFallback = true;
-            hydrateFallbackElement = null;
-          } else if (fallbackIndex === index) {
-            shouldRenderHydrateFallback = true;
-            hydrateFallbackElement = match2.route.hydrateFallbackElement || null;
-          }
+  return renderedMatches.reduceRight((outlet, match2, index) => {
+    let error;
+    let shouldRenderHydrateFallback = false;
+    let errorElement = null;
+    let hydrateFallbackElement = null;
+    if (dataRouterState) {
+      error = errors && match2.route.id ? errors[match2.route.id] : void 0;
+      errorElement = match2.route.errorElement || defaultErrorElement;
+      if (renderFallback) {
+        if (fallbackIndex < 0 && index === 0) {
+          warningOnce("route-fallback", false, "No `HydrateFallback` element provided to render during initial hydration");
+          shouldRenderHydrateFallback = true;
+          hydrateFallbackElement = null;
+        } else if (fallbackIndex === index) {
+          shouldRenderHydrateFallback = true;
+          hydrateFallbackElement = match2.route.hydrateFallbackElement || null;
         }
       }
-      let matches2 = parentMatches.concat(renderedMatches.slice(0, index + 1));
-      let getChildren = () => {
-        let children;
-        if (error) {
-          children = errorElement;
-        } else if (shouldRenderHydrateFallback) {
-          children = hydrateFallbackElement;
-        } else if (match2.route.Component) {
-          children = /* @__PURE__ */ React2.createElement(match2.route.Component, null);
-        } else if (match2.route.element) {
-          children = match2.route.element;
-        } else {
-          children = outlet;
-        }
-        return /* @__PURE__ */ React2.createElement(
-          RenderedRoute,
-          {
-            match: match2,
-            routeContext: {
-              outlet,
-              matches: matches2,
-              isDataRoute: dataRouterState != null
-            },
-            children
-          }
-        );
-      };
-      return dataRouterState && (match2.route.ErrorBoundary || match2.route.errorElement || index === 0) ? /* @__PURE__ */ React2.createElement(
-        RenderErrorBoundary,
-        {
-          location: dataRouterState.location,
-          revalidation: dataRouterState.revalidation,
-          component: errorElement,
-          error,
-          children: getChildren(),
-          routeContext: { outlet: null, matches: matches2, isDataRoute: true },
-          onError
-        }
-      ) : getChildren();
-    },
-    null
-  );
+    }
+    let matches2 = parentMatches.concat(renderedMatches.slice(0, index + 1));
+    let getChildren = () => {
+      let children;
+      if (error) children = errorElement;
+      else if (shouldRenderHydrateFallback) children = hydrateFallbackElement;
+      else if (match2.route.Component) children = /* @__PURE__ */ React$13.createElement(match2.route.Component, null);
+      else if (match2.route.element) children = match2.route.element;
+      else children = outlet;
+      return /* @__PURE__ */ React$13.createElement(RenderedRoute, {
+        match: match2,
+        routeContext: {
+          outlet,
+          matches: matches2,
+          isDataRoute: dataRouterState != null
+        },
+        children
+      });
+    };
+    return dataRouterState && (match2.route.ErrorBoundary || match2.route.errorElement || index === 0) ? /* @__PURE__ */ React$13.createElement(RenderErrorBoundary, {
+      location: dataRouterState.location,
+      revalidation: dataRouterState.revalidation,
+      component: errorElement,
+      error,
+      children: getChildren(),
+      routeContext: {
+        outlet: null,
+        matches: matches2,
+        isDataRoute: true
+      },
+      onError
+    }) : getChildren();
+  }, null);
 }
 function getDataRouterConsoleError(hookName) {
   return `${hookName} must be used within a data router.  See https://reactrouter.com/en/main/routers/picking-a-router.`;
 }
 function useDataRouterContext(hookName) {
-  let ctx = React2.useContext(DataRouterContext);
+  let ctx = React$13.useContext(DataRouterContext);
   invariant(ctx, getDataRouterConsoleError(hookName));
   return ctx;
 }
 function useDataRouterState(hookName) {
-  let state = React2.useContext(DataRouterStateContext);
+  let state = React$13.useContext(DataRouterStateContext);
   invariant(state, getDataRouterConsoleError(hookName));
   return state;
 }
-function useRouteContext(hookName) {
-  let route = React2.useContext(RouteContext);
-  invariant(route, getDataRouterConsoleError(hookName));
-  return route;
+function useDataRouterData(hookName) {
+  let data = React$13.useContext(DataRouterDataContext);
+  invariant(data, getDataRouterConsoleError(hookName));
+  return data;
+}
+function useDataRouterNavigation(hookName) {
+  let navigation = React$13.useContext(DataRouterNavigationContext);
+  invariant(navigation, getDataRouterConsoleError(hookName));
+  return navigation;
 }
 function useCurrentRouteId(hookName) {
-  let route = useRouteContext(hookName);
-  let thisRoute = route.matches[route.matches.length - 1];
-  invariant(
-    thisRoute.route.id,
-    `${hookName} can only be used on routes that contain a unique "id"`
-  );
-  return thisRoute.route.id;
-}
-function useRouteId() {
-  return useCurrentRouteId(
-    "useRouteId"
-    /* UseRouteId */
-  );
+  let routeId = React$13.useContext(RouteIdContext);
+  invariant(routeId, `${hookName} can only be used on routes that contain a unique "id"`);
+  return routeId;
 }
 function useNavigation() {
-  let state = useDataRouterState(
-    "useNavigation"
-    /* UseNavigation */
-  );
-  return React2.useMemo(() => {
-    let { matches, historyAction, ...rest } = state.navigation;
+  let { navigation } = useDataRouterNavigation("useNavigation");
+  return React$13.useMemo(() => {
+    let { matches, historyAction, ...rest } = navigation;
     return rest;
-  }, [state.navigation]);
+  }, [navigation]);
 }
 function useMatches() {
-  let { matches, loaderData } = useDataRouterState(
-    "useMatches"
-    /* UseMatches */
-  );
-  return React2.useMemo(
-    () => matches.map((m2) => convertRouteMatchToUiMatch(m2, loaderData)),
-    [matches, loaderData]
-  );
+  let { matches } = useDataRouterState("useMatches");
+  let { loaderData } = useDataRouterData("useMatches");
+  return React$13.useMemo(() => matches.map((m2) => convertRouteMatchToUiMatch(m2, loaderData)), [matches, loaderData]);
 }
 function useRouteError() {
-  let error = React2.useContext(RouteErrorContext);
-  let state = useDataRouterState(
-    "useRouteError"
-    /* UseRouteError */
-  );
-  let routeId = useCurrentRouteId(
-    "useRouteError"
-    /* UseRouteError */
-  );
-  if (error !== void 0) {
-    return error;
-  }
-  return state.errors?.[routeId];
+  let error = React$13.useContext(RouteErrorContext);
+  let data = useDataRouterData("useRouteError");
+  let routeId = useCurrentRouteId("useRouteError");
+  if (error !== void 0) return error;
+  return data.errors?.[routeId];
 }
 function useNavigateStable() {
-  let { router } = useDataRouterContext(
-    "useNavigate"
-    /* UseNavigateStable */
-  );
-  let id = useCurrentRouteId(
-    "useNavigate"
-    /* UseNavigateStable */
-  );
-  let activeRef = React2.useRef(false);
-  useIsomorphicLayoutEffect(() => {
+  let { router } = useDataRouterContext("useNavigate");
+  let id = useCurrentRouteId("useNavigate");
+  let activeRef = React$13.useRef(false);
+  React$13.useLayoutEffect(() => {
     activeRef.current = true;
   });
-  let navigate = React2.useCallback(
-    async (to, options = {}) => {
-      warning(activeRef.current, navigateEffectWarning);
-      if (!activeRef.current) return;
-      if (typeof to === "number") {
-        await router.navigate(to);
-      } else {
-        await router.navigate(to, { fromRouteId: id, ...options });
-      }
-    },
-    [router, id]
-  );
-  return navigate;
+  return React$13.useCallback(async (to, options = {}) => {
+    warning(activeRef.current, navigateEffectWarning);
+    if (!activeRef.current) return;
+    if (typeof to === "number") await router.navigate(to);
+    else await router.navigate(to, {
+      fromRouteId: id,
+      ...options
+    });
+  }, [router, id]);
 }
 var alreadyWarned = {};
 function warningOnce(key, cond, message) {
@@ -21088,108 +20638,429 @@ function warningOnce(key, cond, message) {
     warning(false, message);
   }
 }
-var USE_OPTIMISTIC = "useOptimistic";
-var useOptimisticImpl = React3[USE_OPTIMISTIC];
-var MemoizedDataRoutes = React3.memo(DataRoutes2);
-function DataRoutes2({
-  routes,
-  manifest,
-  future,
-  state,
-  isStatic,
-  onError
-}) {
+
+// node_modules/react-router/dist/production/lib/dom/ssr/invariant.js
+function invariant2(value, message) {
+  if (value === false || value === null || typeof value === "undefined") throw new Error(message);
+}
+
+// node_modules/react-router/dist/production/lib/dom/ssr/markup.js
+var ESCAPE_LOOKUP = {
+  "&": "\\u0026",
+  ">": "\\u003e",
+  "<": "\\u003c",
+  "\u2028": "\\u2028",
+  "\u2029": "\\u2029"
+};
+var ESCAPE_REGEX = /[&><\u2028\u2029]/g;
+function escapeHtml(html) {
+  return html.replace(ESCAPE_REGEX, (match2) => ESCAPE_LOOKUP[match2]);
+}
+
+// node_modules/react-router/dist/production/lib/dom/ssr/single-fetch.js
+var React$14 = __toESM(require_react(), 1);
+function singleFetchUrl(reqUrl, extension, serverOrigin) {
+  let url = typeof reqUrl === "string" ? new URL(reqUrl, serverOrigin ?? (typeof window === "undefined" ? "server://singlefetch/" : window.location.origin)) : new URL(reqUrl);
+  if (serverOrigin && url.origin !== serverOrigin) url = new URL(url.pathname + url.search + url.hash, serverOrigin);
+  if (url.pathname.endsWith("/")) url.pathname = `${url.pathname}_.${extension}`;
+  else url.pathname = `${url.pathname}.${extension}`;
+  return url;
+}
+
+// node_modules/react-router/dist/production/lib/dom/ssr/routeModules.js
+async function loadRouteModule(route, routeModulesCache) {
+  if (route.id in routeModulesCache) return routeModulesCache[route.id];
+  try {
+    let routeModule = await import(
+      /* @vite-ignore */
+      /* webpackIgnore: true */
+      route.module
+    );
+    routeModulesCache[route.id] = routeModule;
+    return routeModule;
+  } catch (error) {
+    console.error(`Error loading route module \`${route.module}\`, reloading page...`);
+    console.error(error);
+    if (window.__reactRouterContext && window.__reactRouterContext.isSpaMode && import.meta.hot) throw error;
+    window.location.reload();
+    return new Promise(() => {
+    });
+  }
+}
+
+// node_modules/react-router/dist/production/lib/dom/ssr/links.js
+function isPageLinkDescriptor(object) {
+  return object != null && typeof object.page === "string";
+}
+function isHtmlLinkDescriptor(object) {
+  if (object == null) return false;
+  if (object.href == null) return object.rel === "preload" && typeof object.imageSrcSet === "string" && typeof object.imageSizes === "string";
+  return typeof object.rel === "string" && typeof object.href === "string";
+}
+async function getKeyedPrefetchLinks(matches, manifest, routeModules) {
+  return dedupeLinkDescriptors((await Promise.all(matches.map(async (match2) => {
+    let route = manifest.routes[match2.route.id];
+    if (route) {
+      let mod = await loadRouteModule(route, routeModules);
+      return mod.links ? mod.links() : [];
+    }
+    return [];
+  }))).flat(1).filter(isHtmlLinkDescriptor).filter((link) => link.rel === "stylesheet" || link.rel === "preload").map((link) => link.rel === "stylesheet" ? {
+    ...link,
+    rel: "prefetch",
+    as: "style"
+  } : {
+    ...link,
+    rel: "prefetch"
+  }));
+}
+function getNewMatchesForLinks(page, nextMatches, currentMatches, manifest, location2, mode) {
+  let isNew = (match2, index) => {
+    if (!currentMatches[index]) return true;
+    return match2.route.id !== currentMatches[index].route.id;
+  };
+  let matchPathChanged = (match2, index) => {
+    return currentMatches[index].pathname !== match2.pathname || currentMatches[index].route.path?.endsWith("*") && currentMatches[index].params["*"] !== match2.params["*"];
+  };
+  if (mode === "assets") return nextMatches.filter((match2, index) => isNew(match2, index) || matchPathChanged(match2, index));
+  if (mode === "data") return nextMatches.filter((match2, index) => {
+    let manifestRoute = manifest.routes[match2.route.id];
+    if (!manifestRoute || !manifestRoute.hasLoader) return false;
+    if (isNew(match2, index) || matchPathChanged(match2, index)) return true;
+    if (match2.route.shouldRevalidate) {
+      let routeChoice = match2.route.shouldRevalidate({
+        currentUrl: new URL(location2.pathname + location2.search + location2.hash, window.origin),
+        currentParams: currentMatches[0]?.params || {},
+        nextUrl: new URL(page, window.origin),
+        nextParams: match2.params,
+        defaultShouldRevalidate: true
+      });
+      if (typeof routeChoice === "boolean") return routeChoice;
+    }
+    return true;
+  });
+  return [];
+}
+function getModuleLinkHrefs(matches, manifest, { includeHydrateFallback } = {}) {
+  return dedupeHrefs(matches.map((match2) => {
+    let route = manifest.routes[match2.route.id];
+    if (!route) return [];
+    let hrefs = [route.module];
+    if (route.clientActionModule) hrefs = hrefs.concat(route.clientActionModule);
+    if (route.clientLoaderModule) hrefs = hrefs.concat(route.clientLoaderModule);
+    if (includeHydrateFallback && route.hydrateFallbackModule) hrefs = hrefs.concat(route.hydrateFallbackModule);
+    if (route.imports) hrefs = hrefs.concat(route.imports);
+    return hrefs;
+  }).flat(1));
+}
+function dedupeHrefs(hrefs) {
+  return [...new Set(hrefs)];
+}
+function sortKeys(obj) {
+  let sorted = {};
+  let keys = Object.keys(obj).sort();
+  for (let key of keys) sorted[key] = obj[key];
+  return sorted;
+}
+function dedupeLinkDescriptors(descriptors, preloads) {
+  let set = /* @__PURE__ */ new Set();
+  let preloadsSet = new Set(preloads);
+  return descriptors.reduce((deduped, descriptor) => {
+    if (preloads && !isPageLinkDescriptor(descriptor) && descriptor.as === "script" && descriptor.href && preloadsSet.has(descriptor.href)) return deduped;
+    let key = JSON.stringify(sortKeys(descriptor));
+    if (!set.has(key)) {
+      set.add(key);
+      deduped.push({
+        key,
+        link: descriptor
+      });
+    }
+    return deduped;
+  }, []);
+}
+
+// node_modules/react-router/dist/production/lib/dom/ssr/components.js
+var React$15 = __toESM(require_react(), 1);
+var FrameworkContext = React$15.createContext(void 0);
+FrameworkContext.displayName = "FrameworkContext";
+function useFrameworkContext() {
+  let context = React$15.useContext(FrameworkContext);
+  invariant2(context, "You must render this element inside a <HydratedRouter> element");
+  return context;
+}
+function usePrefetchBehavior(prefetch, theirElementProps) {
+  let frameworkContext = React$15.useContext(FrameworkContext);
+  let [maybePrefetch, setMaybePrefetch] = React$15.useState(false);
+  let [shouldPrefetch, setShouldPrefetch] = React$15.useState(false);
+  let { onFocus, onBlur, onMouseEnter, onMouseLeave, onTouchStart } = theirElementProps;
+  let ref = React$15.useRef(null);
+  React$15.useEffect(() => {
+    if (prefetch === "render") setShouldPrefetch(true);
+    if (prefetch === "viewport") {
+      let callback = (entries) => {
+        entries.forEach((entry) => {
+          setShouldPrefetch(entry.isIntersecting);
+        });
+      };
+      let observer = new IntersectionObserver(callback, { threshold: 0.5 });
+      if (ref.current) observer.observe(ref.current);
+      return () => {
+        observer.disconnect();
+      };
+    }
+  }, [prefetch]);
+  React$15.useEffect(() => {
+    if (maybePrefetch) {
+      let id = setTimeout(() => {
+        setShouldPrefetch(true);
+      }, 100);
+      return () => {
+        clearTimeout(id);
+      };
+    }
+  }, [maybePrefetch]);
+  let setIntent = () => {
+    setMaybePrefetch(true);
+  };
+  let cancelIntent = () => {
+    setMaybePrefetch(false);
+    setShouldPrefetch(false);
+  };
+  if (!frameworkContext) return [
+    false,
+    ref,
+    {}
+  ];
+  if (prefetch !== "intent") return [
+    shouldPrefetch,
+    ref,
+    {}
+  ];
+  return [
+    shouldPrefetch,
+    ref,
+    {
+      onFocus: composeEventHandlers(onFocus, setIntent),
+      onBlur: composeEventHandlers(onBlur, cancelIntent),
+      onMouseEnter: composeEventHandlers(onMouseEnter, setIntent),
+      onMouseLeave: composeEventHandlers(onMouseLeave, cancelIntent),
+      onTouchStart: composeEventHandlers(onTouchStart, setIntent)
+    }
+  ];
+}
+function composeEventHandlers(theirHandler, ourHandler) {
+  return (event) => {
+    theirHandler && theirHandler(event);
+    if (!event.defaultPrevented) ourHandler(event);
+  };
+}
+function PrefetchPageLinks({ page, ...linkProps }) {
+  let rsc = useIsRSCRouterContext();
+  let { nonce: contextNonce } = useFrameworkContext();
+  let { router } = useDataRouterContext("PrefetchPageLinks");
+  let matches = React$15.useMemo(() => router.match(page), [
+    router,
+    router.routes,
+    page
+  ]);
+  if (!matches) return null;
+  if (linkProps.nonce == null && contextNonce) linkProps = {
+    ...linkProps,
+    nonce: contextNonce
+  };
+  if (rsc) return /* @__PURE__ */ React$15.createElement(RSCPrefetchPageLinksImpl, {
+    page,
+    matches,
+    ...linkProps
+  });
+  return /* @__PURE__ */ React$15.createElement(PrefetchPageLinksImpl, {
+    page,
+    matches,
+    ...linkProps
+  });
+}
+function useKeyedPrefetchLinks(matches) {
+  let { manifest, routeModules } = useFrameworkContext();
+  let [keyedPrefetchLinks, setKeyedPrefetchLinks] = React$15.useState([]);
+  React$15.useEffect(() => {
+    let interrupted = false;
+    getKeyedPrefetchLinks(matches, manifest, routeModules).then((links) => {
+      if (!interrupted) setKeyedPrefetchLinks(links);
+    });
+    return () => {
+      interrupted = true;
+    };
+  }, [
+    matches,
+    manifest,
+    routeModules
+  ]);
+  return keyedPrefetchLinks;
+}
+function RSCPrefetchPageLinksImpl({ page, matches: nextMatches, ...linkProps }) {
+  let location2 = useLocation();
+  let { unstable_apiServerOrigin } = useFrameworkContext();
+  let dataHrefs = React$15.useMemo(() => {
+    if (page === location2.pathname + location2.search + location2.hash) return [];
+    let url = singleFetchUrl(page, "rsc", unstable_apiServerOrigin);
+    let hasSomeRoutesWithShouldRevalidate = false;
+    let targetRoutes = [];
+    for (let match2 of nextMatches) if (typeof match2.route.shouldRevalidate === "function") hasSomeRoutesWithShouldRevalidate = true;
+    else targetRoutes.push(match2.route.id);
+    if (hasSomeRoutesWithShouldRevalidate && targetRoutes.length > 0) url.searchParams.set("_routes", targetRoutes.join(","));
+    return [unstable_apiServerOrigin ? url.toString() : url.pathname + url.search];
+  }, [
+    page,
+    location2,
+    nextMatches,
+    unstable_apiServerOrigin
+  ]);
+  return /* @__PURE__ */ React$15.createElement(React$15.Fragment, null, dataHrefs.map((href) => /* @__PURE__ */ React$15.createElement("link", {
+    key: href,
+    rel: "prefetch",
+    as: "fetch",
+    href,
+    ...linkProps
+  })));
+}
+function PrefetchPageLinksImpl({ page, matches: nextMatches, ...linkProps }) {
+  let location2 = useLocation();
+  let { manifest, routeModules, unstable_apiServerOrigin } = useFrameworkContext();
+  let { matches } = useDataRouterState("PrefetchPageLinks");
+  let { loaderData } = useDataRouterData("PrefetchPageLinks");
+  let newMatchesForData = React$15.useMemo(() => getNewMatchesForLinks(page, nextMatches, matches, manifest, location2, "data"), [
+    page,
+    nextMatches,
+    matches,
+    manifest,
+    location2
+  ]);
+  let newMatchesForAssets = React$15.useMemo(() => getNewMatchesForLinks(page, nextMatches, matches, manifest, location2, "assets"), [
+    page,
+    nextMatches,
+    matches,
+    manifest,
+    location2
+  ]);
+  let dataHrefs = React$15.useMemo(() => {
+    if (page === location2.pathname + location2.search + location2.hash) return [];
+    let routesParams = /* @__PURE__ */ new Set();
+    let foundOptOutRoute = false;
+    nextMatches.forEach((m2) => {
+      let manifestRoute = manifest.routes[m2.route.id];
+      if (!manifestRoute || !manifestRoute.hasLoader) return;
+      if (!newMatchesForData.some((m22) => m22.route.id === m2.route.id) && m2.route.id in loaderData && routeModules[m2.route.id]?.shouldRevalidate) foundOptOutRoute = true;
+      else if (manifestRoute.hasClientLoader) foundOptOutRoute = true;
+      else routesParams.add(m2.route.id);
+    });
+    if (routesParams.size === 0) return [];
+    let url = singleFetchUrl(page, "data", unstable_apiServerOrigin);
+    if (foundOptOutRoute && routesParams.size > 0) url.searchParams.set("_routes", nextMatches.filter((m2) => routesParams.has(m2.route.id)).map((m2) => m2.route.id).join(","));
+    return [unstable_apiServerOrigin ? url.toString() : url.pathname + url.search];
+  }, [
+    loaderData,
+    location2,
+    manifest,
+    newMatchesForData,
+    nextMatches,
+    page,
+    routeModules,
+    unstable_apiServerOrigin
+  ]);
+  let moduleHrefs = React$15.useMemo(() => getModuleLinkHrefs(newMatchesForAssets, manifest), [newMatchesForAssets, manifest]);
+  let keyedPrefetchLinks = useKeyedPrefetchLinks(newMatchesForAssets);
+  return /* @__PURE__ */ React$15.createElement(React$15.Fragment, null, dataHrefs.map((href) => /* @__PURE__ */ React$15.createElement("link", {
+    key: href,
+    rel: "prefetch",
+    as: "fetch",
+    href,
+    ...linkProps
+  })), moduleHrefs.map((href) => /* @__PURE__ */ React$15.createElement("link", {
+    key: href,
+    rel: "modulepreload",
+    href,
+    ...linkProps
+  })), keyedPrefetchLinks.map(({ key, link }) => /* @__PURE__ */ React$15.createElement("link", {
+    key,
+    nonce: linkProps.nonce,
+    ...link,
+    crossOrigin: link.crossOrigin ?? linkProps.crossOrigin
+  })));
+}
+function mergeRefs(...refs) {
+  return (value) => {
+    refs.forEach((ref) => {
+      if (typeof ref === "function") ref(value);
+      else if (ref != null) ref.current = value;
+    });
+  };
+}
+
+// node_modules/react-router/dist/production/lib/components.js
+var React$16 = __toESM(require_react(), 1);
+var import_react2 = __toESM(require_react(), 1);
+var MemoizedDataRoutes = React$16.memo(DataRoutes);
+function DataRoutes({ routes, manifest, state, isStatic, onError }) {
+  let dataRouterContext = React$16.useContext(DataRouterContext);
+  invariant(dataRouterContext, "You must render this element inside a <DataRouterContext.Provider> element");
+  let discoveryRuntime = React$16.useContext(FrameworkContext)?.routeDiscoveryRuntime;
+  React$16.useEffect(() => {
+    if (state.initialized) discoveryRuntime?.markReady();
+  }, [state.initialized, discoveryRuntime]);
   return useRoutesImpl(routes, void 0, {
+    router: dataRouterContext.router,
     manifest,
     state,
     isStatic,
-    onError,
-    future
+    onError
   });
 }
-function MemoryRouter({
-  basename,
-  children,
-  initialEntries,
-  initialIndex,
-  useTransitions
-}) {
-  let historyRef = React3.useRef();
-  if (historyRef.current == null) {
-    historyRef.current = createMemoryHistory({
-      initialEntries,
-      initialIndex,
-      v5Compat: true
-    });
-  }
+function MemoryRouter({ basename, children, initialEntries, initialIndex, useTransitions }) {
+  let historyRef = React$16.useRef(null);
+  if (historyRef.current == null) historyRef.current = createMemoryHistory({
+    initialEntries,
+    initialIndex,
+    v5Compat: true
+  });
   let history = historyRef.current;
-  let [state, setStateImpl] = React3.useState({
+  let [state, setStateImpl] = React$16.useState({
     action: history.action,
     location: history.location
   });
-  let setState = React3.useCallback(
-    (newState) => {
-      if (useTransitions === false) {
-        setStateImpl(newState);
-      } else {
-        React3.startTransition(() => setStateImpl(newState));
-      }
-    },
-    [useTransitions]
-  );
-  React3.useLayoutEffect(() => history.listen(setState), [history, setState]);
-  return /* @__PURE__ */ React3.createElement(
-    Router,
-    {
-      basename,
-      children,
-      location: state.location,
-      navigationType: state.action,
-      navigator: history,
-      useTransitions
-    }
-  );
+  let setState = React$16.useCallback((newState) => {
+    if (useTransitions === false) setStateImpl(newState);
+    else React$16.startTransition(() => setStateImpl(newState));
+  }, [useTransitions]);
+  React$16.useLayoutEffect(() => history.listen(setState), [history, setState]);
+  return /* @__PURE__ */ React$16.createElement(Router, {
+    basename,
+    children,
+    location: state.location,
+    navigationType: state.action,
+    navigator: history,
+    useTransitions
+  });
 }
-function Router({
-  basename: basenameProp = "/",
-  children = null,
-  location: locationProp,
-  navigationType = "POP",
-  navigator: navigator2,
-  static: staticProp = false,
-  useTransitions
-}) {
-  invariant(
-    !useInRouterContext(),
-    `You cannot render a <Router> inside another <Router>. You should never have more than one in your app.`
-  );
+function Router({ basename: basenameProp = "/", children = null, location: locationProp, navigationType = "POP", navigator: navigator2, static: staticProp = false, useTransitions }) {
+  invariant(!useInRouterContext(), "You cannot render a <Router> inside another <Router>. You should never have more than one in your app.");
   let basename = basenameProp.replace(/^\/*/, "/");
-  let navigationContext = React3.useMemo(
-    () => ({
-      basename,
-      navigator: navigator2,
-      static: staticProp,
-      useTransitions,
-      future: {}
-    }),
-    [basename, navigator2, staticProp, useTransitions]
-  );
-  if (typeof locationProp === "string") {
-    locationProp = parsePath(locationProp);
-  }
-  let {
-    pathname = "/",
-    search = "",
-    hash: hash2 = "",
-    state = null,
-    key = "default",
-    mask
-  } = locationProp;
-  let locationContext = React3.useMemo(() => {
+  let navigationContext = React$16.useMemo(() => ({
+    basename,
+    navigator: navigator2,
+    static: staticProp,
+    useTransitions,
+    future: {}
+  }), [
+    basename,
+    navigator2,
+    staticProp,
+    useTransitions
+  ]);
+  if (typeof locationProp === "string") locationProp = parsePath(locationProp);
+  let { pathname = "/", search = "", hash: hash2 = "", state = null, key = "default", mask } = locationProp;
+  let locationContext = React$16.useMemo(() => {
     let trailingPathname = stripBasename(pathname, basename);
-    if (trailingPathname == null) {
-      return null;
-    }
+    if (trailingPathname == null) return null;
     return {
       location: {
         pathname: trailingPathname,
@@ -21201,17 +21072,25 @@ function Router({
       },
       navigationType
     };
-  }, [basename, pathname, search, hash2, state, key, navigationType, mask]);
-  warning(
-    locationContext != null,
-    `<Router basename="${basename}"> is not able to match the URL "${pathname}${search}${hash2}" because it does not start with the basename, so the <Router> won't render anything.`
-  );
-  if (locationContext == null) {
-    return null;
-  }
-  return /* @__PURE__ */ React3.createElement(NavigationContext.Provider, { value: navigationContext }, /* @__PURE__ */ React3.createElement(LocationContext.Provider, { children, value: locationContext }));
+  }, [
+    basename,
+    pathname,
+    search,
+    hash2,
+    state,
+    key,
+    navigationType,
+    mask
+  ]);
+  warning(locationContext != null, `<Router basename="${basename}"> is not able to match the URL "${pathname}${search}${hash2}" because it does not start with the basename, so the <Router> won't render anything.`);
+  if (locationContext == null) return null;
+  return /* @__PURE__ */ React$16.createElement(NavigationContext.Provider, { value: navigationContext }, /* @__PURE__ */ React$16.createElement(LocationContext.Provider, {
+    children,
+    value: locationContext
+  }));
 }
-var defaultMethod = "get";
+
+// node_modules/react-router/dist/production/lib/dom/dom.js
 var defaultEncType = "application/x-www-form-urlencoded";
 function isHtmlElement(object) {
   return typeof HTMLElement !== "undefined" && object instanceof HTMLElement;
@@ -21229,23 +21108,15 @@ function isModifiedEvent(event) {
   return !!(event.metaKey || event.altKey || event.ctrlKey || event.shiftKey);
 }
 function shouldProcessLinkClick(event, target) {
-  return event.button === 0 && // Ignore everything but left clicks
-  (!target || target === "_self") && // Let browser handle "target=_blank" etc.
-  !isModifiedEvent(event);
+  return event.button === 0 && (!target || target === "_self") && !isModifiedEvent(event);
 }
 var _formDataSupportsSubmitter = null;
 function isFormDataSubmitterSupported() {
-  if (_formDataSupportsSubmitter === null) {
-    try {
-      new FormData(
-        document.createElement("form"),
-        // @ts-expect-error if FormData supports the submitter parameter, this will throw
-        0
-      );
-      _formDataSupportsSubmitter = false;
-    } catch (e) {
-      _formDataSupportsSubmitter = true;
-    }
+  if (_formDataSupportsSubmitter === null) try {
+    new FormData(document.createElement("form"), 0);
+    _formDataSupportsSubmitter = false;
+  } catch {
+    _formDataSupportsSubmitter = true;
   }
   return _formDataSupportsSubmitter;
 }
@@ -21256,10 +21127,7 @@ var supportedFormEncTypes = /* @__PURE__ */ new Set([
 ]);
 function getFormEncType(encType) {
   if (encType != null && !supportedFormEncTypes.has(encType)) {
-    warning(
-      false,
-      `"${encType}" is not a valid \`encType\` for \`<Form>\`/\`<fetcher.Form>\` and will default to "${defaultEncType}"`
-    );
+    warning(false, `"${encType}" is not a valid \`encType\` for \`<Form>\`/\`<fetcher.Form>\` and will default to "${defaultEncType}"`);
     return null;
   }
   return encType;
@@ -21273,19 +21141,15 @@ function getFormSubmissionInfo(target, basename) {
   if (isFormElement(target)) {
     let attr = target.getAttribute("action");
     action = attr ? stripBasename(attr, basename) : null;
-    method = target.getAttribute("method") || defaultMethod;
+    method = target.getAttribute("method") || "get";
     encType = getFormEncType(target.getAttribute("enctype")) || defaultEncType;
     formData = new FormData(target);
   } else if (isButtonElement(target) || isInputElement(target) && (target.type === "submit" || target.type === "image")) {
     let form = target.form;
-    if (form == null) {
-      throw new Error(
-        `Cannot submit a <button> or <input type="submit"> without a <form>`
-      );
-    }
+    if (form == null) throw new Error(`Cannot submit a <button> or <input type="submit"> without a <form>`);
     let attr = target.getAttribute("formaction") || form.getAttribute("action");
     action = attr ? stripBasename(attr, basename) : null;
-    method = target.getAttribute("formmethod") || form.getAttribute("method") || defaultMethod;
+    method = target.getAttribute("formmethod") || form.getAttribute("method") || "get";
     encType = getFormEncType(target.getAttribute("formenctype")) || getFormEncType(form.getAttribute("enctype")) || defaultEncType;
     formData = new FormData(form, target);
     if (!isFormDataSubmitterSupported()) {
@@ -21294,16 +21158,11 @@ function getFormSubmissionInfo(target, basename) {
         let prefix2 = name ? `${name}.` : "";
         formData.append(`${prefix2}x`, "0");
         formData.append(`${prefix2}y`, "0");
-      } else if (name) {
-        formData.append(name, value);
-      }
+      } else if (name) formData.append(name, value);
     }
-  } else if (isHtmlElement(target)) {
-    throw new Error(
-      `Cannot submit element that is not <form>, <button>, or <input type="submit|image">`
-    );
-  } else {
-    method = defaultMethod;
+  } else if (isHtmlElement(target)) throw new Error('Cannot submit element that is not <form>, <button>, or <input type="submit|image">');
+  else {
+    method = "get";
     action = null;
     encType = defaultEncType;
     body = target;
@@ -21312,935 +21171,305 @@ function getFormSubmissionInfo(target, basename) {
     body = formData;
     formData = void 0;
   }
-  return { action, method: method.toLowerCase(), encType, formData, body };
-}
-var objectProtoNames2 = Object.getOwnPropertyNames(Object.prototype).sort().join("\0");
-var ESCAPE_LOOKUP = {
-  "&": "\\u0026",
-  ">": "\\u003e",
-  "<": "\\u003c",
-  "\u2028": "\\u2028",
-  "\u2029": "\\u2029"
-};
-var ESCAPE_REGEX = /[&><\u2028\u2029]/g;
-function escapeHtml(html) {
-  return html.replace(ESCAPE_REGEX, (match2) => ESCAPE_LOOKUP[match2]);
-}
-function invariant2(value, message) {
-  if (value === false || value === null || typeof value === "undefined") {
-    throw new Error(message);
-  }
-}
-function singleFetchUrl(reqUrl, basename, trailingSlashAware, extension) {
-  let url = typeof reqUrl === "string" ? new URL(
-    reqUrl,
-    // This can be called during the SSR flow via PrefetchPageLinksImpl so
-    // don't assume window is available
-    typeof window === "undefined" ? "server://singlefetch/" : window.location.origin
-  ) : reqUrl;
-  if (trailingSlashAware) {
-    if (url.pathname.endsWith("/")) {
-      url.pathname = `${url.pathname}_.${extension}`;
-    } else {
-      url.pathname = `${url.pathname}.${extension}`;
-    }
-  } else {
-    if (url.pathname === "/") {
-      url.pathname = `_root.${extension}`;
-    } else if (basename && stripBasename(url.pathname, basename) === "/") {
-      url.pathname = `${removeTrailingSlash(basename)}/_root.${extension}`;
-    } else {
-      url.pathname = `${removeTrailingSlash(url.pathname)}.${extension}`;
-    }
-  }
-  return url;
-}
-async function loadRouteModule(route, routeModulesCache) {
-  if (route.id in routeModulesCache) {
-    return routeModulesCache[route.id];
-  }
-  try {
-    let routeModule = await import(
-      /* @vite-ignore */
-      /* webpackIgnore: true */
-      route.module
-    );
-    routeModulesCache[route.id] = routeModule;
-    return routeModule;
-  } catch (error) {
-    console.error(
-      `Error loading route module \`${route.module}\`, reloading page...`
-    );
-    console.error(error);
-    if (window.__reactRouterContext && window.__reactRouterContext.isSpaMode && // @ts-expect-error
-    import.meta.hot) {
-      throw error;
-    }
-    window.location.reload();
-    return new Promise(() => {
-    });
-  }
-}
-function isPageLinkDescriptor(object) {
-  return object != null && typeof object.page === "string";
-}
-function isHtmlLinkDescriptor(object) {
-  if (object == null) {
-    return false;
-  }
-  if (object.href == null) {
-    return object.rel === "preload" && typeof object.imageSrcSet === "string" && typeof object.imageSizes === "string";
-  }
-  return typeof object.rel === "string" && typeof object.href === "string";
-}
-async function getKeyedPrefetchLinks(matches, manifest, routeModules) {
-  let links = await Promise.all(
-    matches.map(async (match2) => {
-      let route = manifest.routes[match2.route.id];
-      if (route) {
-        let mod = await loadRouteModule(route, routeModules);
-        return mod.links ? mod.links() : [];
-      }
-      return [];
-    })
-  );
-  return dedupeLinkDescriptors(
-    links.flat(1).filter(isHtmlLinkDescriptor).filter((link) => link.rel === "stylesheet" || link.rel === "preload").map(
-      (link) => link.rel === "stylesheet" ? { ...link, rel: "prefetch", as: "style" } : { ...link, rel: "prefetch" }
-    )
-  );
-}
-function getNewMatchesForLinks(page, nextMatches, currentMatches, manifest, location2, mode) {
-  let isNew = (match2, index) => {
-    if (!currentMatches[index]) return true;
-    return match2.route.id !== currentMatches[index].route.id;
-  };
-  let matchPathChanged = (match2, index) => {
-    return (
-      // param change, /users/123 -> /users/456
-      currentMatches[index].pathname !== match2.pathname || // splat param changed, which is not present in match.path
-      // e.g. /files/images/avatar.jpg -> files/finances.xls
-      currentMatches[index].route.path?.endsWith("*") && currentMatches[index].params["*"] !== match2.params["*"]
-    );
-  };
-  if (mode === "assets") {
-    return nextMatches.filter(
-      (match2, index) => isNew(match2, index) || matchPathChanged(match2, index)
-    );
-  }
-  if (mode === "data") {
-    return nextMatches.filter((match2, index) => {
-      let manifestRoute = manifest.routes[match2.route.id];
-      if (!manifestRoute || !manifestRoute.hasLoader) {
-        return false;
-      }
-      if (isNew(match2, index) || matchPathChanged(match2, index)) {
-        return true;
-      }
-      if (match2.route.shouldRevalidate) {
-        let routeChoice = match2.route.shouldRevalidate({
-          currentUrl: new URL(
-            location2.pathname + location2.search + location2.hash,
-            window.origin
-          ),
-          currentParams: currentMatches[0]?.params || {},
-          nextUrl: new URL(page, window.origin),
-          nextParams: match2.params,
-          defaultShouldRevalidate: true
-        });
-        if (typeof routeChoice === "boolean") {
-          return routeChoice;
-        }
-      }
-      return true;
-    });
-  }
-  return [];
-}
-function getModuleLinkHrefs(matches, manifest, { includeHydrateFallback } = {}) {
-  return dedupeHrefs(
-    matches.map((match2) => {
-      let route = manifest.routes[match2.route.id];
-      if (!route) return [];
-      let hrefs = [route.module];
-      if (route.clientActionModule) {
-        hrefs = hrefs.concat(route.clientActionModule);
-      }
-      if (route.clientLoaderModule) {
-        hrefs = hrefs.concat(route.clientLoaderModule);
-      }
-      if (includeHydrateFallback && route.hydrateFallbackModule) {
-        hrefs = hrefs.concat(route.hydrateFallbackModule);
-      }
-      if (route.imports) {
-        hrefs = hrefs.concat(route.imports);
-      }
-      return hrefs;
-    }).flat(1)
-  );
-}
-function dedupeHrefs(hrefs) {
-  return [...new Set(hrefs)];
-}
-function sortKeys(obj) {
-  let sorted = {};
-  let keys = Object.keys(obj).sort();
-  for (let key of keys) {
-    sorted[key] = obj[key];
-  }
-  return sorted;
-}
-function dedupeLinkDescriptors(descriptors, preloads) {
-  let set = /* @__PURE__ */ new Set();
-  let preloadsSet = new Set(preloads);
-  return descriptors.reduce((deduped, descriptor) => {
-    let alreadyModulePreload = preloads && !isPageLinkDescriptor(descriptor) && descriptor.as === "script" && descriptor.href && preloadsSet.has(descriptor.href);
-    if (alreadyModulePreload) {
-      return deduped;
-    }
-    let key = JSON.stringify(sortKeys(descriptor));
-    if (!set.has(key)) {
-      set.add(key);
-      deduped.push({ key, link: descriptor });
-    }
-    return deduped;
-  }, []);
-}
-function useDataRouterContext2() {
-  let context = React8.useContext(DataRouterContext);
-  invariant2(
-    context,
-    "You must render this element inside a <DataRouterContext.Provider> element"
-  );
-  return context;
-}
-function useDataRouterStateContext() {
-  let context = React8.useContext(DataRouterStateContext);
-  invariant2(
-    context,
-    "You must render this element inside a <DataRouterStateContext.Provider> element"
-  );
-  return context;
-}
-var FrameworkContext = React8.createContext(void 0);
-FrameworkContext.displayName = "FrameworkContext";
-function useFrameworkContext() {
-  let context = React8.useContext(FrameworkContext);
-  invariant2(
-    context,
-    "You must render this element inside a <HydratedRouter> element"
-  );
-  return context;
-}
-function usePrefetchBehavior(prefetch, theirElementProps) {
-  let frameworkContext = React8.useContext(FrameworkContext);
-  let [maybePrefetch, setMaybePrefetch] = React8.useState(false);
-  let [shouldPrefetch, setShouldPrefetch] = React8.useState(false);
-  let { onFocus, onBlur, onMouseEnter, onMouseLeave, onTouchStart } = theirElementProps;
-  let ref = React8.useRef(null);
-  React8.useEffect(() => {
-    if (prefetch === "render") {
-      setShouldPrefetch(true);
-    }
-    if (prefetch === "viewport") {
-      let callback = (entries) => {
-        entries.forEach((entry) => {
-          setShouldPrefetch(entry.isIntersecting);
-        });
-      };
-      let observer = new IntersectionObserver(callback, { threshold: 0.5 });
-      if (ref.current) observer.observe(ref.current);
-      return () => {
-        observer.disconnect();
-      };
-    }
-  }, [prefetch]);
-  React8.useEffect(() => {
-    if (maybePrefetch) {
-      let id = setTimeout(() => {
-        setShouldPrefetch(true);
-      }, 100);
-      return () => {
-        clearTimeout(id);
-      };
-    }
-  }, [maybePrefetch]);
-  let setIntent = () => {
-    setMaybePrefetch(true);
-  };
-  let cancelIntent = () => {
-    setMaybePrefetch(false);
-    setShouldPrefetch(false);
-  };
-  if (!frameworkContext) {
-    return [false, ref, {}];
-  }
-  if (prefetch !== "intent") {
-    return [shouldPrefetch, ref, {}];
-  }
-  return [
-    shouldPrefetch,
-    ref,
-    {
-      onFocus: composeEventHandlers(onFocus, setIntent),
-      onBlur: composeEventHandlers(onBlur, cancelIntent),
-      onMouseEnter: composeEventHandlers(onMouseEnter, setIntent),
-      onMouseLeave: composeEventHandlers(onMouseLeave, cancelIntent),
-      onTouchStart: composeEventHandlers(onTouchStart, setIntent)
-    }
-  ];
-}
-function composeEventHandlers(theirHandler, ourHandler) {
-  return (event) => {
-    theirHandler && theirHandler(event);
-    if (!event.defaultPrevented) {
-      ourHandler(event);
-    }
+  return {
+    action,
+    method: method.toLowerCase(),
+    encType,
+    formData,
+    body
   };
 }
-function PrefetchPageLinks({ page, ...linkProps }) {
-  let rsc = useIsRSCRouterContext();
-  let { nonce: contextNonce } = useFrameworkContext();
-  let { router } = useDataRouterContext2();
-  let matches = React8.useMemo(
-    () => matchRoutes(router.routes, page, router.basename),
-    [router.routes, page, router.basename]
-  );
-  if (!matches) {
-    return null;
-  }
-  if (linkProps.nonce == null && contextNonce) {
-    linkProps = { ...linkProps, nonce: contextNonce };
-  }
-  if (rsc) {
-    return /* @__PURE__ */ React8.createElement(RSCPrefetchPageLinksImpl, { page, matches, ...linkProps });
-  }
-  return /* @__PURE__ */ React8.createElement(PrefetchPageLinksImpl, { page, matches, ...linkProps });
-}
-function useKeyedPrefetchLinks(matches) {
-  let { manifest, routeModules } = useFrameworkContext();
-  let [keyedPrefetchLinks, setKeyedPrefetchLinks] = React8.useState([]);
-  React8.useEffect(() => {
-    let interrupted = false;
-    void getKeyedPrefetchLinks(matches, manifest, routeModules).then(
-      (links) => {
-        if (!interrupted) {
-          setKeyedPrefetchLinks(links);
-        }
-      }
-    );
-    return () => {
-      interrupted = true;
-    };
-  }, [matches, manifest, routeModules]);
-  return keyedPrefetchLinks;
-}
-function RSCPrefetchPageLinksImpl({
-  page,
-  matches: nextMatches,
-  ...linkProps
-}) {
-  let location2 = useLocation();
-  let { future } = useFrameworkContext();
-  let { basename } = useDataRouterContext2();
-  let dataHrefs = React8.useMemo(() => {
-    if (page === location2.pathname + location2.search + location2.hash) {
-      return [];
-    }
-    let url = singleFetchUrl(
-      page,
-      basename,
-      future.v8_trailingSlashAwareDataRequests,
-      "rsc"
-    );
-    let hasSomeRoutesWithShouldRevalidate = false;
-    let targetRoutes = [];
-    for (let match2 of nextMatches) {
-      if (typeof match2.route.shouldRevalidate === "function") {
-        hasSomeRoutesWithShouldRevalidate = true;
-      } else {
-        targetRoutes.push(match2.route.id);
-      }
-    }
-    if (hasSomeRoutesWithShouldRevalidate && targetRoutes.length > 0) {
-      url.searchParams.set("_routes", targetRoutes.join(","));
-    }
-    return [url.pathname + url.search];
-  }, [
-    basename,
-    future.v8_trailingSlashAwareDataRequests,
-    page,
-    location2,
-    nextMatches
-  ]);
-  return /* @__PURE__ */ React8.createElement(React8.Fragment, null, dataHrefs.map((href) => /* @__PURE__ */ React8.createElement("link", { key: href, rel: "prefetch", as: "fetch", href, ...linkProps })));
-}
-function PrefetchPageLinksImpl({
-  page,
-  matches: nextMatches,
-  ...linkProps
-}) {
-  let location2 = useLocation();
-  let { future, manifest, routeModules } = useFrameworkContext();
-  let { basename } = useDataRouterContext2();
-  let { loaderData, matches } = useDataRouterStateContext();
-  let newMatchesForData = React8.useMemo(
-    () => getNewMatchesForLinks(
-      page,
-      nextMatches,
-      matches,
-      manifest,
-      location2,
-      "data"
-    ),
-    [page, nextMatches, matches, manifest, location2]
-  );
-  let newMatchesForAssets = React8.useMemo(
-    () => getNewMatchesForLinks(
-      page,
-      nextMatches,
-      matches,
-      manifest,
-      location2,
-      "assets"
-    ),
-    [page, nextMatches, matches, manifest, location2]
-  );
-  let dataHrefs = React8.useMemo(() => {
-    if (page === location2.pathname + location2.search + location2.hash) {
-      return [];
-    }
-    let routesParams = /* @__PURE__ */ new Set();
-    let foundOptOutRoute = false;
-    nextMatches.forEach((m2) => {
-      let manifestRoute = manifest.routes[m2.route.id];
-      if (!manifestRoute || !manifestRoute.hasLoader) {
-        return;
-      }
-      if (!newMatchesForData.some((m22) => m22.route.id === m2.route.id) && m2.route.id in loaderData && routeModules[m2.route.id]?.shouldRevalidate) {
-        foundOptOutRoute = true;
-      } else if (manifestRoute.hasClientLoader) {
-        foundOptOutRoute = true;
-      } else {
-        routesParams.add(m2.route.id);
-      }
-    });
-    if (routesParams.size === 0) {
-      return [];
-    }
-    let url = singleFetchUrl(
-      page,
-      basename,
-      future.v8_trailingSlashAwareDataRequests,
-      "data"
-    );
-    if (foundOptOutRoute && routesParams.size > 0) {
-      url.searchParams.set(
-        "_routes",
-        nextMatches.filter((m2) => routesParams.has(m2.route.id)).map((m2) => m2.route.id).join(",")
-      );
-    }
-    return [url.pathname + url.search];
-  }, [
-    basename,
-    future.v8_trailingSlashAwareDataRequests,
-    loaderData,
-    location2,
-    manifest,
-    newMatchesForData,
-    nextMatches,
-    page,
-    routeModules
-  ]);
-  let moduleHrefs = React8.useMemo(
-    () => getModuleLinkHrefs(newMatchesForAssets, manifest),
-    [newMatchesForAssets, manifest]
-  );
-  let keyedPrefetchLinks = useKeyedPrefetchLinks(newMatchesForAssets);
-  return /* @__PURE__ */ React8.createElement(React8.Fragment, null, dataHrefs.map((href) => /* @__PURE__ */ React8.createElement("link", { key: href, rel: "prefetch", as: "fetch", href, ...linkProps })), moduleHrefs.map((href) => /* @__PURE__ */ React8.createElement("link", { key: href, rel: "modulepreload", href, ...linkProps })), keyedPrefetchLinks.map(({ key, link }) => (
-    // these don't spread `linkProps` because they are full link descriptors
-    // already with their own props
-    /* @__PURE__ */ React8.createElement(
-      "link",
-      {
-        key,
-        nonce: linkProps.nonce,
-        ...link,
-        crossOrigin: link.crossOrigin ?? linkProps.crossOrigin
-      }
-    )
-  )));
-}
-function mergeRefs(...refs) {
-  return (value) => {
-    refs.forEach((ref) => {
-      if (typeof ref === "function") {
-        ref(value);
-      } else if (ref != null) {
-        ref.current = value;
-      }
-    });
-  };
-}
+
+// node_modules/react-router/dist/production/lib/dom/lib.js
+var React$17 = __toESM(require_react(), 1);
 var isBrowser2 = typeof window !== "undefined" && typeof window.document !== "undefined" && typeof window.document.createElement !== "undefined";
 try {
-  if (isBrowser2) {
-    window.__reactRouterVersion = // @ts-expect-error
-    "7.18.4";
-  }
-} catch (e) {
+  if (isBrowser2) window.__reactRouterVersion = "8";
+} catch {
 }
-function BrowserRouter({
-  basename,
-  children,
-  useTransitions,
-  window: window2
-}) {
-  let historyRef = React10.useRef();
-  if (historyRef.current == null) {
-    historyRef.current = createBrowserHistory({ window: window2, v5Compat: true });
-  }
+function BrowserRouter({ basename, children, useTransitions, window: window2 }) {
+  let historyRef = React$17.useRef(null);
+  if (historyRef.current == null) historyRef.current = createBrowserHistory({
+    window: window2,
+    v5Compat: true
+  });
   let history = historyRef.current;
-  let [state, setStateImpl] = React10.useState({
+  let [state, setStateImpl] = React$17.useState({
     action: history.action,
     location: history.location
   });
-  let setState = React10.useCallback(
-    (newState) => {
-      if (useTransitions === false) {
-        setStateImpl(newState);
-      } else {
-        React10.startTransition(() => setStateImpl(newState));
-      }
-    },
-    [useTransitions]
-  );
-  React10.useLayoutEffect(() => history.listen(setState), [history, setState]);
-  return /* @__PURE__ */ React10.createElement(
-    Router,
-    {
-      basename,
-      children,
-      location: state.location,
-      navigationType: state.action,
-      navigator: history,
-      useTransitions
-    }
-  );
+  let setState = React$17.useCallback((newState) => {
+    if (useTransitions === false) setStateImpl(newState);
+    else React$17.startTransition(() => setStateImpl(newState));
+  }, [useTransitions]);
+  React$17.useLayoutEffect(() => history.listen(setState), [history, setState]);
+  return /* @__PURE__ */ React$17.createElement(Router, {
+    basename,
+    children,
+    location: state.location,
+    navigationType: state.action,
+    navigator: history,
+    useTransitions
+  });
 }
-function HistoryRouter({
-  basename,
-  children,
-  history,
-  useTransitions
-}) {
-  let [state, setStateImpl] = React10.useState({
+function HistoryRouter({ basename, children, history, useTransitions }) {
+  let [state, setStateImpl] = React$17.useState({
     action: history.action,
     location: history.location
   });
-  let setState = React10.useCallback(
-    (newState) => {
-      if (useTransitions === false) {
-        setStateImpl(newState);
-      } else {
-        React10.startTransition(() => setStateImpl(newState));
-      }
-    },
-    [useTransitions]
-  );
-  React10.useLayoutEffect(() => history.listen(setState), [history, setState]);
-  return /* @__PURE__ */ React10.createElement(
-    Router,
-    {
-      basename,
-      children,
-      location: state.location,
-      navigationType: state.action,
-      navigator: history,
-      useTransitions
-    }
-  );
+  let setState = React$17.useCallback((newState) => {
+    if (useTransitions === false) setStateImpl(newState);
+    else React$17.startTransition(() => setStateImpl(newState));
+  }, [useTransitions]);
+  React$17.useLayoutEffect(() => history.listen(setState), [history, setState]);
+  return /* @__PURE__ */ React$17.createElement(Router, {
+    basename,
+    children,
+    location: state.location,
+    navigationType: state.action,
+    navigator: history,
+    useTransitions
+  });
 }
 HistoryRouter.displayName = "unstable_HistoryRouter";
-var Link = React10.forwardRef(
-  function LinkWithRef({
-    onClick,
-    discover = "render",
-    prefetch = "none",
-    relative,
-    reloadDocument,
-    replace: replace22,
+var Link = React$17.forwardRef(function LinkWithRef({ onClick, discover = "render", prefetch = "none", relative, reloadDocument, replace: replace2, mask, state, target, to, preventScrollReset, viewTransition, defaultShouldRevalidate, ...rest }, forwardedRef) {
+  let { basename, navigator: navigator2, useTransitions } = React$17.useContext(NavigationContext);
+  let isAbsolute = typeof to === "string" && ABSOLUTE_URL_REGEX.test(to);
+  let parsed = parseToInfo(to, basename);
+  to = parsed.to;
+  let href = useHref(to, { relative });
+  let location2 = useLocation();
+  let maskedHref = null;
+  if (mask) {
+    let resolved = resolveTo(mask, [], location2.mask ? location2.mask.pathname : "/", true);
+    if (basename !== "/") resolved.pathname = resolved.pathname === "/" ? basename : joinPaths([basename, resolved.pathname]);
+    maskedHref = navigator2.createHref(resolved);
+  }
+  let [shouldPrefetch, prefetchRef, prefetchHandlers] = usePrefetchBehavior(prefetch, rest);
+  let internalOnClick = useLinkClickHandler(to, {
+    replace: replace2,
     mask,
     state,
     target,
-    to,
     preventScrollReset,
-    viewTransition,
-    defaultShouldRevalidate,
-    ...rest
-  }, forwardedRef) {
-    let { basename, navigator: navigator2, useTransitions } = React10.useContext(NavigationContext);
-    let isAbsolute = typeof to === "string" && ABSOLUTE_URL_REGEX.test(to);
-    let parsed = parseToInfo(to, basename);
-    to = parsed.to;
-    let href = useHref(to, { relative });
-    let location2 = useLocation();
-    let maskedHref = null;
-    if (mask) {
-      let resolved = resolveTo(
-        mask,
-        [],
-        location2.mask ? location2.mask.pathname : "/",
-        true
-      );
-      if (basename !== "/") {
-        resolved.pathname = resolved.pathname === "/" ? basename : joinPaths([basename, resolved.pathname]);
-      }
-      maskedHref = navigator2.createHref(resolved);
-    }
-    let [shouldPrefetch, prefetchRef, prefetchHandlers] = usePrefetchBehavior(
-      prefetch,
-      rest
-    );
-    let internalOnClick = useLinkClickHandler(to, {
-      replace: replace22,
-      mask,
-      state,
-      target,
-      preventScrollReset,
-      relative,
-      viewTransition,
-      defaultShouldRevalidate,
-      useTransitions
-    });
-    function handleClick(event) {
-      if (onClick) onClick(event);
-      if (!event.defaultPrevented) {
-        internalOnClick(event);
-      }
-    }
-    let isSpaLink = !(parsed.isExternal || reloadDocument);
-    let link = (
-      // eslint-disable-next-line jsx-a11y/anchor-has-content
-      /* @__PURE__ */ React10.createElement(
-        "a",
-        {
-          ...rest,
-          ...prefetchHandlers,
-          href: (isSpaLink ? maskedHref : void 0) || parsed.absoluteURL || href,
-          onClick: isSpaLink ? handleClick : onClick,
-          ref: mergeRefs(forwardedRef, prefetchRef),
-          target,
-          "data-discover": !isAbsolute && discover === "render" ? "true" : void 0
-        }
-      )
-    );
-    return shouldPrefetch && !isAbsolute ? /* @__PURE__ */ React10.createElement(React10.Fragment, null, link, /* @__PURE__ */ React10.createElement(PrefetchPageLinks, { page: href })) : link;
-  }
-);
-Link.displayName = "Link";
-var NavLink = React10.forwardRef(
-  function NavLinkWithRef({
-    "aria-current": ariaCurrentProp = "page",
-    caseSensitive = false,
-    className: classNameProp = "",
-    end = false,
-    style: styleProp,
-    to,
-    viewTransition,
-    children,
-    ...rest
-  }, ref) {
-    let path3 = useResolvedPath(to, { relative: rest.relative });
-    let location2 = useLocation();
-    let routerState = React10.useContext(DataRouterStateContext);
-    let { navigator: navigator2, basename } = React10.useContext(NavigationContext);
-    let isTransitioning = routerState != null && // Conditional usage is OK here because the usage of a data router is static
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    useViewTransitionState(path3) && viewTransition === true;
-    let toPathname = navigator2.encodeLocation ? navigator2.encodeLocation(path3).pathname : path3.pathname;
-    let locationPathname = location2.pathname;
-    let nextLocationPathname = routerState && routerState.navigation && routerState.navigation.location ? routerState.navigation.location.pathname : null;
-    if (!caseSensitive) {
-      locationPathname = locationPathname.toLowerCase();
-      nextLocationPathname = nextLocationPathname ? nextLocationPathname.toLowerCase() : null;
-      toPathname = toPathname.toLowerCase();
-    }
-    if (nextLocationPathname && basename) {
-      nextLocationPathname = stripBasename(nextLocationPathname, basename) || nextLocationPathname;
-    }
-    const endSlashPosition = toPathname !== "/" && toPathname.endsWith("/") ? toPathname.length - 1 : toPathname.length;
-    let isActive = locationPathname === toPathname || !end && locationPathname.startsWith(toPathname) && locationPathname.charAt(endSlashPosition) === "/";
-    let isPending = nextLocationPathname != null && (nextLocationPathname === toPathname || !end && nextLocationPathname.startsWith(toPathname) && nextLocationPathname.charAt(toPathname.length) === "/");
-    let renderProps = {
-      isActive,
-      isPending,
-      isTransitioning
-    };
-    let ariaCurrent = isActive ? ariaCurrentProp : void 0;
-    let className;
-    if (typeof classNameProp === "function") {
-      className = classNameProp(renderProps);
-    } else {
-      className = [
-        classNameProp,
-        isActive ? "active" : null,
-        isPending ? "pending" : null,
-        isTransitioning ? "transitioning" : null
-      ].filter(Boolean).join(" ");
-    }
-    let style = typeof styleProp === "function" ? styleProp(renderProps) : styleProp;
-    return /* @__PURE__ */ React10.createElement(
-      Link,
-      {
-        ...rest,
-        "aria-current": ariaCurrent,
-        className,
-        ref,
-        style,
-        to,
-        viewTransition
-      },
-      typeof children === "function" ? children(renderProps) : children
-    );
-  }
-);
-NavLink.displayName = "NavLink";
-var Form = React10.forwardRef(
-  ({
-    discover = "render",
-    fetcherKey,
-    navigate,
-    reloadDocument,
-    replace: replace22,
-    state,
-    method = defaultMethod,
-    action,
-    onSubmit,
     relative,
-    preventScrollReset,
     viewTransition,
     defaultShouldRevalidate,
-    ...props
-  }, forwardedRef) => {
-    let { useTransitions } = React10.useContext(NavigationContext);
-    let submit = useSubmit();
-    let formAction = useFormAction(action, { relative });
-    let formMethod = method.toLowerCase() === "get" ? "get" : "post";
-    let isAbsolute = typeof action === "string" && ABSOLUTE_URL_REGEX.test(action);
-    let submitHandler = (event) => {
-      onSubmit && onSubmit(event);
-      if (event.defaultPrevented) return;
-      event.preventDefault();
-      let submitter = event.nativeEvent.submitter;
-      let submitMethod = submitter?.getAttribute("formmethod") || method;
-      let doSubmit = () => submit(submitter || event.currentTarget, {
-        fetcherKey,
-        method: submitMethod,
-        navigate,
-        replace: replace22,
-        state,
-        relative,
-        preventScrollReset,
-        viewTransition,
-        defaultShouldRevalidate
-      });
-      if (useTransitions && navigate !== false) {
-        React10.startTransition(() => doSubmit());
-      } else {
-        doSubmit();
-      }
-    };
-    return /* @__PURE__ */ React10.createElement(
-      "form",
-      {
-        ref: forwardedRef,
-        method: formMethod,
-        action: formAction,
-        onSubmit: reloadDocument ? onSubmit : submitHandler,
-        ...props,
-        "data-discover": !isAbsolute && discover === "render" ? "true" : void 0
-      }
-    );
+    useTransitions
+  });
+  function handleClick(event) {
+    if (onClick) onClick(event);
+    if (!event.defaultPrevented) internalOnClick(event);
   }
-);
+  let isSpaLink = !(parsed.isExternal || reloadDocument);
+  let link = /* @__PURE__ */ React$17.createElement("a", {
+    ...rest,
+    ...prefetchHandlers,
+    href: (isSpaLink ? maskedHref : void 0) || parsed.absoluteURL || href,
+    onClick: isSpaLink ? handleClick : onClick,
+    ref: mergeRefs(forwardedRef, prefetchRef),
+    target,
+    "data-discover": !isAbsolute && discover === "render" ? "true" : void 0
+  });
+  return shouldPrefetch && !isAbsolute ? /* @__PURE__ */ React$17.createElement(React$17.Fragment, null, link, /* @__PURE__ */ React$17.createElement(PrefetchPageLinks, { page: href })) : link;
+});
+Link.displayName = "Link";
+var NavLink = React$17.forwardRef(function NavLinkWithRef({ "aria-current": ariaCurrentProp = "page", caseSensitive = false, className: classNameProp = "", end = false, style: styleProp, to, viewTransition, children, ...rest }, ref) {
+  let path3 = useResolvedPath(to, { relative: rest.relative });
+  let location2 = useLocation();
+  let routerNavigation = React$17.useContext(DataRouterNavigationContext);
+  let { navigator: navigator2, basename } = React$17.useContext(NavigationContext);
+  let isTransitioning = routerNavigation != null && useViewTransitionState(path3) && viewTransition === true;
+  let toPathname = navigator2.encodeLocation ? navigator2.encodeLocation(path3).pathname : path3.pathname;
+  let locationPathname = location2.pathname;
+  let nextLocationPathname = routerNavigation?.navigation.location ? routerNavigation.navigation.location.pathname : null;
+  if (!caseSensitive) {
+    locationPathname = locationPathname.toLowerCase();
+    nextLocationPathname = nextLocationPathname ? nextLocationPathname.toLowerCase() : null;
+    toPathname = toPathname.toLowerCase();
+  }
+  if (nextLocationPathname && basename) nextLocationPathname = stripBasename(nextLocationPathname, basename) || nextLocationPathname;
+  const endSlashPosition = toPathname !== "/" && toPathname.endsWith("/") ? toPathname.length - 1 : toPathname.length;
+  let isActive = locationPathname === toPathname || !end && locationPathname.startsWith(toPathname) && locationPathname.charAt(endSlashPosition) === "/";
+  let isPending = nextLocationPathname != null && (nextLocationPathname === toPathname || !end && nextLocationPathname.startsWith(toPathname) && nextLocationPathname.charAt(endSlashPosition) === "/");
+  let renderProps = {
+    isActive,
+    isPending,
+    isTransitioning
+  };
+  let ariaCurrent = isActive ? ariaCurrentProp : void 0;
+  let className;
+  if (typeof classNameProp === "function") className = classNameProp(renderProps);
+  else className = [
+    classNameProp,
+    isActive ? "active" : null,
+    isPending ? "pending" : null,
+    isTransitioning ? "transitioning" : null
+  ].filter(Boolean).join(" ");
+  let style = typeof styleProp === "function" ? styleProp(renderProps) : styleProp;
+  return /* @__PURE__ */ React$17.createElement(Link, {
+    ...rest,
+    "aria-current": ariaCurrent,
+    className,
+    ref,
+    style,
+    to,
+    viewTransition
+  }, typeof children === "function" ? children(renderProps) : children);
+});
+NavLink.displayName = "NavLink";
+var Form = React$17.forwardRef(({ discover = "render", fetcherKey, navigate, reloadDocument, replace: replace2, state, method = "get", action, onSubmit, relative, preventScrollReset, viewTransition, defaultShouldRevalidate, ...props }, forwardedRef) => {
+  let { useTransitions } = React$17.useContext(NavigationContext);
+  let submit = useSubmit();
+  let formAction = useFormAction(action, { relative });
+  let formMethod = method.toLowerCase() === "get" ? "get" : "post";
+  let isAbsolute = typeof action === "string" && ABSOLUTE_URL_REGEX.test(action);
+  let submitHandler = (event) => {
+    onSubmit && onSubmit(event);
+    if (event.defaultPrevented) return;
+    event.preventDefault();
+    let submitter = event.nativeEvent.submitter;
+    let submitMethod = submitter?.getAttribute("formmethod") || method;
+    let doSubmit = () => submit(submitter || event.currentTarget, {
+      fetcherKey,
+      method: submitMethod,
+      navigate,
+      replace: replace2,
+      state,
+      relative,
+      preventScrollReset,
+      viewTransition,
+      defaultShouldRevalidate
+    });
+    if (useTransitions && navigate !== false) React$17.startTransition(() => doSubmit());
+    else doSubmit();
+  };
+  return /* @__PURE__ */ React$17.createElement("form", {
+    ref: forwardedRef,
+    method: formMethod,
+    action: formAction,
+    onSubmit: reloadDocument ? onSubmit : submitHandler,
+    ...props,
+    "data-discover": !isAbsolute && discover === "render" ? "true" : void 0
+  });
+});
 Form.displayName = "Form";
-function ScrollRestoration({
-  getKey,
-  storageKey,
-  ...props
-}) {
-  let remixContext = React10.useContext(FrameworkContext);
-  let { basename } = React10.useContext(NavigationContext);
+function ScrollRestoration({ getKey, storageKey, ...props }) {
+  let remixContext = React$17.useContext(FrameworkContext);
+  let { basename } = React$17.useContext(NavigationContext);
   let location2 = useLocation();
   let matches = useMatches();
-  useScrollRestoration({ getKey, storageKey });
-  let ssrKey = React10.useMemo(
-    () => {
-      if (!remixContext || !getKey) return null;
-      let userKey = getScrollRestorationKey(
-        location2,
-        matches,
-        basename,
-        getKey
-      );
-      return userKey !== location2.key ? userKey : null;
-    },
-    // Nah, we only need this the first time for the SSR render
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
-  );
-  if (!remixContext || remixContext.isSpaMode) {
-    return null;
-  }
+  useScrollRestoration({
+    getKey,
+    storageKey
+  });
+  let ssrKey = React$17.useMemo(() => {
+    if (!remixContext || !getKey) return null;
+    let userKey = getScrollRestorationKey(location2, matches, basename, getKey);
+    return userKey !== location2.key ? userKey : null;
+  }, []);
+  if (!remixContext || remixContext.isSpaMode) return null;
   let restoreScroll = ((storageKey2, restoreKey) => {
     if (!window.history.state || !window.history.state.key) {
       let key = Math.random().toString(32).slice(2);
       window.history.replaceState({ key }, "");
     }
     try {
-      let positions = JSON.parse(sessionStorage.getItem(storageKey2) || "{}");
-      let storedY = positions[restoreKey || window.history.state.key];
-      if (typeof storedY === "number") {
-        window.scrollTo(0, storedY);
-      }
+      let storedY = JSON.parse(sessionStorage.getItem(storageKey2) || "{}")[restoreKey || window.history.state.key];
+      if (typeof storedY === "number") window.scrollTo(0, storedY);
     } catch (error) {
       console.error(error);
       sessionStorage.removeItem(storageKey2);
     }
   }).toString();
-  if (props.nonce == null && remixContext?.nonce) {
-    props.nonce = remixContext.nonce;
-  }
-  return /* @__PURE__ */ React10.createElement(
-    "script",
-    {
-      ...props,
-      suppressHydrationWarning: true,
-      dangerouslySetInnerHTML: {
-        __html: `(${restoreScroll})(${escapeHtml(
-          JSON.stringify(storageKey || SCROLL_RESTORATION_STORAGE_KEY)
-        )}, ${escapeHtml(JSON.stringify(ssrKey))})`
-      }
-    }
-  );
+  if (props.nonce == null && remixContext?.nonce) props.nonce = remixContext.nonce;
+  return /* @__PURE__ */ React$17.createElement("script", {
+    ...props,
+    suppressHydrationWarning: true,
+    dangerouslySetInnerHTML: { __html: `(${restoreScroll})(${escapeHtml(JSON.stringify(storageKey || SCROLL_RESTORATION_STORAGE_KEY))}, ${escapeHtml(JSON.stringify(ssrKey))})` }
+  });
 }
 ScrollRestoration.displayName = "ScrollRestoration";
-function getDataRouterConsoleError2(hookName) {
-  return `${hookName} must be used within a data router.  See https://reactrouter.com/en/main/routers/picking-a-router.`;
-}
-function useDataRouterContext3(hookName) {
-  let ctx = React10.useContext(DataRouterContext);
-  invariant(ctx, getDataRouterConsoleError2(hookName));
-  return ctx;
-}
-function useDataRouterState2(hookName) {
-  let state = React10.useContext(DataRouterStateContext);
-  invariant(state, getDataRouterConsoleError2(hookName));
-  return state;
-}
-function useLinkClickHandler(to, {
-  target,
-  replace: replaceProp,
-  mask,
-  state,
-  preventScrollReset,
-  relative,
-  viewTransition,
-  defaultShouldRevalidate,
-  useTransitions
-} = {}) {
+function useLinkClickHandler(to, { target, replace: replaceProp, mask, state, preventScrollReset, relative, viewTransition, defaultShouldRevalidate, useTransitions } = {}) {
   let navigate = useNavigate();
   let location2 = useLocation();
   let path3 = useResolvedPath(to, { relative });
-  return React10.useCallback(
-    (event) => {
-      if (shouldProcessLinkClick(event, target)) {
-        event.preventDefault();
-        let replace22 = replaceProp !== void 0 ? replaceProp : createPath(location2) === createPath(path3);
-        let doNavigate = () => navigate(to, {
-          replace: replace22,
-          mask,
-          state,
-          preventScrollReset,
-          relative,
-          viewTransition,
-          defaultShouldRevalidate
-        });
-        if (useTransitions) {
-          React10.startTransition(() => doNavigate());
-        } else {
-          doNavigate();
-        }
-      }
-    },
-    [
-      location2,
-      navigate,
-      path3,
-      replaceProp,
-      mask,
-      state,
-      target,
-      to,
-      preventScrollReset,
-      relative,
-      viewTransition,
-      defaultShouldRevalidate,
-      useTransitions
-    ]
-  );
+  return React$17.useCallback((event) => {
+    if (shouldProcessLinkClick(event, target)) {
+      event.preventDefault();
+      let replace2 = replaceProp !== void 0 ? replaceProp : createPath(location2) === createPath(path3);
+      let doNavigate = () => navigate(to, {
+        replace: replace2,
+        mask,
+        state,
+        preventScrollReset,
+        relative,
+        viewTransition,
+        defaultShouldRevalidate
+      });
+      if (useTransitions) React$17.startTransition(() => doNavigate());
+      else doNavigate();
+    }
+  }, [
+    location2,
+    navigate,
+    path3,
+    replaceProp,
+    mask,
+    state,
+    target,
+    to,
+    preventScrollReset,
+    relative,
+    viewTransition,
+    defaultShouldRevalidate,
+    useTransitions
+  ]);
 }
 var fetcherId = 0;
 var getUniqueFetcherId = () => `__${String(++fetcherId)}__`;
 function useSubmit() {
-  let { router } = useDataRouterContext3(
-    "useSubmit"
-    /* UseSubmit */
-  );
-  let { basename } = React10.useContext(NavigationContext);
-  let currentRouteId = useRouteId();
+  let { router } = useDataRouterContext("useSubmit");
+  let { basename } = React$17.useContext(NavigationContext);
+  let currentRouteId = useCurrentRouteId("useSubmit");
   let routerFetch = router.fetch;
   let routerNavigate = router.navigate;
-  return React10.useCallback(
-    async (target, options = {}) => {
-      let { action, method, encType, formData, body } = getFormSubmissionInfo(
-        target,
-        basename
-      );
-      if (options.navigate === false) {
-        let key = options.fetcherKey || getUniqueFetcherId();
-        await routerFetch(key, currentRouteId, options.action || action, {
-          defaultShouldRevalidate: options.defaultShouldRevalidate,
-          preventScrollReset: options.preventScrollReset,
-          formData,
-          body,
-          formMethod: options.method || method,
-          formEncType: options.encType || encType,
-          flushSync: options.flushSync
-        });
-      } else {
-        await routerNavigate(options.action || action, {
-          defaultShouldRevalidate: options.defaultShouldRevalidate,
-          preventScrollReset: options.preventScrollReset,
-          formData,
-          body,
-          formMethod: options.method || method,
-          formEncType: options.encType || encType,
-          replace: options.replace,
-          state: options.state,
-          fromRouteId: currentRouteId,
-          flushSync: options.flushSync,
-          viewTransition: options.viewTransition
-        });
-      }
-    },
-    [routerFetch, routerNavigate, basename, currentRouteId]
-  );
+  return React$17.useCallback(async (target, options = {}) => {
+    let { action, method, encType, formData, body } = getFormSubmissionInfo(target, basename);
+    if (options.navigate === false) await routerFetch(options.fetcherKey || getUniqueFetcherId(), currentRouteId, options.action || action, {
+      defaultShouldRevalidate: options.defaultShouldRevalidate,
+      preventScrollReset: options.preventScrollReset,
+      relative: options.relative,
+      formData,
+      body,
+      formMethod: options.method || method,
+      formEncType: options.encType || encType,
+      flushSync: options.flushSync
+    });
+    else await routerNavigate(options.action || action, {
+      defaultShouldRevalidate: options.defaultShouldRevalidate,
+      preventScrollReset: options.preventScrollReset,
+      relative: options.relative,
+      formData,
+      body,
+      formMethod: options.method || method,
+      formEncType: options.encType || encType,
+      replace: options.replace,
+      state: options.state,
+      fromRouteId: currentRouteId,
+      flushSync: options.flushSync,
+      viewTransition: options.viewTransition
+    });
+  }, [
+    routerFetch,
+    routerNavigate,
+    basename,
+    currentRouteId
+  ]);
 }
 function useFormAction(action, { relative } = {}) {
-  let { basename } = React10.useContext(NavigationContext);
-  let routeContext = React10.useContext(RouteContext);
+  let { basename } = React$17.useContext(NavigationContext);
+  let routeContext = React$17.useContext(RouteContext);
   invariant(routeContext, "useFormAction must be used inside a RouteContext");
   let [match2] = routeContext.matches.slice(-1);
   let path3 = { ...useResolvedPath(action ? action : ".", { relative }) };
@@ -22249,142 +21478,109 @@ function useFormAction(action, { relative } = {}) {
     path3.search = location2.search;
     let params = new URLSearchParams(path3.search);
     let indexValues = params.getAll("index");
-    let hasNakedIndexParam = indexValues.some((v) => v === "");
-    if (hasNakedIndexParam) {
+    if (indexValues.some((v) => v === "")) {
       params.delete("index");
       indexValues.filter((v) => v).forEach((v) => params.append("index", v));
       let qs = params.toString();
       path3.search = qs ? `?${qs}` : "";
     }
   }
-  if ((!action || action === ".") && match2.route.index) {
-    path3.search = path3.search ? path3.search.replace(/^\?/, "?index&") : "?index";
-  }
-  if (basename !== "/") {
-    path3.pathname = path3.pathname === "/" ? basename : joinPaths([basename, path3.pathname]);
-  }
+  if ((!action || action === ".") && match2.route.index) path3.search = path3.search ? path3.search.replace(/^\?/, "?index&") : "?index";
+  if (basename !== "/") path3.pathname = path3.pathname === "/" ? basename : joinPaths([basename, path3.pathname]);
   return createPath(path3);
 }
 var SCROLL_RESTORATION_STORAGE_KEY = "react-router-scroll-positions";
 var savedScrollPositions = {};
 function getScrollRestorationKey(location2, matches, basename, getKey) {
   let key = null;
-  if (getKey) {
-    if (basename !== "/") {
-      key = getKey(
-        {
-          ...location2,
-          pathname: stripBasename(location2.pathname, basename) || location2.pathname
-        },
-        matches
-      );
-    } else {
-      key = getKey(location2, matches);
-    }
-  }
-  if (key == null) {
-    key = location2.key;
-  }
+  if (getKey) if (basename !== "/") key = getKey({
+    ...location2,
+    pathname: stripBasename(location2.pathname, basename) || location2.pathname
+  }, matches);
+  else key = getKey(location2, matches);
+  if (key == null) key = location2.key;
   return key;
 }
-function useScrollRestoration({
-  getKey,
-  storageKey
-} = {}) {
-  let { router } = useDataRouterContext3(
-    "useScrollRestoration"
-    /* UseScrollRestoration */
-  );
-  let { restoreScrollPosition, preventScrollReset } = useDataRouterState2(
-    "useScrollRestoration"
-    /* UseScrollRestoration */
-  );
-  let { basename } = React10.useContext(NavigationContext);
+function useScrollRestoration({ getKey, storageKey } = {}) {
+  let { router } = useDataRouterContext("useScrollRestoration");
+  let { restoreScrollPosition, preventScrollReset } = useDataRouterState("useScrollRestoration");
+  let { basename } = React$17.useContext(NavigationContext);
   let location2 = useLocation();
   let matches = useMatches();
   let navigation = useNavigation();
-  React10.useEffect(() => {
+  React$17.useEffect(() => {
     window.history.scrollRestoration = "manual";
     return () => {
       window.history.scrollRestoration = "auto";
     };
   }, []);
-  usePageHide(
-    React10.useCallback(() => {
-      if (navigation.state === "idle") {
-        let key = getScrollRestorationKey(location2, matches, basename, getKey);
-        savedScrollPositions[key] = window.scrollY;
-      }
-      try {
-        sessionStorage.setItem(
-          storageKey || SCROLL_RESTORATION_STORAGE_KEY,
-          JSON.stringify(savedScrollPositions)
-        );
-      } catch (error) {
-        warning(
-          false,
-          `Failed to save scroll positions in sessionStorage, <ScrollRestoration /> will not work properly (${error}).`
-        );
-      }
-      window.history.scrollRestoration = "auto";
-    }, [navigation.state, getKey, basename, location2, matches, storageKey])
-  );
+  usePageShow(React$17.useCallback((event) => {
+    if (event.persisted) window.history.scrollRestoration = "manual";
+  }, []));
+  usePageHide(React$17.useCallback(() => {
+    if (navigation.state === "idle") {
+      let key = getScrollRestorationKey(location2, matches, basename, getKey);
+      savedScrollPositions[key] = window.scrollY;
+    }
+    try {
+      sessionStorage.setItem(storageKey || SCROLL_RESTORATION_STORAGE_KEY, JSON.stringify(savedScrollPositions));
+    } catch (error) {
+      warning(false, `Failed to save scroll positions in sessionStorage, <ScrollRestoration /> will not work properly (${error}).`);
+    }
+    window.history.scrollRestoration = "auto";
+  }, [
+    navigation.state,
+    getKey,
+    basename,
+    location2,
+    matches,
+    storageKey
+  ]));
   if (typeof document !== "undefined") {
-    React10.useLayoutEffect(() => {
+    React$17.useLayoutEffect(() => {
       try {
-        let sessionPositions = sessionStorage.getItem(
-          storageKey || SCROLL_RESTORATION_STORAGE_KEY
-        );
-        if (sessionPositions) {
-          savedScrollPositions = JSON.parse(sessionPositions);
-        }
-      } catch (e) {
+        let sessionPositions = sessionStorage.getItem(storageKey || SCROLL_RESTORATION_STORAGE_KEY);
+        if (sessionPositions) savedScrollPositions = JSON.parse(sessionPositions);
+      } catch {
       }
     }, [storageKey]);
-    React10.useLayoutEffect(() => {
-      let disableScrollRestoration = router?.enableScrollRestoration(
-        savedScrollPositions,
-        () => window.scrollY,
-        getKey ? (location22, matches2) => getScrollRestorationKey(location22, matches2, basename, getKey) : void 0
-      );
+    React$17.useLayoutEffect(() => {
+      let disableScrollRestoration = router?.enableScrollRestoration(savedScrollPositions, () => window.scrollY, getKey ? (location3, matches2) => getScrollRestorationKey(location3, matches2, basename, getKey) : void 0);
       return () => disableScrollRestoration && disableScrollRestoration();
-    }, [router, basename, getKey]);
-    React10.useLayoutEffect(() => {
-      if (restoreScrollPosition === false) {
-        return;
-      }
+    }, [
+      router,
+      basename,
+      getKey
+    ]);
+    React$17.useLayoutEffect(() => {
+      if (restoreScrollPosition === false) return;
       if (typeof restoreScrollPosition === "number") {
         window.scrollTo(0, restoreScrollPosition);
         return;
       }
       try {
         if (location2.hash) {
-          let el = document.getElementById(
-            decodeURIComponent(location2.hash.slice(1))
-          );
+          let el = document.getElementById(decodeURIComponent(location2.hash.slice(1)));
           if (el) {
             el.scrollIntoView();
             return;
           }
         }
       } catch {
-        warning(
-          false,
-          `"${location2.hash.slice(
-            1
-          )}" is not a decodable element ID. The view will not scroll to it.`
-        );
+        warning(false, `"${location2.hash.slice(1)}" is not a decodable element ID. The view will not scroll to it.`);
       }
-      if (preventScrollReset === true) {
-        return;
-      }
+      if (preventScrollReset === true) return;
       window.scrollTo(0, 0);
-    }, [location2, restoreScrollPosition, preventScrollReset]);
+    }, [
+      location2,
+      restoreScrollPosition,
+      preventScrollReset
+    ]);
   }
 }
 function usePageHide(callback, options) {
   let { capture } = options || {};
-  React10.useEffect(() => {
+  React$17.useEffect(() => {
     let opts = capture != null ? { capture } : void 0;
     window.addEventListener("pagehide", callback, opts);
     return () => {
@@ -22392,20 +21588,22 @@ function usePageHide(callback, options) {
     };
   }, [callback, capture]);
 }
+function usePageShow(callback, options) {
+  let { capture } = options || {};
+  React$17.useEffect(() => {
+    let opts = capture != null ? { capture } : void 0;
+    window.addEventListener("pageshow", callback, opts);
+    return () => {
+      window.removeEventListener("pageshow", callback, opts);
+    };
+  }, [callback, capture]);
+}
 function useViewTransitionState(to, { relative } = {}) {
-  let vtContext = React10.useContext(ViewTransitionContext);
-  invariant(
-    vtContext != null,
-    "`useViewTransitionState` must be used within `react-router-dom`'s `RouterProvider`.  Did you accidentally import `RouterProvider` from `react-router`?"
-  );
-  let { basename } = useDataRouterContext3(
-    "useViewTransitionState"
-    /* useViewTransitionState */
-  );
+  let vtContext = React$17.useContext(ViewTransitionContext);
+  invariant(vtContext != null, "`useViewTransitionState` must be used within `react-router/dom`'s `RouterProvider`.  Did you accidentally import `RouterProvider` from `react-router`?");
+  let { basename } = useDataRouterContext("useViewTransitionState");
   let path3 = useResolvedPath(to, { relative });
-  if (!vtContext.isTransitioning) {
-    return false;
-  }
+  if (!vtContext.isTransitioning) return false;
   let currentPath = stripBasename(vtContext.currentLocation.pathname, basename) || vtContext.currentLocation.pathname;
   let nextPath = stripBasename(vtContext.nextLocation.pathname, basename) || vtContext.nextLocation.pathname;
   return matchPath(path3.pathname, nextPath) != null || matchPath(path3.pathname, currentPath) != null;
@@ -22954,10 +22152,10 @@ var { RedoclyApiDocs, RedocStandalone, RedoclyApiDocsStandalone, convertSwagger2
 `, Fn = Tt(Mn).attrs({ "data-component-name": `icons/Spinner/Spinner` })`
   animation: 2s ${Pn} linear infinite;
 `, In, Ln = o((() => {
-    In = (0, import_react2.createContext)(null);
+    In = (0, import_react3.createContext)(null);
   }));
   function Rn(e10 = true) {
-    let t10 = (0, import_react2.useContext)(In);
+    let t10 = (0, import_react3.useContext)(In);
     if (!t10?.config) return {};
     let { config: n10, hooks: r10 } = t10, { useCurrentProduct: i10 } = r10, a10 = i10();
     return e10 && a10?.configOverride ? { ...n10, ...a10.configOverride, analytics: n10.analytics } : n10;
@@ -22966,14 +22164,14 @@ var { RedoclyApiDocs, RedocStandalone, RedoclyApiDocsStandalone, convertSwagger2
     Ln();
   })), Bn, Vn, Hn = o((() => {
     Bn = 300, Vn = (e10 = false) => {
-      let [t10, n10] = (0, import_react2.useState)(e10), r10 = (0, import_react2.useRef)(null), i10 = (0, import_react2.useCallback)(() => {
+      let [t10, n10] = (0, import_react3.useState)(e10), r10 = (0, import_react3.useRef)(null), i10 = (0, import_react3.useCallback)(() => {
         r10.current && clearTimeout(r10.current);
       }, []);
-      return (0, import_react2.useEffect)(() => i10, [i10]), { isOpened: t10, handleOpen: (0, import_react2.useCallback)(() => {
+      return (0, import_react3.useEffect)(() => i10, [i10]), { isOpened: t10, handleOpen: (0, import_react3.useCallback)(() => {
         i10(), r10.current = setTimeout(() => {
           n10(true);
         }, Bn);
-      }, [i10]), handleClose: (0, import_react2.useCallback)(() => {
+      }, [i10]), handleClose: (0, import_react3.useCallback)(() => {
         i10(), n10(false);
       }, [i10]) };
     };
@@ -23058,11 +22256,11 @@ var { RedoclyApiDocs, RedocStandalone, RedoclyApiDocsStandalone, convertSwagger2
     t10.exports = _10;
   }));
   function qn(e10) {
-    let [t10, n10] = (0, import_react2.useState)(0);
-    return (0, import_react2.useEffect)(() => {
+    let [t10, n10] = (0, import_react3.useState)(0);
+    return (0, import_react3.useEffect)(() => {
       let e11 = Ke2();
       n10(e11 && e11.clientHeight || 0);
-    }, [e10.pathname]), (0, import_react2.useEffect)(() => {
+    }, [e10.pathname]), (0, import_react3.useEffect)(() => {
       window.requestAnimationFrame(() => {
         let e11 = Ke2();
         n10(e11 && e11.clientHeight || 0);
@@ -23073,7 +22271,7 @@ var { RedoclyApiDocs, RedocStandalone, RedoclyApiDocsStandalone, convertSwagger2
     qe();
   }));
   function Yn(e10, t10 = false, n10 = true, r10 = 150) {
-    let [i10, a10] = (0, import_react2.useState)(``), o10 = qn(e10), s10 = (n10 ? o10 : 0) + r10, c10 = (0, import_react2.useMemo)(() => (0, Zn.default)(() => {
+    let [i10, a10] = (0, import_react3.useState)(``), o10 = qn(e10), s10 = (n10 ? o10 : 0) + r10, c10 = (0, import_react3.useMemo)(() => (0, Zn.default)(() => {
       if (!Ie2) return;
       let e11 = document.querySelectorAll(`[data-section-id]`);
       if (e11.length < 2) {
@@ -23094,7 +22292,7 @@ var { RedoclyApiDocs, RedocStandalone, RedoclyApiDocsStandalone, convertSwagger2
       }
       t10 && a10(``);
     }, 150), [s10, t10]);
-    return (0, import_react2.useEffect)(() => {
+    return (0, import_react3.useEffect)(() => {
       if (!Ie2) return;
       window.addEventListener(`scroll`, c10, { capture: false });
       let e11 = setTimeout(() => {
@@ -23112,15 +22310,15 @@ var { RedoclyApiDocs, RedocStandalone, RedoclyApiDocsStandalone, convertSwagger2
     Zn = u2(Kn()), Jn(), Le2();
   }));
   function $n(e10, t10) {
-    let n10 = (0, import_react2.useRef)(null), r10 = (0, import_react2.useRef)(null), i10 = (e11) => {
+    let n10 = (0, import_react3.useRef)(null), r10 = (0, import_react3.useRef)(null), i10 = (e11) => {
       e11.key === `Escape` ? t10() : e11.key === `Tab` && (!e11.shiftKey && document.activeElement === r10.current ? (e11.preventDefault(), n10.current?.focus()) : e11.shiftKey && document.activeElement === n10.current && (e11.preventDefault(), r10.current?.focus()));
     }, a10 = () => {
       let t11 = Array.from(e10.current?.querySelectorAll(`input, textarea, select, button, [href], [tabindex]:not([tabindex="-1"])`) ?? []).filter((e11) => !e11.hasAttribute(`disabled`) && (typeof e11.checkVisibility != `function` || e11.checkVisibility()));
       t11.length > 0 && (n10.current = t11[0], r10.current = t11[t11.length - 1]);
     };
-    (0, import_react2.useEffect)(() => (document.addEventListener(`keydown`, i10), () => {
+    (0, import_react3.useEffect)(() => (document.addEventListener(`keydown`, i10), () => {
       document.removeEventListener(`keydown`, i10);
-    }), []), (0, import_react2.useEffect)(() => {
+    }), []), (0, import_react3.useEffect)(() => {
       a10();
     });
   }
@@ -23129,7 +22327,7 @@ var { RedoclyApiDocs, RedocStandalone, RedoclyApiDocsStandalone, convertSwagger2
     Kn();
   }));
   function nr(e10, t10) {
-    (0, import_react2.useEffect)(() => {
+    (0, import_react3.useEffect)(() => {
       let n10 = Array.isArray(e10) ? e10 : [e10], r10 = (e11) => {
         if (!t10) return;
         let r11 = e11.target;
@@ -23237,7 +22435,7 @@ var { RedoclyApiDocs, RedocStandalone, RedoclyApiDocsStandalone, convertSwagger2
     }, reject: () => {
     }, save: () => {
     } }), useCodeHighlight: () => ({ highlight: (e10) => e10 }), useUserMenu: () => ({}), usePageData: () => null, usePageProps: () => ({}), usePageSharedData: () => null, useMcpData: () => ({ docs: { enabled: false } }), useSearchFeatures: () => ({}), useNavigationTabs: () => void 0 }, sr = () => {
-      let e10 = (0, import_react2.useContext)(In);
+      let e10 = (0, import_react3.useContext)(In);
       return new Proxy({}, { get(t10, n10) {
         if (e10 && n10 in e10.hooks) return e10.hooks[n10];
         if (n10 in or) return or[n10];
@@ -23246,8 +22444,8 @@ var { RedoclyApiDocs, RedocStandalone, RedoclyApiDocsStandalone, convertSwagger2
     };
   }));
   function lr(e10) {
-    let t10 = (0, import_react2.useRef)(null);
-    (0, import_react2.useEffect)(() => {
+    let t10 = (0, import_react3.useRef)(null);
+    (0, import_react3.useEffect)(() => {
       if (typeof window > `u` || typeof document > `u`) return;
       let { body: n10, documentElement: r10 } = document, i10 = () => {
         if (!t10.current) return;
@@ -23293,7 +22491,7 @@ var { RedoclyApiDocs, RedocStandalone, RedoclyApiDocsStandalone, convertSwagger2
     }) };
   }
   function pr(e10, t10) {
-    return [(0, import_react2.useSyncExternalStore)(e10.subscribe, () => e10.getValue(t10), () => t10), e10.setValue];
+    return [(0, import_react3.useSyncExternalStore)(e10.subscribe, () => e10.getValue(t10), () => t10), e10.setValue];
   }
   var mr = o((() => {
     Oe2();
@@ -23301,16 +22499,16 @@ var { RedoclyApiDocs, RedocStandalone, RedoclyApiDocsStandalone, convertSwagger2
     jo(), zn(), cr(), mr(), Bt2(), F2(), fr({ storageKey: `colorSchema` });
   })), gr, _r, vr, yr, br = o((() => {
     mr(), Oe2(), gr = `recentSearches`, _r = 5, vr = fr({ storageKey: gr }), yr = () => {
-      let [e10, t10] = pr(vr, []), n10 = (0, import_react2.useCallback)((n11, r10) => {
+      let [e10, t10] = pr(vr, []), n10 = (0, import_react3.useCallback)((n11, r10) => {
         if (!De2()) return;
         let i10 = [...e10], a10 = i10.indexOf(n11);
         a10 !== -1 && i10.splice(a10, 1), r10 && i10.unshift(n11);
         let o10 = i10.slice(0, _r);
         t10(o10);
       }, [e10, t10]);
-      return { items: e10, addSearchHistoryItem: (0, import_react2.useCallback)((e11) => {
+      return { items: e10, addSearchHistoryItem: (0, import_react3.useCallback)((e11) => {
         n10(e11, true);
-      }, [n10]), removeSearchHistoryItem: (0, import_react2.useCallback)((e11) => {
+      }, [n10]), removeSearchHistoryItem: (0, import_react3.useCallback)((e11) => {
         n10(e11, false);
       }, [n10]) };
     };
@@ -23321,10 +22519,10 @@ var { RedoclyApiDocs, RedocStandalone, RedoclyApiDocsStandalone, convertSwagger2
     return e10.active || e10.hasActiveSubItem || e10.expanded === `true` || e10.expanded === `always`;
   }
   function Cr(e10) {
-    let [t10, n10] = (0, import_react2.useState)(Sr(e10)), [r10, i10] = (0, import_react2.useState)(Sr(e10));
-    return (0, import_react2.useEffect)(() => {
+    let [t10, n10] = (0, import_react3.useState)(Sr(e10)), [r10, i10] = (0, import_react3.useState)(Sr(e10));
+    return (0, import_react3.useEffect)(() => {
       n10(r10);
-    }, [r10]), (0, import_react2.useEffect)(() => {
+    }, [r10]), (0, import_react3.useEffect)(() => {
       let t11 = Sr(e10);
       n10(t11), i10(t11);
     }, [e10.modified ? e10.active : e10, e10.hasActiveSubItem, e10.expanded]), [t10, i10];
@@ -23333,7 +22531,7 @@ var { RedoclyApiDocs, RedocStandalone, RedoclyApiDocsStandalone, convertSwagger2
   }));
   function Tr({ isExpanded: e10, collapseElRef: t10, onTransitionStateChange: n10 = () => {
   } }) {
-    let r10 = (0, import_react2.useRef)(e10), [i10, a10] = (0, import_react2.useState)(false), o10 = jr(n10), s10 = (0, import_react2.useRef)(void 0), c10 = (0, import_react2.useRef)(void 0);
+    let r10 = (0, import_react3.useRef)(e10), [i10, a10] = (0, import_react3.useState)(false), o10 = jr(n10), s10 = (0, import_react3.useRef)(void 0), c10 = (0, import_react3.useRef)(void 0);
     return Mr(() => {
       let n11 = t10.current;
       if (!n11 || e10 === r10.current) return;
@@ -23391,27 +22589,27 @@ var { RedoclyApiDocs, RedocStandalone, RedoclyApiDocsStandalone, convertSwagger2
     }
   }
   function jr(e10) {
-    let t10 = (0, import_react2.useRef)(e10);
-    return (0, import_react2.useEffect)(() => {
+    let t10 = (0, import_react3.useRef)(e10);
+    return (0, import_react3.useEffect)(() => {
       t10.current = e10;
-    }), (0, import_react2.useCallback)((...e11) => t10.current?.(...e11), []);
+    }), (0, import_react3.useCallback)((...e11) => t10.current?.(...e11), []);
   }
   var Mr, Nr, Pr, Fr = o((() => {
-    Mr = typeof window > `u` ? import_react2.useEffect : import_react2.useLayoutEffect, Nr = `cubic-bezier(0.4, 0, 0.2, 1)`, Pr = `0px`;
+    Mr = typeof window > `u` ? import_react3.useEffect : import_react3.useLayoutEffect, Nr = `cubic-bezier(0.4, 0, 0.2, 1)`, Pr = `0px`;
   }));
   function eee({ item: e10, labelRef: t10, nestedMenuRef: n10 }) {
-    let [r10, i10] = Cr(e10), [a10, o10] = (0, import_react2.useState)(!r10), s10 = useNavigate(), c10 = useLocation(), { style: l10 } = Tr({ isExpanded: r10, collapseElRef: n10 || { current: null }, onTransitionStateChange: (e11) => {
+    let [r10, i10] = Cr(e10), [a10, o10] = (0, import_react3.useState)(!r10), s10 = useNavigate(), c10 = useLocation(), { style: l10 } = Tr({ isExpanded: r10, collapseElRef: n10 || { current: null }, onTransitionStateChange: (e11) => {
       e11 === `collapseEnd` && o10(true), e11 === `expandStart` && o10(false), e11 === `expandEnd` && t10?.current?.dispatchEvent(new CustomEvent(`menu:expand-end`, { bubbles: true }));
     } });
     function u10(e11, t11 = false) {
       let n11 = e11.getBoundingClientRect();
       n11.top >= 0 && n11.left >= 0 && n11.bottom <= (window.innerHeight || document.documentElement.clientHeight) && n11.right <= (window.innerWidth || document.documentElement.clientWidth) && typeof e11.scrollIntoViewIfNeeded == `function` && e11.scrollIntoViewIfNeeded(t11);
     }
-    return (0, import_react2.useEffect)(() => {
+    return (0, import_react3.useEffect)(() => {
       e10.active && t10 && t10.current && u10(t10.current, true);
-    }, [t10, e10.active]), (0, import_react2.useEffect)(() => {
+    }, [t10, e10.active]), (0, import_react3.useEffect)(() => {
       e10.active && r10 && t10 && t10.current && u10(t10.current);
-    }, [t10, r10, e10.active]), { isExpanded: r10, canUnmount: a10, style: l10, handleExpand: (0, import_react2.useCallback)(async () => {
+    }, [t10, r10, e10.active]), { isExpanded: r10, canUnmount: a10, style: l10, handleExpand: (0, import_react3.useCallback)(async () => {
       if (e10.expanded === `always` || e10.link && e10.hasActiveSubItem && e10.link !== xe2(c10.pathname)) return;
       let [t11] = e10.items;
       !r10 && e10.selectFirstItemOnExpand && t11.link && await $e2({ navigate: s10, to: be2(t11.link) }), i10(!r10);
@@ -23425,7 +22623,7 @@ var { RedoclyApiDocs, RedocStandalone, RedoclyApiDocsStandalone, convertSwagger2
     cr(), zn(), ve2();
   }));
   function Ir() {
-    let { codeSnippet: { report: e10 = {} } = {} } = Rn(), [t10, n10] = (0, import_react2.useState)(false), { tooltipText: r10, buttonText: i10, label: a10 } = e10, { useTranslate: o10, useSubmitFeedback: s10 } = sr(), { translate: c10 } = o10(), { submitFeedback: l10 } = s10(), u10 = () => {
+    let { codeSnippet: { report: e10 = {} } = {} } = Rn(), [t10, n10] = (0, import_react3.useState)(false), { tooltipText: r10, buttonText: i10, label: a10 } = e10, { useTranslate: o10, useSubmitFeedback: s10 } = sr(), { translate: c10 } = o10(), { submitFeedback: l10 } = s10(), u10 = () => {
       n10(true);
     }, d10 = () => {
       setTimeout(function() {
@@ -23441,9 +22639,9 @@ var { RedoclyApiDocs, RedocStandalone, RedoclyApiDocsStandalone, convertSwagger2
   })), iee = o((() => {
   }));
   function aee({ count: e10, activeIndex: t10, onChange: n10 }) {
-    let r10 = (0, import_react2.useId)(), i10 = t10 >= 0 ? t10 : 0, a10 = (0, import_react2.useRef)([]), o10 = (0, import_react2.useCallback)((e11) => {
+    let r10 = (0, import_react3.useId)(), i10 = t10 >= 0 ? t10 : 0, a10 = (0, import_react3.useRef)([]), o10 = (0, import_react3.useCallback)((e11) => {
       n10(e11), a10.current[e11]?.focus();
-    }, [n10]), s10 = (0, import_react2.useCallback)((t11, n11) => {
+    }, [n10]), s10 = (0, import_react3.useCallback)((t11, n11) => {
       let r11 = { ArrowRight: (n11 + 1) % e10, ArrowLeft: (n11 - 1 + e10) % e10, Home: 0, End: e10 - 1 }[t11.key];
       r11 !== void 0 && (t11.preventDefault(), o10(r11));
     }, [e10, o10]);
@@ -23454,7 +22652,7 @@ var { RedoclyApiDocs, RedocStandalone, RedoclyApiDocsStandalone, convertSwagger2
   var oee = o((() => {
   }));
   function see(e10) {
-    (0, import_react2.useEffect)(() => {
+    (0, import_react3.useEffect)(() => {
       let t10 = e10.current;
       if (!t10) return;
       let n10 = t10.querySelectorAll(`button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])`), r10 = n10[0], i10 = (e11) => {
@@ -23625,45 +22823,45 @@ var { RedoclyApiDocs, RedocStandalone, RedoclyApiDocsStandalone, convertSwagger2
       return e11 && window.hotkeys === $r && (window.hotkeys = gi), $r;
     }, window.hotkeys = $r);
   })), vi = o((() => {
-    (0, import_react2.createContext)(null);
+    (0, import_react3.createContext)(null);
   })), yi = o((() => {
-    (0, import_react2.createContext)(null);
+    (0, import_react3.createContext)(null);
   })), bi = o((() => {
-    (0, import_react2.createContext)({ activeFilters: [], getControlState: () => null, changeControlState: () => {
+    (0, import_react3.createContext)({ activeFilters: [], getControlState: () => null, changeControlState: () => {
     }, getFileText: () => ``, areConditionsMet: () => false, handleDownloadCode: () => Promise.resolve(), populateInputsWithValue: (e10) => e10 });
   })), xi = o((() => {
-    (0, import_react2.createContext)({ markers: {}, activeStep: null, setActiveStep: () => {
+    (0, import_react3.createContext)({ markers: {}, activeStep: null, setActiveStep: () => {
     }, registerStep: () => {
     }, registerMarker: () => {
     }, removeMarker: () => {
     }, removeStep: () => {
     } });
   })), Si, Ci = o((() => {
-    Si = (0, import_react2.createContext)(null);
+    Si = (0, import_react3.createContext)(null);
   })), wi = o((() => {
     Oe2();
   })), Ti = o((() => {
-    wi(), (0, import_react2.createContext)(null);
+    wi(), (0, import_react3.createContext)(null);
   }));
   function Ei() {
-    let e10 = (0, import_react2.useContext)(Di);
+    let e10 = (0, import_react3.useContext)(Di);
     if (!e10) throw Error(`useSearchSession must be used within a SearchSessionProvider`);
     return e10;
   }
   var Di, Oi, ki = o((() => {
-    Di = (0, import_react2.createContext)(null), Oi = ({ children: e10 }) => {
-      let [t10, n10] = (0, import_react2.useState)(() => crypto.randomUUID()), r10 = (0, import_react2.useCallback)(() => {
+    Di = (0, import_react3.createContext)(null), Oi = ({ children: e10 }) => {
+      let [t10, n10] = (0, import_react3.useState)(() => crypto.randomUUID()), r10 = (0, import_react3.useCallback)(() => {
         n10(crypto.randomUUID());
-      }, []), i10 = (0, import_react2.useMemo)(() => ({ searchSessionId: t10, refreshSearchSessionId: r10 }), [t10, r10]);
+      }, []), i10 = (0, import_react3.useMemo)(() => ({ searchSessionId: t10, refreshSearchSessionId: r10 }), [t10, r10]);
       return (0, import_jsx_runtime.jsx)(Di.Provider, { value: i10, children: e10 });
     };
   })), Ai = o((() => {
-    (0, import_react2.createContext)(null);
+    (0, import_react3.createContext)(null);
   })), ji, gee = o((() => {
-    ji = (0, import_react2.createContext)(null);
+    ji = (0, import_react3.createContext)(null);
   }));
   function Mi({ children: e10, mountId: t10 = `root` }) {
-    let n10 = (0, import_react2.useContext)(ji), r10 = Ie2 ? n10 || document.getElementById(t10) || document.body : null;
+    let n10 = (0, import_react3.useContext)(ji), r10 = Ie2 ? n10 || document.getElementById(t10) || document.body : null;
     return r10 ? (0, import_react_dom.createPortal)(e10, r10) : (0, import_jsx_runtime.jsx)(import_jsx_runtime.Fragment, { children: e10 });
   }
   var Ni = o((() => {
@@ -23715,7 +22913,7 @@ var { RedoclyApiDocs, RedocStandalone, RedoclyApiDocsStandalone, convertSwagger2
 `;
   }));
   function Ji(e10) {
-    let t10 = (0, import_react2.useContext)(In);
+    let t10 = (0, import_react3.useContext)(In);
     if (t10?.components) {
       let { LinkComponent: n11 } = t10.components;
       return (0, import_jsx_runtime.jsx)(n11, { ...e10 });
@@ -23862,7 +23060,7 @@ var { RedoclyApiDocs, RedocStandalone, RedoclyApiDocsStandalone, convertSwagger2
     return (0, import_jsx_runtime.jsx)(ua, { ref: a10, $stackZIndex: r10, className: i10, "data-component-name": `Toast/Toast`, "data-testid": `toast-${e10.type}`, onMouseEnter: c10, onMouseLeave: l10, children: p10 });
   }
   var sa, ca, la, ua, da, fa, pa, ma, ha, ga, _a, va, ya, ba, xa, Sa, Ca, wa, Ta, vee = o((() => {
-    Ii(), Nn(), zi(), _ee(), Wi(), qi(), jo(), na(), ra(), (0, import_react2.memo)(oa), sa = qt`
+    Ii(), Nn(), zi(), _ee(), Wi(), qi(), jo(), na(), ra(), (0, import_react3.memo)(oa), sa = qt`
   from {
     opacity: 0;
     transform: translateX(100%);
@@ -24015,18 +23213,18 @@ var { RedoclyApiDocs, RedocStandalone, RedoclyApiDocsStandalone, convertSwagger2
     Ln(), vi(), yi(), bi(), xi(), Ci(), Ti(), ki(), Ai(), yee();
   }));
   function bee() {
-    let [e10, t10] = (0, import_react2.useState)(false), n10 = Rn(), r10 = useLocation(), { useTelemetry: i10 } = sr(), a10 = i10(), { refreshSearchSessionId: o10 } = Ei(), s10 = (n10?.search?.shortcuts ?? [`\u2318+K,CTRL+K`])?.join(`,`);
-    (0, import_react2.useEffect)(() => {
+    let [e10, t10] = (0, import_react3.useState)(false), n10 = Rn(), r10 = useLocation(), { useTelemetry: i10 } = sr(), a10 = i10(), { refreshSearchSessionId: o10 } = Ei(), s10 = (n10?.search?.shortcuts ?? [`\u2318+K,CTRL+K`])?.join(`,`);
+    (0, import_react3.useEffect)(() => {
       if (s10) return $r(s10, (e11) => {
         t10(true), a10.sendSearchOpenedMessage([{ ...Ve2(`searchDialogId`, `search`), method: `shortcut` }]), e11.preventDefault();
       }), () => $r.unbind(s10);
     }, [s10]);
-    let c10 = (0, import_react2.useCallback)(function() {
+    let c10 = (0, import_react3.useCallback)(function() {
       a10.sendSearchOpenedMessage([{ ...Ve2(`searchDialogId`, `search`), method: `click` }]), t10(true);
-    }, []), l10 = (0, import_react2.useCallback)(() => {
+    }, []), l10 = (0, import_react3.useCallback)(() => {
       o10(), t10(false);
     }, [o10]);
-    return (0, import_react2.useEffect)(l10, [r10]), { isOpen: e10, onOpen: c10, onClose: l10 };
+    return (0, import_react3.useEffect)(l10, [r10]), { isOpen: e10, onOpen: c10, onClose: l10 };
   }
   var Da = o((() => {
     _i(), cr(), zn(), Ea(), F2(), Bt2();
@@ -24041,19 +23239,19 @@ var { RedoclyApiDocs, RedocStandalone, RedoclyApiDocsStandalone, convertSwagger2
     mr(), fr({ storageKey: `searchQuickFilter`, storageType: `sessionStorage` });
   }));
   function Na(e10, t10) {
-    let [n10, r10] = (0, import_react2.useState)(e10), i10 = t10 !== void 0;
-    return [i10 ? t10 : n10, (0, import_react2.useCallback)((e11) => {
+    let [n10, r10] = (0, import_react3.useState)(e10), i10 = t10 !== void 0;
+    return [i10 ? t10 : n10, (0, import_react3.useCallback)((e11) => {
       i10 || r10(e11);
     }, [i10])];
   }
   var Pa = o((() => {
   }));
   function Fa({ tabs: e10, containerRef: t10, tabRefs: n10 }) {
-    let [r10, i10] = (0, import_react2.useState)(false), a10 = (0, import_react2.useMemo)(() => n10?.current?.reduce((e11, t11) => t11 ? e11 + t11.offsetWidth : e11, 0) || 0, [n10?.current?.length]), { currentIndex: o10, isFirstTab: s10, isLastTab: c10 } = (0, import_react2.useMemo)(() => {
+    let [r10, i10] = (0, import_react3.useState)(false), a10 = (0, import_react3.useMemo)(() => n10?.current?.reduce((e11, t11) => t11 ? e11 + t11.offsetWidth : e11, 0) || 0, [n10?.current?.length]), { currentIndex: o10, isFirstTab: s10, isLastTab: c10 } = (0, import_react3.useMemo)(() => {
       let t11 = e10.items.findIndex((t12) => t12.name === e10.value);
       return { currentIndex: t11, isFirstTab: t11 === 0, isLastTab: t11 === e10.items.length - 1 };
     }, [e10]);
-    return (0, import_react2.useEffect)(() => {
+    return (0, import_react3.useEffect)(() => {
       if (t10.current) {
         let e11 = t10.current, n11 = new ResizeObserver((e12) => {
           let t11 = e12[0].contentRect.width;
@@ -24063,12 +23261,12 @@ var { RedoclyApiDocs, RedocStandalone, RedoclyApiDocsStandalone, convertSwagger2
           n11.unobserve(e11);
         };
       }
-    }, [t10.current]), { showControls: r10, handlePrevTab: (0, import_react2.useCallback)(() => {
+    }, [t10.current]), { showControls: r10, handlePrevTab: (0, import_react3.useCallback)(() => {
       if (!s10) {
         let t11 = e10.items[o10 - 1].name;
         e10.onChange(t11);
       }
-    }, [o10]), handleNextTab: (0, import_react2.useCallback)(() => {
+    }, [o10]), handleNextTab: (0, import_react3.useCallback)(() => {
       if (!c10) {
         let t11 = e10.items[o10 + 1].name;
         e10.onChange(t11);
@@ -24091,14 +23289,14 @@ var { RedoclyApiDocs, RedocStandalone, RedoclyApiDocsStandalone, convertSwagger2
     cr();
   }));
   function Wa(e10) {
-    let t10 = (0, import_react2.useMemo)(() => Yt2().includes(`Mac`) ? `metaKey` : `ctrlKey`, []), n10 = (0, import_react2.useCallback)((e11) => e11.key === `a` && e11[t10], [t10]), r10 = (0, import_react2.useCallback)((e11) => e11.key === `v` && e11[t10], [t10]), i10 = (0, import_react2.useMemo)(() => [{ match: (e11) => e11.key === `Enter`, execute: (t11) => e10?.onEnter?.(t11) }, { match: (e11) => e11.key === `Escape`, execute: (t11) => {
+    let t10 = (0, import_react3.useMemo)(() => Yt2().includes(`Mac`) ? `metaKey` : `ctrlKey`, []), n10 = (0, import_react3.useCallback)((e11) => e11.key === `a` && e11[t10], [t10]), r10 = (0, import_react3.useCallback)((e11) => e11.key === `v` && e11[t10], [t10]), i10 = (0, import_react3.useMemo)(() => [{ match: (e11) => e11.key === `Enter`, execute: (t11) => e10?.onEnter?.(t11) }, { match: (e11) => e11.key === `Escape`, execute: (t11) => {
       e10?.onEscape?.(t11), t11.currentTarget?.selectionStart !== t11.currentTarget?.selectionEnd && (t11.stopPropagation(), Ga(t11));
     } }, { match: n10, execute: (t11) => e10?.onSelectAll?.(t11) }, { match: r10, execute: (t11) => e10?.onPaste?.(t11) }, { match: (e11) => {
       if (!e11.currentTarget?.value) return false;
       let t11 = (e11.currentTarget?.selectionEnd ?? 0) - (e11.currentTarget?.selectionStart ?? 0), n11 = e11.currentTarget?.value.length === t11, i11 = Ka(e11) || r10(e11) || qa(e11);
       return n11 && i11;
     }, execute: (t11) => e10?.onClear?.(t11) }], [e10, r10, n10]);
-    return { onKeyDown: (0, import_react2.useCallback)((e11) => {
+    return { onKeyDown: (0, import_react3.useCallback)((e11) => {
       for (let t11 of i10) t11.match(e11) && t11.execute(e11);
     }, [i10]) };
   }
@@ -24255,11 +23453,11 @@ var { RedoclyApiDocs, RedocStandalone, RedoclyApiDocsStandalone, convertSwagger2
     Ai();
   }));
   function xee({ toast: e10, onDismiss: t10, stackIndex: n10 }) {
-    let r10 = (0, import_react2.useRef)(null), i10 = (0, import_react2.useRef)(null), a10 = (0, import_react2.useRef)(null), o10 = (0, import_react2.useRef)(null), s10 = (0, import_react2.useRef)(null), c10 = (0, import_react2.useRef)(0), l10 = (0, import_react2.useRef)(null), u10 = (0, import_react2.useRef)(false), d10 = !!e10.description, f10 = (0, import_react2.useMemo)(() => gn(d10, e10.type, e10.duration), [d10, e10.duration, e10.type]), p10 = e10.type === `error` ? `alert` : `status`, m10 = e10.type === `error` ? `assertive` : `polite`, h10 = (0, import_react2.useCallback)(() => {
+    let r10 = (0, import_react3.useRef)(null), i10 = (0, import_react3.useRef)(null), a10 = (0, import_react3.useRef)(null), o10 = (0, import_react3.useRef)(null), s10 = (0, import_react3.useRef)(null), c10 = (0, import_react3.useRef)(0), l10 = (0, import_react3.useRef)(null), u10 = (0, import_react3.useRef)(false), d10 = !!e10.description, f10 = (0, import_react3.useMemo)(() => gn(d10, e10.type, e10.duration), [d10, e10.duration, e10.type]), p10 = e10.type === `error` ? `alert` : `status`, m10 = e10.type === `error` ? `assertive` : `polite`, h10 = (0, import_react3.useCallback)(() => {
       o10.current &&= (clearTimeout(o10.current), null), s10.current = null;
-    }, []), g10 = (0, import_react2.useCallback)(() => {
+    }, []), g10 = (0, import_react3.useCallback)(() => {
       t10(e10.id);
-    }, [t10, e10.id]), _10 = (0, import_react2.useCallback)((e11) => {
+    }, [t10, e10.id]), _10 = (0, import_react3.useCallback)((e11) => {
       if (h10(), e11 <= 0) {
         g10();
         return;
@@ -24268,7 +23466,7 @@ var { RedoclyApiDocs, RedocStandalone, RedoclyApiDocsStandalone, convertSwagger2
         g10();
       }, e11);
     }, [h10, g10]);
-    return (0, import_react2.useEffect)(() => {
+    return (0, import_react3.useEffect)(() => {
       if (e10.isExiting || f10 === null) {
         h10();
         return;
@@ -24276,7 +23474,7 @@ var { RedoclyApiDocs, RedocStandalone, RedoclyApiDocsStandalone, convertSwagger2
       return u10.current || _10(f10), () => {
         h10();
       };
-    }, [h10, f10, _10, e10.description, e10.isExiting, e10.title, e10.type]), (0, import_react2.useLayoutEffect)(() => {
+    }, [h10, f10, _10, e10.description, e10.isExiting, e10.title, e10.type]), (0, import_react3.useLayoutEffect)(() => {
       let t11 = r10.current;
       if (!t11) return;
       t11.style.transition = `none`, t11.style.transform = ``;
@@ -24293,13 +23491,13 @@ var { RedoclyApiDocs, RedocStandalone, RedoclyApiDocsStandalone, convertSwagger2
       return i10.current = o11, a10.current = n10, () => {
         l10.current !== null && (window.cancelAnimationFrame(l10.current), l10.current = null);
       };
-    }), (0, import_react2.useEffect)(() => () => {
+    }), (0, import_react3.useEffect)(() => () => {
       h10(), l10.current !== null && window.cancelAnimationFrame(l10.current);
-    }, [h10]), { wrapperRef: r10, hasDetails: d10, dismissToast: g10, handleMouseEnter: (0, import_react2.useCallback)(() => {
+    }, [h10]), { wrapperRef: r10, hasDetails: d10, dismissToast: g10, handleMouseEnter: (0, import_react3.useCallback)(() => {
       if (u10.current = true, f10 === null || s10.current === null) return;
       let e11 = Date.now() - s10.current;
       c10.current = Math.max(c10.current - e11, 0), h10();
-    }, [h10, f10]), handleMouseLeave: (0, import_react2.useCallback)(() => {
+    }, [h10, f10]), handleMouseLeave: (0, import_react3.useCallback)(() => {
       u10.current = false, !(e10.isExiting || f10 === null) && _10(c10.current || f10);
     }, [f10, _10, e10.isExiting]), ariaRole: p10, ariaLive: m10 };
   }
@@ -24309,8 +23507,8 @@ var { RedoclyApiDocs, RedocStandalone, RedoclyApiDocsStandalone, convertSwagger2
     cr(), He2();
   }));
   function wee({ isOpened: e10, placement: t10, arrowPosition: n10, fallbackPlacements: r10, tooltipBodyRef: i10 }) {
-    let [a10, o10] = (0, import_react2.useState)(t10), s10 = (0, import_react2.useRef)(false), c10 = (0, import_react2.useRef)(0);
-    return (0, import_react2.useLayoutEffect)(() => {
+    let [a10, o10] = (0, import_react3.useState)(t10), s10 = (0, import_react3.useRef)(false), c10 = (0, import_react3.useRef)(0);
+    return (0, import_react3.useLayoutEffect)(() => {
       if (!e10) {
         s10.current = false, c10.current = 0;
         return;
@@ -24333,8 +23531,8 @@ var { RedoclyApiDocs, RedocStandalone, RedoclyApiDocsStandalone, convertSwagger2
   }
   var Ao, Dee = o((() => {
     Ao = () => {
-      let [e10, t10] = (0, import_react2.useState)(false);
-      return (0, import_react2.useEffect)(() => {
+      let [e10, t10] = (0, import_react3.useState)(false);
+      return (0, import_react3.useEffect)(() => {
         t10(Eee());
       }, []), { isSupported: e10 };
     };
@@ -24675,14 +23873,14 @@ var { RedoclyApiDocs, RedocStandalone, RedoclyApiDocsStandalone, convertSwagger2
   function Uo() {
     return Ho ||= Vo(), Ho;
   }
-  var Wo = (0, import_react2.createContext)(void 0);
+  var Wo = (0, import_react3.createContext)(void 0);
   function Go(e10) {
-    let t10 = (0, import_react2.useContext)(Wo);
+    let t10 = (0, import_react3.useContext)(Wo);
     return e10?.store || t10 || Uo();
   }
   function Ko({ children: e10, store: t10 }) {
-    let n10 = (0, import_react2.useRef)(null);
-    return t10 ? (0, import_react2.createElement)(Wo.Provider, { value: t10 }, e10) : (n10.current === null && (n10.current = Vo()), (0, import_react2.createElement)(Wo.Provider, { value: n10.current }, e10));
+    let n10 = (0, import_react3.useRef)(null);
+    return t10 ? (0, import_react3.createElement)(Wo.Provider, { value: t10 }, e10) : (n10.current === null && (n10.current = Vo()), (0, import_react3.createElement)(Wo.Provider, { value: n10.current }, e10));
   }
   var qo = (e10) => typeof e10?.then == `function`, Jo = (e10) => {
     e10.status || (e10.status = `pending`, e10.then((t10) => {
@@ -24690,7 +23888,7 @@ var { RedoclyApiDocs, RedocStandalone, RedoclyApiDocsStandalone, convertSwagger2
     }, (t10) => {
       e10.status = `rejected`, e10.reason = t10;
     }));
-  }, Yo = import_react2.default.use || ((e10) => {
+  }, Yo = import_react3.default.use || ((e10) => {
     if (e10.status === `pending`) throw e10;
     if (e10.status === `fulfilled`) return e10.value;
     throw e10.status === `rejected` ? e10.reason : (Jo(e10), e10);
@@ -24713,11 +23911,11 @@ var { RedoclyApiDocs, RedocStandalone, RedoclyApiDocsStandalone, convertSwagger2
     }), Xo.set(t10, a10)), a10;
   };
   function I(e10, t10) {
-    let { delay: n10, unstable_promiseStatus: r10 = !import_react2.default.use } = t10 || {}, i10 = Go(t10), [[a10, o10, s10], c10] = (0, import_react2.useReducer)((t11) => {
+    let { delay: n10, unstable_promiseStatus: r10 = !import_react3.default.use } = t10 || {}, i10 = Go(t10), [[a10, o10, s10], c10] = (0, import_react3.useReducer)((t11) => {
       let n11 = i10.get(e10);
       return Object.is(t11[0], n11) && t11[1] === i10 && t11[2] === e10 ? t11 : [n11, i10, e10];
     }, void 0, () => [i10.get(e10), i10, e10]), l10 = a10;
-    if ((o10 !== i10 || s10 !== e10) && (c10(), l10 = i10.get(e10)), (0, import_react2.useEffect)(() => {
+    if ((o10 !== i10 || s10 !== e10) && (c10(), l10 = i10.get(e10)), (0, import_react3.useEffect)(() => {
       let t11 = i10.sub(e10, () => {
         if (r10) try {
           let t12 = i10.get(e10);
@@ -24752,7 +23950,7 @@ function useAtomValueWithDelay<Value>(
         c10();
       });
       return c10(), t11;
-    }, [i10, e10, n10, r10]), (0, import_react2.useDebugValue)(l10), qo(l10)) {
+    }, [i10, e10, n10, r10]), (0, import_react3.useDebugValue)(l10), qo(l10)) {
       let t11 = Zo(i10, l10, () => i10.get(e10));
       return r10 && Jo(t11), Yo(t11);
     }
@@ -24760,7 +23958,7 @@ function useAtomValueWithDelay<Value>(
   }
   function Qo(e10, t10) {
     let n10 = Go(t10);
-    return (0, import_react2.useCallback)((...t11) => n10.set(e10, ...t11), [n10, e10]);
+    return (0, import_react3.useCallback)((...t11) => n10.set(e10, ...t11), [n10, e10]);
   }
   function $o(e10, t10) {
     return [I(e10, t10), Qo(e10, t10)];
@@ -25072,24 +24270,24 @@ function useAtomValueWithDelay<Value>(
   }
   function vc() {
     let e10 = I(ps);
-    return (0, import_react2.useCallback)((t10) => pte(t10, e10), [e10]);
+    return (0, import_react3.useCallback)((t10) => pte(t10, e10), [e10]);
   }
   function yc(e10) {
     return vc()(e10);
   }
   Ns();
-  var bc = (0, import_react2.createContext)(void 0), xc = (0, import_react2.createContext)(void 0);
+  var bc = (0, import_react3.createContext)(void 0), xc = (0, import_react3.createContext)(void 0);
   function Sc() {
-    return (0, import_react2.useContext)(xc);
+    return (0, import_react3.useContext)(xc);
   }
   function Cc() {
-    let e10 = (0, import_react2.useContext)(bc), t10 = I(ps);
-    return (0, import_react2.useMemo)(() => e10 ? (js(e10, t10) ?? ``).toLowerCase() : ``, [e10, t10]);
+    let e10 = (0, import_react3.useContext)(bc), t10 = I(ps);
+    return (0, import_react3.useMemo)(() => e10 ? (js(e10, t10) ?? ``).toLowerCase() : ``, [e10, t10]);
   }
-  var wc = (0, import_react2.createContext)(null);
+  var wc = (0, import_react3.createContext)(null);
   function Tc(e10, t10) {
-    let n10 = (0, import_react2.useContext)(bc), r10 = Sc(), i10 = I(ps), a10 = vc();
-    return (0, import_react2.useMemo)(() => {
+    let n10 = (0, import_react3.useContext)(bc), r10 = Sc(), i10 = I(ps), a10 = vc();
+    return (0, import_react3.useMemo)(() => {
       if (!n10) return ``;
       let o10 = i10 ? Ms(n10, i10) : n10, s10 = t10 && r10 ? Os(Ys(dc, r10), e10) : e10;
       return a10(Gs(i10, o10, s10));
@@ -26421,7 +25619,7 @@ ${t11}`).join(`\r
     });
   }
   var ju, Mu = o((() => {
-    ju = import_react2.memo;
+    ju = import_react3.memo;
   })), Nu, Pu = o((() => {
     Nu = Rt`
   /**
@@ -33353,7 +32551,7 @@ ${t11}`).join(`\r
 `;
   }));
   function Kf() {
-    let e10 = (0, import_react2.useId)().replace(/:/g, `_`);
+    let e10 = (0, import_react3.useId)().replace(/:/g, `_`);
     return (t10) => `${t10}-${e10}`;
   }
   var tre = o((() => {
@@ -34139,7 +33337,7 @@ ${t11}`).join(`\r
     return 0;
   }
   function zh() {
-    return (0, import_react2.useSyncExternalStore)(Ih, Lh, Rh);
+    return (0, import_react3.useSyncExternalStore)(Ih, Lh, Rh);
   }
   function Bh(e10) {
     if (!e10.startsWith(`#/`)) return e10;
@@ -34148,8 +33346,8 @@ ${t11}`).join(`\r
   }
   var Vh = `redocly:urlreplace`;
   function Hh() {
-    let e10 = useLocation(), t10 = (0, import_react2.useRef)(e10.hash), n10 = (0, import_react2.useRef)(e10.key), r10 = (0, import_react2.useRef)(false);
-    (0, import_react2.useEffect)(() => {
+    let e10 = useLocation(), t10 = (0, import_react3.useRef)(e10.hash), n10 = (0, import_react3.useRef)(e10.key), r10 = (0, import_react3.useRef)(false);
+    (0, import_react3.useEffect)(() => {
       if (typeof window > `u`) return;
       let e11 = () => {
         t10.current = Bh(window.location.hash);
@@ -34160,7 +33358,7 @@ ${t11}`).join(`\r
       return window.addEventListener(`hashchange`, n11), window.addEventListener(`popstate`, e11), window.addEventListener(Vh, e11), () => {
         window.removeEventListener(`hashchange`, n11), window.removeEventListener(`popstate`, e11), window.removeEventListener(Vh, e11);
       };
-    }, []), (0, import_react2.useEffect)(() => {
+    }, []), (0, import_react3.useEffect)(() => {
       if (typeof window > `u`) return;
       let i10 = e10.key === n10.current;
       if (n10.current = e10.key, e10.hash !== t10.current) {
@@ -34188,7 +33386,7 @@ ${t11}`).join(`\r
     return ``;
   }
   function Jh(e10) {
-    return (0, import_react2.useSyncExternalStore)(e10?.trackSilentReplaces ? Gh : Wh, Kh, qh);
+    return (0, import_react3.useSyncExternalStore)(e10?.trackSilentReplaces ? Gh : Wh, Kh, qh);
   }
   Km(), _c(), Ns();
   function Yh(e10) {
@@ -34196,7 +33394,7 @@ ${t11}`).join(`\r
     return !e10 || e10.length === 0 ? [] : e10.map((e11) => t10[e11]).filter(Boolean);
   }
   function Xh(e10, t10, n10, r10, i10) {
-    let a10 = Yh(t10), o10 = rp((0, import_react2.useContext)(bc) ?? ``, i10), s10 = r10?.toLowerCase(), c10 = I(rh(e10 ? th(e10, n10, r10, o10) : ``)), l10 = I(Oc);
+    let a10 = Yh(t10), o10 = rp((0, import_react3.useContext)(bc) ?? ``, i10), s10 = r10?.toLowerCase(), c10 = I(rh(e10 ? th(e10, n10, r10, o10) : ``)), l10 = I(Oc);
     if (a10.length > 0) {
       if (s10 && Bm(s10)) {
         let t11 = e10 ? l10[e10]?.data : void 0;
@@ -34207,11 +33405,11 @@ ${t11}`).join(`\r
     return c10 === void 0 ? [] : [c10];
   }
   function Zh(e10, t10) {
-    return Ec((0, import_react2.useMemo)(() => e10 ? Ys(`response`, t10, e10) : ``, [e10, t10]));
+    return Ec((0, import_react3.useMemo)(() => e10 ? Ys(`response`, t10, e10) : ``, [e10, t10]));
   }
   function Qh(e10, t10, n10) {
     let r10 = Jh(), i10 = I(ps), a10 = Sc();
-    return (0, import_react2.useMemo)(() => {
+    return (0, import_react3.useMemo)(() => {
       if (!e10) return;
       let o10 = Ks(r10), s10 = (js(e10, i10) ?? ``).toLowerCase();
       if (!cc(o10, s10) || !(a10 ? ute(o10, s10, a10) : dte(o10, s10))) return;
@@ -34220,23 +33418,23 @@ ${t11}`).join(`\r
     }, [r10, e10, t10, n10, i10, a10]);
   }
   function $h(e10, t10) {
-    let n10 = Qo(xh), r10 = Qh(e10, t10, `ct`), i10 = zh(), a10 = (0, import_react2.useRef)(void 0);
-    (0, import_react2.useEffect)(() => {
+    let n10 = Qo(xh), r10 = Qh(e10, t10, `ct`), i10 = zh(), a10 = (0, import_react3.useRef)(void 0);
+    (0, import_react3.useEffect)(() => {
       r10 && (n10(r10), a10.current = r10);
-    }, [r10, i10, n10]), (0, import_react2.useEffect)(() => () => {
+    }, [r10, i10, n10]), (0, import_react3.useEffect)(() => () => {
       let e11 = a10.current;
       e11 && n10((t11) => t11 === e11 ? void 0 : t11);
     }, [n10]);
   }
   function eg(e10, t10) {
-    let n10 = I(qm), r10 = Qo(tp(e10 ?? ``)), i10 = Qh(e10, (0, import_react2.useMemo)(() => (t10 ?? []).map((e11) => n10[e11]?.key).filter((e11) => !!e11), [t10, n10]), `ex`), a10 = zh();
-    (0, import_react2.useEffect)(() => {
+    let n10 = I(qm), r10 = Qo(tp(e10 ?? ``)), i10 = Qh(e10, (0, import_react3.useMemo)(() => (t10 ?? []).map((e11) => n10[e11]?.key).filter((e11) => !!e11), [t10, n10]), `ex`), a10 = zh();
+    (0, import_react3.useEffect)(() => {
       i10 && r10({ activeExampleKey: i10 });
     }, [i10, a10, r10]);
   }
   function tg() {
     let e10 = I(ms);
-    return (0, import_react2.useMemo)(() => {
+    return (0, import_react3.useMemo)(() => {
       let t10 = {};
       return Object.keys(e10.schemaStore).forEach((n10) => {
         let r10 = e10.schemaStore[n10], i10 = n10.split(`/`).pop() ?? n10;
@@ -34255,20 +33453,20 @@ ${t11}`).join(`\r
     return Js({ t: e10.t, in: e10.in, c: e10.c, cb: e10.cb, ct: e10.ct, path: t10 });
   }
   function rg(e10) {
-    let t10 = (0, import_react2.useContext)(wc);
-    return mte((0, import_react2.useMemo)(() => ng(t10, e10), [t10, e10]));
+    let t10 = (0, import_react3.useContext)(wc);
+    return mte((0, import_react3.useMemo)(() => ng(t10, e10), [t10, e10]));
   }
   function ig() {
-    let e10 = (0, import_react2.useContext)(wc);
-    return (0, import_react2.useMemo)(() => ng(e10, ``), [e10]);
+    let e10 = (0, import_react3.useContext)(wc);
+    return (0, import_react3.useMemo)(() => ng(e10, ``), [e10]);
   }
   function ag() {
-    return I(sp((0, import_react2.useContext)(bc) ?? ``, ig()));
+    return I(sp((0, import_react3.useContext)(bc) ?? ``, ig()));
   }
   var og = Tt((e10) => (0, import_jsx_runtime.jsxs)(`svg`, { xmlns: `http://www.w3.org/2000/svg`, width: `16`, height: `16`, viewBox: `0 0 16 16`, fill: `none`, ...e10, children: [(0, import_jsx_runtime.jsx)(`rect`, { width: `16`, height: `16`, fill: `none` }), (0, import_jsx_runtime.jsx)(`path`, { d: `M8 1C6.61553 1 5.26216 1.41054 4.11101 2.17971C2.95987 2.94888 2.06266 4.04213 1.53285 5.32122C1.00303 6.6003 0.86441 8.00776 1.13451 9.36563C1.4046 10.7235 2.07129 11.9708 3.05026 12.9497C4.02922 13.9287 5.2765 14.5954 6.63437 14.8655C7.99224 15.1356 9.3997 14.997 10.6788 14.4672C11.9579 13.9373 13.0511 13.0401 13.8203 11.889C14.5895 10.7378 15 9.38447 15 8C15 6.14348 14.2625 4.36301 12.9497 3.05025C11.637 1.7375 9.85652 1 8 1ZM8 14C6.81332 14 5.65328 13.6481 4.66658 12.9888C3.67989 12.3295 2.91085 11.3925 2.45673 10.2961C2.0026 9.19974 1.88378 7.99334 2.11529 6.82946C2.3468 5.66557 2.91825 4.59647 3.75736 3.75736C4.59648 2.91824 5.66558 2.3468 6.82946 2.11529C7.99335 1.88378 9.19975 2.0026 10.2961 2.45672C11.3925 2.91085 12.3295 3.67988 12.9888 4.66658C13.6481 5.65327 14 6.81331 14 8C14 9.5913 13.3679 11.1174 12.2426 12.2426C11.1174 13.3679 9.5913 14 8 14Z`, fill: `currentColor` }), (0, import_jsx_runtime.jsx)(`path`, { d: `M7 10.625L4.5 8.145L5.295 7.375L7 9.05L10.705 5.375L11.5 6.165L7 10.625Z`, fill: `currentColor` })] })).attrs({ "data-component-name": `icons/RadioCheckButtonIcon/RadioCheckButtonIcon` })``;
   jo(), na(), Bt2();
   function sg({ settings: e10, onSubmit: t10, onCancel: n10, className: r10, standAlone: i10 = true, isDialog: a10 = false }) {
-    let { useTranslate: o10 } = sr(), { translate: s10 } = o10(), { label: c10, submitText: l10 } = e10 || {}, [u10, d10] = import_react2.default.useState(``), [f10, p10] = import_react2.default.useState(``), [m10, h10] = import_react2.default.useState(false), g10 = (0, import_react2.useRef)(null);
+    let { useTranslate: o10 } = sr(), { translate: s10 } = o10(), { label: c10, submitText: l10 } = e10 || {}, [u10, d10] = import_react3.default.useState(``), [f10, p10] = import_react3.default.useState(``), [m10, h10] = import_react3.default.useState(false), g10 = (0, import_react3.useRef)(null);
     return nr(g10, n10), f10 ? (0, import_jsx_runtime.jsx)(ug, { "data-component-name": `Feedback/Comment`, className: r10, children: (0, import_jsx_runtime.jsxs)(cg, { children: [(0, import_jsx_runtime.jsx)(dg, { "data-translation-key": `feedback.settings.comment.submitText`, $standAlone: i10, children: l10 || s10(`feedback.settings.comment.submitText`, `Thank you for helping improve our documentation!`) }), (0, import_jsx_runtime.jsx)(og, {})] }) }) : (0, import_jsx_runtime.jsxs)(lg, { ref: g10, "data-component-name": `Feedback/Comment`, className: r10, style: i10 ? { width: `var(--feedback-report-dialog-width)` } : { width: `auto` }, children: [(0, import_jsx_runtime.jsx)(dg, { "data-translation-key": `feedback.settings.comment.label`, $standAlone: i10, children: c10 || s10(`feedback.settings.comment.label`, `Please share your feedback with us.`) }), (0, import_jsx_runtime.jsx)(fg, { rows: 3, maxLength: Tt2, onChange: (e11) => {
       let n11 = e11.target.value;
       d10(n11), h10(n11.length >= Tt2), i10 || t10({ comment: n11 });
@@ -34695,8 +33893,8 @@ ${t11}`).join(`\r
 `;
   jo(), na(), F2();
   function xg({ tabs: e10 }) {
-    let t10 = (0, import_react2.useRef)(null), n10 = (0, import_react2.useRef)([]), { showControls: r10, handlePrevTab: i10, handleNextTab: a10 } = Fa({ tabs: e10, containerRef: t10, tabRefs: n10 });
-    return (0, import_react2.useEffect)(() => {
+    let t10 = (0, import_react3.useRef)(null), n10 = (0, import_react3.useRef)([]), { showControls: r10, handlePrevTab: i10, handleNextTab: a10 } = Fa({ tabs: e10, containerRef: t10, tabRefs: n10 });
+    return (0, import_react3.useEffect)(() => {
       let t11 = n10.current.find((t12) => t12?.dataset.id === e10.value);
       t11 && t11.scrollIntoView({ block: `nearest`, inline: `center` });
     }, [e10.value]), (0, import_jsx_runtime.jsxs)(Sg, { ref: t10, "data-component-name": `CodeBlock/CodeBlockTabs`, children: [(0, import_jsx_runtime.jsx)(Tg, { children: (0, import_jsx_runtime.jsx)(Eg, { children: e10.items.map((t11, r11) => {
@@ -34763,16 +33961,16 @@ ${t11}`).join(`\r
 `;
   jo(), Ni();
   function Og({ children: e10, isOpen: t10, tip: n10, withArrow: r10 = true, placement: i10 = `top`, fallbackPlacements: a10, className: o10 = `default`, width: s10, dataTestId: c10, disabled: l10 = false, arrowPosition: u10 = `center`, onClick: d10 }) {
-    let f10 = (0, import_react2.useRef)(null), p10 = (0, import_react2.useRef)(null), { isOpened: m10, handleOpen: h10, handleClose: g10 } = Vn(t10), _10 = `--tooltip${(0, import_react2.useId)().replace(/:/g, ``)}`, { activePlacement: v10, activeArrowPosition: y10 } = wee({ isOpened: m10, placement: i10, arrowPosition: u10, fallbackPlacements: a10, tooltipBodyRef: p10 });
+    let f10 = (0, import_react3.useRef)(null), p10 = (0, import_react3.useRef)(null), { isOpened: m10, handleOpen: h10, handleClose: g10 } = Vn(t10), _10 = `--tooltip${(0, import_react3.useId)().replace(/:/g, ``)}`, { activePlacement: v10, activeArrowPosition: y10 } = wee({ isOpened: m10, placement: i10, arrowPosition: u10, fallbackPlacements: a10, tooltipBodyRef: p10 });
     nr(m10 ? [f10, p10] : f10, g10);
     let b10 = t10 !== void 0;
-    return (0, import_react2.useEffect)(() => {
+    return (0, import_react3.useEffect)(() => {
       b10 && (t10 && !l10 ? h10() : g10());
     }, [t10, l10, b10, h10, g10]), (0, import_jsx_runtime.jsxs)(jg, { ref: f10, ...!b10 && !l10 ? { onMouseEnter: h10, onMouseLeave: g10, onClick: (e11) => {
       d10?.(e11), g10();
     }, onFocus: h10, onBlur: g10 } : {}, className: `tooltip-${o10}`, "data-component-name": `Tooltip/Tooltip`, $anchorName: _10, children: [e10, m10 && !l10 && (0, import_jsx_runtime.jsx)(Mi, { children: (0, import_jsx_runtime.jsx)(Mg, { ref: p10, "data-testid": c10 || (typeof n10 == `string` ? n10 : ``), $placement: v10, $width: s10, $withArrow: r10, $arrowPosition: y10 === `left` || y10 === `right` ? y10 : `center`, $anchorName: _10, children: n10 }) })] });
   }
-  var kg = (0, import_react2.memo)(Og), Ag = { top: Rt`
+  var kg = (0, import_react3.memo)(Og), Ag = { top: Rt`
     bottom: anchor(top);
     ${({ $withArrow: e10, $arrowPosition: t10 }) => e10 && t10 === `left` ? Rt`
             transform: translate(-32px, -6px);
@@ -34894,14 +34092,14 @@ ${t11}`).join(`\r
 `;
   jo(), Ni(), F2();
   function Ng({ children: e10, isOpen: t10, tip: n10, withArrow: r10 = true, placement: i10 = `top`, fallbackPlacements: a10, className: o10 = `default`, width: s10, dataTestId: c10, disabled: l10 = false, arrowPosition: u10 = `center`, onClick: d10 }) {
-    let f10 = (0, import_react2.useRef)(null), p10 = (0, import_react2.useRef)(null), { isOpened: m10, handleOpen: h10, handleClose: g10 } = Vn(t10), [_10, v10] = (0, import_react2.useState)({ top: 0, left: 0 }), [y10, b10] = (0, import_react2.useState)(i10), x10 = y10 === i10 ? u10 : `center`;
+    let f10 = (0, import_react3.useRef)(null), p10 = (0, import_react3.useRef)(null), { isOpened: m10, handleOpen: h10, handleClose: g10 } = Vn(t10), [_10, v10] = (0, import_react3.useState)({ top: 0, left: 0 }), [y10, b10] = (0, import_react3.useState)(i10), x10 = y10 === i10 ? u10 : `center`;
     nr(f10, g10);
-    let S10 = t10 !== void 0, C10 = (0, import_react2.useCallback)(() => {
+    let S10 = t10 !== void 0, C10 = (0, import_react3.useCallback)(() => {
       if (!m10 || !f10.current) return;
       let e11 = f10.current.getBoundingClientRect(), t11 = bn({ triggerRect: e11, tooltipWidth: p10.current?.offsetWidth ?? 0, tooltipHeight: p10.current?.offsetHeight ?? 0, placement: i10, arrowPosition: u10, fallbackPlacements: a10 });
       v10(yn(e11, t11, t11 === i10 ? u10 : `center`)), b10(t11);
     }, [m10, i10, u10, a10]);
-    return (0, import_react2.useLayoutEffect)(() => {
+    return (0, import_react3.useLayoutEffect)(() => {
       if (m10 && f10.current) {
         C10();
         let e11 = () => C10(), t11 = () => C10();
@@ -34909,13 +34107,13 @@ ${t11}`).join(`\r
           window.removeEventListener(`scroll`, e11, true), window.removeEventListener(`resize`, t11);
         };
       }
-    }, [m10, i10, C10]), (0, import_react2.useEffect)(() => {
+    }, [m10, i10, C10]), (0, import_react3.useEffect)(() => {
       t10 && !l10 ? h10() : g10();
     }, [t10, h10, g10, l10]), (0, import_jsx_runtime.jsxs)(Ig, { ref: f10, ...!S10 && !l10 && { onMouseEnter: h10, onMouseLeave: g10, onClick: (e11) => {
       d10?.(e11), g10();
     }, onFocus: h10, onBlur: g10 }, className: `tooltip-${o10}`, "data-component-name": `Tooltip/Tooltip`, children: [e10, m10 && !l10 && (0, import_jsx_runtime.jsx)(Mi, { children: (0, import_jsx_runtime.jsx)(Lg, { ref: p10, "data-testid": c10 || (typeof n10 == `string` ? n10 : ``), $placement: y10, $width: s10, $withArrow: r10, $arrowPosition: x10, style: { position: `fixed`, top: _10.top, left: _10.left }, children: n10 }) })] });
   }
-  var Pg = (0, import_react2.memo)(Ng), Fg = { top: Rt`
+  var Pg = (0, import_react3.memo)(Ng), Fg = { top: Rt`
     ${({ $withArrow: e10, $arrowPosition: t10 }) => e10 && t10 === `left` ? Rt`
             transform: translate(0, -100%);
             margin-top: -10px;
@@ -35035,11 +34233,11 @@ ${t11}`).join(`\r
     let { isSupported: t10 } = Ao(), n10 = e10.fallbackPlacements ?? vn(e10.placement ?? `top`);
     return t10 ? (0, import_jsx_runtime.jsx)(kg, { ...e10, fallbackPlacements: n10, arrowPosition: Bg(e10.arrowPosition) }) : (0, import_jsx_runtime.jsx)(Pg, { ...e10, fallbackPlacements: n10 });
   }
-  var zg = (0, import_react2.memo)(Rg), Bg = (e10) => e10 === `bottom` || e10 === `top` ? `center` : e10;
+  var zg = (0, import_react3.memo)(Rg), Bg = (e10) => e10 === `bottom` || e10 === `top` ? `center` : e10;
   F2(), jo(), na(), no();
   function Vg({ data: e10, type: t10 = `icon`, toasterPlacement: n10 = `top`, toasterText: r10, toasterDuration: i10, buttonText: a10, onCopyClick: o10, dataTestId: s10 = `copy-button`, className: c10, variant: l10 = `text`, size: u10 = `small`, disabled: d10, fullWidth: f10, tone: p10, extraClass: h10, iconPosition: g10 }) {
-    let { useTranslate: _10 } = sr(), v10 = Vn(), { translate: y10 } = _10(), b10 = (0, import_react2.useRef)(null);
-    (0, import_react2.useEffect)(() => () => {
+    let { useTranslate: _10 } = sr(), v10 = Vn(), { translate: y10 } = _10(), b10 = (0, import_react3.useRef)(null);
+    (0, import_react3.useEffect)(() => () => {
       b10.current && clearTimeout(b10.current);
     }, []);
     let x10 = (e11 = 1500) => {
@@ -35052,7 +34250,7 @@ ${t11}`).join(`\r
     };
     return (0, import_jsx_runtime.jsx)(zg, { className: `copy-button ${c10 || ``}`, tip: y10(`codeSnippet.copy.buttonText`, r10 || `Copied!`), isOpen: v10.isOpened, placement: n10, width: `fit-content`, children: (0, import_jsx_runtime.jsx)(ta, { "data-component-name": `Buttons/CopyButton`, onClick: (e11) => S10(e11, i10), "data-testid": s10, icon: t10 === `icon` || t10 === `compound` ? (0, import_jsx_runtime.jsx)(to, {}) : void 0, size: u10, variant: l10, disabled: d10, fullWidth: f10, tone: p10, extraClass: h10, iconPosition: g10, "aria-label": `Copy`, children: (t10 === `text` || t10 === `compound`) && (a10 || y10(`codeSnippet.copy.toasterText`, `Copy`)) }) });
   }
-  var Hg = (0, import_react2.memo)(Vg);
+  var Hg = (0, import_react3.memo)(Vg);
   F2();
   var Ug = Tt((e10) => (0, import_jsx_runtime.jsxs)(`svg`, { "data-component-name": `icons/DeselectIcon`, viewBox: `0 0 16 16`, fill: `none`, xmlns: `http://www.w3.org/2000/svg`, ...e10, children: [(0, import_jsx_runtime.jsx)(`path`, { d: `M14.4966 10.5H9.49658V11.5H14.4966V10.5Z`, fill: `currentColor` }), (0, import_jsx_runtime.jsx)(`path`, { d: `M10.5 3.64746H1.5V4.64746H10.5V3.64746Z`, fill: `currentColor` }), (0, import_jsx_runtime.jsx)(`path`, { d: `M10.5 6.64746H1.5V7.64746H10.5V6.64746Z`, fill: `currentColor` }), (0, import_jsx_runtime.jsx)(`path`, { d: `M7.5 9.64746H1.5V10.6475H7.5V9.64746Z`, fill: `currentColor` })] })).attrs({ "data-component-name": `icons/DeselectIcon/DeselectIcon` })`
   path {
@@ -35136,8 +34334,8 @@ ${t11}`).join(`\r
   width: ${({ size: e10 }) => e10 || `16px`};
 `;
   jo(), F2();
-  var Yg = typeof window < `u` ? import_react2.useLayoutEffect : import_react2.useEffect, Xg = (0, import_react2.forwardRef)(({ children: e10, className: t10, active: n10, trigger: r10, triggerEvent: i10 = `click`, closeOnClick: a10 = true, withArrow: o10, dataAttributes: s10, placement: c10, alignment: l10, portalled: u10 = false, alignmentAnchorRef: d10, onClick: f10, onClose: p10, onOpen: m10 }, h10) => {
-    let g10 = (0, import_react2.useRef)(null), _10 = (0, import_react2.useRef)(null), [v10, y10] = Na(false, n10), [b10, x10] = (0, import_react2.useState)({}), [S10, C10] = (0, import_react2.useState)(l10), w10 = h10 || g10, T10 = () => {
+  var Yg = typeof window < `u` ? import_react3.useLayoutEffect : import_react3.useEffect, Xg = (0, import_react3.forwardRef)(({ children: e10, className: t10, active: n10, trigger: r10, triggerEvent: i10 = `click`, closeOnClick: a10 = true, withArrow: o10, dataAttributes: s10, placement: c10, alignment: l10, portalled: u10 = false, alignmentAnchorRef: d10, onClick: f10, onClose: p10, onOpen: m10 }, h10) => {
+    let g10 = (0, import_react3.useRef)(null), _10 = (0, import_react3.useRef)(null), [v10, y10] = Na(false, n10), [b10, x10] = (0, import_react3.useState)({}), [S10, C10] = (0, import_react3.useState)(l10), w10 = h10 || g10, T10 = () => {
       y10(true), m10?.();
     }, E10 = () => {
       v10 && (y10(false), p10?.());
@@ -35147,14 +34345,14 @@ ${t11}`).join(`\r
       e11.stopPropagation(), e11.preventDefault(), v10 ? E10() : T10();
     }, k10 = (e11) => {
       (e11.key === `Enter` || e11.key === ` `) && O10(e11);
-    }, ee3 = (0, import_react2.useCallback)(() => {
+    }, ee3 = (0, import_react3.useCallback)(() => {
       let e11 = w10.current;
       if (!e11) return;
       let t11 = (d10?.current ?? e11).getBoundingClientRect(), n11 = _10.current?.offsetHeight ?? 0, r11 = t11.bottom + n11 <= window.innerHeight, i11 = t11.top - n11 >= 0, a11 = c10 === `top` ? i11 || !r11 : !r11 && i11, o11 = { minWidth: t11.width };
       a11 ? o11.bottom = window.innerHeight - t11.top : o11.top = t11.bottom, On(t11, _10.current?.offsetWidth ?? 0, l10) === `end` ? o11.right = window.innerWidth - t11.right : o11.left = t11.left;
       let s11 = getComputedStyle(e11).getPropertyValue(`--dropdown-menu-z-index`).trim();
       s11 && (o11.zIndex = s11), x10(o11);
-    }, [c10, l10, w10, d10]), te3 = (0, import_react2.useCallback)(() => {
+    }, [c10, l10, w10, d10]), te3 = (0, import_react3.useCallback)(() => {
       let e11 = w10.current, t11 = _10.current;
       if (!e11 || !t11) return;
       let n11 = (d10?.current ?? e11).getBoundingClientRect();
@@ -35167,7 +34365,7 @@ ${t11}`).join(`\r
         window.removeEventListener(`scroll`, ee3, true), window.removeEventListener(`resize`, ee3);
       };
     }, [u10, v10, ee3]), nr(u10 ? [w10, _10] : w10, E10);
-    let ne3 = typeof e10 == `function` ? e10({ close: E10, isOpen: v10 }) : e10, re3 = import_react2.default.Children.only(r10), ie3 = !!(re3.props?.to || re3.props?.href), ae3 = (0, import_react2.cloneElement)(re3, { onClick: i10 === `click` ? O10 : void 0, "aria-haspopup": `menu`, "aria-expanded": v10, icon: o10 ? (0, import_jsx_runtime.jsx)(v10 ? Jg : qg, {}) : void 0, ...o10 ? { iconPosition: `right` } : {}, ...re3.props, onKeyDown: i10 === `click` || !ie3 ? k10 : void 0 }), oe3 = (0, import_jsx_runtime.jsx)(Qg, { ref: _10, $placement: c10, $alignment: S10, $isOpen: v10, $portalled: u10, style: u10 ? b10 : void 0, onClick: a10 ? D10 : void 0, children: ne3 }), se3 = v10 && typeof document < `u` ? (0, import_react_dom.createPortal)(oe3, document.body) : null;
+    let ne3 = typeof e10 == `function` ? e10({ close: E10, isOpen: v10 }) : e10, re3 = import_react3.default.Children.only(r10), ie3 = !!(re3.props?.to || re3.props?.href), ae3 = (0, import_react3.cloneElement)(re3, { onClick: i10 === `click` ? O10 : void 0, "aria-haspopup": `menu`, "aria-expanded": v10, icon: o10 ? (0, import_jsx_runtime.jsx)(v10 ? Jg : qg, {}) : void 0, ...o10 ? { iconPosition: `right` } : {}, ...re3.props, onKeyDown: i10 === `click` || !ie3 ? k10 : void 0 }), oe3 = (0, import_jsx_runtime.jsx)(Qg, { ref: _10, $placement: c10, $alignment: S10, $isOpen: v10, $portalled: u10, style: u10 ? b10 : void 0, onClick: a10 ? D10 : void 0, children: ne3 }), se3 = v10 && typeof document < `u` ? (0, import_react_dom.createPortal)(oe3, document.body) : null;
     return (0, import_jsx_runtime.jsxs)(Zg, { "data-component-name": `Dropdown/Dropdown`, "data-testid": `dropdown`, ...s10, className: t10, ref: w10, onPointerEnter: i10 === `hover` ? T10 : void 0, onPointerLeave: i10 === `hover` ? E10 : void 0, onClick: f10, children: [ae3, u10 ? se3 : oe3] });
   }), Zg = Tt.div`
   --button-gap: var(--spacing-xxs);
@@ -35402,8 +34600,8 @@ ${t11}`).join(`\r
   }
   F2(), jo();
   function f_({ lang: e10, source: t10, externalSource: n10, header: r10, dataTestId: i10 = `source-code`, codeBlockRef: a10, highlightedHtml: o10, maxDisplayLength: s10, withLineNumbers: c10, startLineNumber: l10, className: u10, codeBlockMaxHeight: d10, tabs: f10, dropdown: p10, hideCodeColors: m10, wrapContents: h10 = false, children: g10, ..._10 }) {
-    let [y10, b10] = (0, import_react2.useState)((t10 || n10?.sample?.get?.(n10)) ?? ``), { useCodeHighlight: x10 } = sr(), { highlight: S10 } = x10() || {}, C10 = _10[`data-highlight`], w10 = !!g10, [T10, E10] = (0, import_react2.useState)(false), D10 = s10 !== void 0 && y10.length > s10 && !o10 && !w10, O10 = D10 && !T10 ? `${y10.slice(0, s10)}\u2026` : y10, k10 = (0, import_react2.useMemo)(() => o10 ? c10 ? v(o10, l10) : o10 : w10 ? null : S10?.(O10, e10, { withLineNumbers: c10, startLineNumber: l10, highlight: C10 }), [o10, c10, l10, w10, S10, O10, e10, C10]);
-    (0, import_react2.useEffect)(() => {
+    let [y10, b10] = (0, import_react3.useState)((t10 || n10?.sample?.get?.(n10)) ?? ``), { useCodeHighlight: x10 } = sr(), { highlight: S10 } = x10() || {}, C10 = _10[`data-highlight`], w10 = !!g10, [T10, E10] = (0, import_react3.useState)(false), D10 = s10 !== void 0 && y10.length > s10 && !o10 && !w10, O10 = D10 && !T10 ? `${y10.slice(0, s10)}\u2026` : y10, k10 = (0, import_react3.useMemo)(() => o10 ? c10 ? v(o10, l10) : o10 : w10 ? null : S10?.(O10, e10, { withLineNumbers: c10, startLineNumber: l10, highlight: C10 }), [o10, c10, l10, w10, S10, O10, e10, C10]);
+    (0, import_react3.useEffect)(() => {
       let e11 = t10 || n10?.sample?.get?.(n10);
       e11 && b10(e11);
     }, [t10, n10]);
@@ -35442,8 +34640,8 @@ ${t11}`).join(`\r
       let e11 = typeof a10 == `string` && o10 !== void 0 && a10.length > o10;
       return (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [t10 ? s10 : null, e11 ? (0, import_jsx_runtime.jsx)(b_, { value: a10, maxStringLength: o10 }) : (0, import_jsx_runtime.jsx)(`span`, { className: `token ` + u10, children: JSON.stringify(a10) })] });
     }
-    let d10 = Array.isArray(a10) ? `[` : `{`, f10 = Array.isArray(a10) ? `]` : `}`, p10 = Array.isArray(a10) ? a10.map((e11, t11) => (0, import_jsx_runtime.jsxs)(import_react2.default.Fragment, { children: [(0, import_jsx_runtime.jsx)(v_, { value: e11, level: r10 + 1, path: `${i10}/${t11}`, standalone: true, fold: n10, maxStringLength: o10 }), t11 < a10.length - 1 ? (0, import_jsx_runtime.jsx)(`span`, { children: `,
-` }) : null] }, t11)) : l10.map((e11, t11) => (0, import_jsx_runtime.jsxs)(import_react2.default.Fragment, { children: [(0, import_jsx_runtime.jsx)(y_, { name: e11, value: a10[e11], level: r10 + 1, path: `${i10}/${e11}`, fold: n10, maxStringLength: o10 }), t11 < l10.length - 1 ? (0, import_jsx_runtime.jsx)(`span`, { children: `,
+    let d10 = Array.isArray(a10) ? `[` : `{`, f10 = Array.isArray(a10) ? `]` : `}`, p10 = Array.isArray(a10) ? a10.map((e11, t11) => (0, import_jsx_runtime.jsxs)(import_react3.default.Fragment, { children: [(0, import_jsx_runtime.jsx)(v_, { value: e11, level: r10 + 1, path: `${i10}/${t11}`, standalone: true, fold: n10, maxStringLength: o10 }), t11 < a10.length - 1 ? (0, import_jsx_runtime.jsx)(`span`, { children: `,
+` }) : null] }, t11)) : l10.map((e11, t11) => (0, import_jsx_runtime.jsxs)(import_react3.default.Fragment, { children: [(0, import_jsx_runtime.jsx)(y_, { name: e11, value: a10[e11], level: r10 + 1, path: `${i10}/${e11}`, fold: n10, maxStringLength: o10 }), t11 < l10.length - 1 ? (0, import_jsx_runtime.jsx)(`span`, { children: `,
 ` }) : null] }, e11));
     return (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [t10 ? (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [s10, r10 > 0 ? (0, import_jsx_runtime.jsx)(x_, { onClick: () => n10.setExpanded(i10, !c10), isExpanded: c10 }) : null, d10, c10 ? `
 ` : null] }) : null, c10 || !t10 ? p10 : ` \u2026 `, t10 ? (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [c10 ? `
@@ -35456,7 +34654,7 @@ ${t11}`).join(`\r
     return (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [s10, g_(a10) ? (0, import_jsx_runtime.jsx)(x_, { onClick: () => t10.setExpanded(i10, !c10), isExpanded: c10 }) : null, (0, import_jsx_runtime.jsx)(`span`, { className: `property token string`, children: `"${r10}"` }), (0, import_jsx_runtime.jsx)(`span`, { children: `: ` }), d10] });
   }
   function b_({ value: e10, maxStringLength: t10 }) {
-    let [n10, r10] = import_react2.default.useState(false), i10 = import_react2.default.useMemo(() => JSON.stringify(n10 ? e10 : `${e10.slice(0, t10)}\u2026`), [n10, e10, t10]);
+    let [n10, r10] = import_react3.default.useState(false), i10 = import_react3.default.useMemo(() => JSON.stringify(n10 ? e10 : `${e10.slice(0, t10)}\u2026`), [n10, e10, t10]);
     return (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [(0, import_jsx_runtime.jsx)(`span`, { className: `token string`, children: i10 }), ` `, (0, import_jsx_runtime.jsx)(S_, { isExpanded: n10, onToggle: () => r10((e11) => !e11) })] });
   }
   function x_({ isExpanded: e10, onClick: t10 }) {
@@ -35485,12 +34683,12 @@ ${t11}`).join(`\r
   }
 `;
   function w_({ data: e10, expandLevel: t10 = 1, className: n10, onCopyClick: r10, onPanelToggle: i10, title: a10, controls: o10 = {}, maxStringLength: s10 }) {
-    let c10 = Math.max(1, t10), l10 = import_react2.default.useMemo(() => __(e10), [e10]), [u10, d10] = import_react2.default.useState({}), f10 = { isExpanded: (e11, t11) => u10[e11] ?? t11 < c10, setExpanded: (e11, t11) => d10((n11) => ({ ...n11, [e11]: t11 })) }, p10 = l10.length > 0, m10 = l10.every(([e11, t11]) => f10.isExpanded(e11, t11)), h10 = () => {
+    let c10 = Math.max(1, t10), l10 = import_react3.default.useMemo(() => __(e10), [e10]), [u10, d10] = import_react3.default.useState({}), f10 = { isExpanded: (e11, t11) => u10[e11] ?? t11 < c10, setExpanded: (e11, t11) => d10((n11) => ({ ...n11, [e11]: t11 })) }, p10 = l10.length > 0, m10 = l10.every(([e11, t11]) => f10.isExpanded(e11, t11)), h10 = () => {
       i10?.(!m10), d10(Object.fromEntries(l10.map(([e11]) => [e11, !m10])));
     }, g10 = JSON.stringify(e10, null, 2);
     return (0, import_jsx_runtime.jsx)(D_, { "data-testid": `json-viewer`, "data-component-name": `JsonViewer/JsonViewer`, className: n10, children: (0, import_jsx_runtime.jsx)(f_, { header: a10 || o10 ? { title: a10, className: `code-block-header`, controls: o10 && { ...o10, copy: { ...o10.copy, data: e10, onClick: r10, handleOutside: true }, expand: p10 && !m10 ? { ...o10.expand, onClick: h10 } : void 0, collapse: p10 && m10 ? { ...o10.collapse, onClick: h10 } : void 0 } } : void 0, source: g10, children: (0, import_jsx_runtime.jsx)(E_, { children: (0, import_jsx_runtime.jsx)(v_, { value: e10, level: 0, path: ``, standalone: true, fold: f10, maxStringLength: s10 }) }) }) });
   }
-  var T_ = (0, import_react2.memo)(w_), E_ = Tt.div`
+  var T_ = (0, import_react3.memo)(w_), E_ = Tt.div`
   position: relative;
 `, D_ = Tt.div`
   display: flex;
@@ -35894,17 +35092,17 @@ ${t11}`).join(`\r
   function Ore(e10, t10, n10) {
     return n10 === void 0 && !!t10 && e10 <= 4;
   }
-  var dv = (0, import_react2.createContext)(null), kre = dv.Provider;
+  var dv = (0, import_react3.createContext)(null), kre = dv.Provider;
   function fv() {
-    let e10 = (0, import_react2.useContext)(dv);
+    let e10 = (0, import_react3.useContext)(dv);
     if (!e10) throw Error("No markdown adapter found \u2014 pass `markdownAdapter` to <RedoclyApiDocs> (the standalone build supplies one automatically).");
     return e10;
   }
   function Are({ source: e10 }) {
-    let t10 = fv(), n10 = (0, import_react2.useMemo)(() => t10.parse(e10), [t10, e10]);
+    let t10 = fv(), n10 = (0, import_react3.useMemo)(() => t10.parse(e10), [t10, e10]);
     return (0, import_jsx_runtime.jsx)(import_jsx_runtime.Fragment, { children: t10.render(n10) });
   }
-  var pv = (0, import_react2.memo)(Are);
+  var pv = (0, import_react3.memo)(Are);
   function mv(e10) {
     return hv.test(e10);
   }
@@ -36764,19 +35962,19 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
     return t10;
   }
   function db(e10) {
-    let { translate: t10 } = sr().useTranslate(), n10 = sr().useTranslationKeys(), r10 = (0, import_react2.useMemo)(() => tie(n10), [n10]);
-    return (0, import_react2.useCallback)((n11, i10) => n11 ? e10 && r10.has(n11) ? t10(`${e10}.${n11}`, i10) : t10(n11, i10) : typeof i10 == `string` ? i10 : i10?.defaultValue ?? ``, [t10, e10, r10]);
+    let { translate: t10 } = sr().useTranslate(), n10 = sr().useTranslationKeys(), r10 = (0, import_react3.useMemo)(() => tie(n10), [n10]);
+    return (0, import_react3.useCallback)((n11, i10) => n11 ? e10 && r10.has(n11) ? t10(`${e10}.${n11}`, i10) : t10(n11, i10) : typeof i10 == `string` ? i10 : i10?.defaultValue ?? ``, [t10, e10, r10]);
   }
   function fb() {
     return db(I(fs));
   }
   function nie({ label: e10, values: t10 }) {
-    let n10 = I(ds), r10 = fb(), i10 = `maxDisplayedEnumValues` in n10 ? n10.maxDisplayedEnumValues : void 0, [a10, o10] = (0, import_react2.useState)(true), s10 = (0, import_react2.useCallback)(() => o10((e11) => !e11), []), { displayed: c10, showToggle: l10 } = (0, import_react2.useMemo)(() => P_(t10, i10, a10), [t10, i10, a10]);
+    let n10 = I(ds), r10 = fb(), i10 = `maxDisplayedEnumValues` in n10 ? n10.maxDisplayedEnumValues : void 0, [a10, o10] = (0, import_react3.useState)(true), s10 = (0, import_react3.useCallback)(() => o10((e11) => !e11), []), { displayed: c10, showToggle: l10 } = (0, import_react3.useMemo)(() => P_(t10, i10, a10), [t10, i10, a10]);
     if (!t10.length) return null;
     let u10 = typeof i10 == `number` && i10 > 0 ? i10 : 0, d10 = a10 ? `+${t10.length - u10} ${r10(`actions.more`, `more`)}` : r10(`actions.hide`, `Hide`);
     return (0, import_jsx_runtime.jsxs)(yre, { "data-testid": `schema-enum-values`, children: [(0, import_jsx_runtime.jsx)(X_, { children: e10 }), c10.map((e11, t11) => (0, import_jsx_runtime.jsx)(bre, { children: JSON.stringify(e11) }, `${JSON.stringify(e11)}-${t11}`)), l10 && (0, import_jsx_runtime.jsx)(tv, { type: `button`, onClick: s10, children: d10 })] });
   }
-  var pb = (0, import_react2.memo)(nie);
+  var pb = (0, import_react3.memo)(nie);
   Bt2();
   var rie = Rt`
   .md-table-wrapper {
@@ -37242,7 +36440,7 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
   function oie({ extensions: e10 }) {
     return Object.keys(e10).length === 0 ? null : (0, import_jsx_runtime.jsx)(import_jsx_runtime.Fragment, { children: Object.keys(e10).map((t10) => (0, import_jsx_runtime.jsxs)(mb, { children: [(0, import_jsx_runtime.jsxs)(sie, { children: [t10.substring(2), `: `] }), ` `, (0, import_jsx_runtime.jsx)(cie, { children: typeof e10[t10] == `string` ? e10[t10] : JSON.stringify(e10[t10]) })] }, t10)) });
   }
-  var gb = (0, import_react2.memo)(oie), sie = Tt.span`
+  var gb = (0, import_react3.memo)(oie), sie = Tt.span`
   font-weight: var(--font-weight-semibold);
 `, cie = Tt.span`
   font-family: var(--font-family-monospaced);
@@ -37258,19 +36456,19 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
   _c();
   var die = 500, fie = 100, pie = 48;
   function mie({ to: e10, label: t10, variant: n10 = `heading` }) {
-    let { onDeepLinkClick: r10 } = I(ds), i10 = Jh({ trackSilentReplaces: true }), a10 = e10.split(`#`)[1], o10 = !!a10 && Ks(i10) === Ks(a10), s10 = (0, import_react2.useRef)(null), [c10, l10] = (0, import_react2.useState)(null), u10 = (0, import_react2.useRef)(void 0), d10 = c10 !== null, f10 = (0, import_react2.useCallback)((e11) => {
+    let { onDeepLinkClick: r10 } = I(ds), i10 = Jh({ trackSilentReplaces: true }), a10 = e10.split(`#`)[1], o10 = !!a10 && Ks(i10) === Ks(a10), s10 = (0, import_react3.useRef)(null), [c10, l10] = (0, import_react3.useState)(null), u10 = (0, import_react3.useRef)(void 0), d10 = c10 !== null, f10 = (0, import_react3.useCallback)((e11) => {
       clearTimeout(u10.current), u10.current = setTimeout(() => {
         let e12 = s10.current;
         if (!e12) return;
         let t11 = e12.getBoundingClientRect(), n11 = t11.left + t11.width / 2;
         l10(t11.top - gie(e12) < pie ? { x: n11, y: t11.bottom, placement: `bottom` } : { x: n11, y: t11.top, placement: `top` });
       }, e11);
-    }, []), p10 = (0, import_react2.useCallback)(() => {
+    }, []), p10 = (0, import_react3.useCallback)(() => {
       clearTimeout(u10.current), l10(null);
-    }, []), m10 = (0, import_react2.useCallback)(() => {
+    }, []), m10 = (0, import_react3.useCallback)(() => {
       clearTimeout(u10.current), u10.current = setTimeout(() => l10(null), fie);
     }, []);
-    (0, import_react2.useEffect)(() => () => clearTimeout(u10.current), []), (0, import_react2.useEffect)(() => {
+    (0, import_react3.useEffect)(() => () => clearTimeout(u10.current), []), (0, import_react3.useEffect)(() => {
       if (!d10) return;
       let e11 = (e12) => {
         e12.key === `Escape` && p10();
@@ -37279,11 +36477,11 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
         document.removeEventListener(`keydown`, e11), window.removeEventListener(`scroll`, p10, { capture: true });
       };
     }, [d10, p10]);
-    let h10 = (0, import_react2.useCallback)((e11) => {
+    let h10 = (0, import_react3.useCallback)((e11) => {
       e11.pointerType === `mouse` && (d10 ? clearTimeout(u10.current) : f10(die));
-    }, [d10, f10]), g10 = (0, import_react2.useCallback)((e11) => {
+    }, [d10, f10]), g10 = (0, import_react3.useCallback)((e11) => {
       _ie(e11.currentTarget) && f10(0);
-    }, [f10]), _10 = (0, import_react2.useCallback)((t11) => {
+    }, [f10]), _10 = (0, import_react3.useCallback)((t11) => {
       p10(), r10 && (t11.preventDefault(), r10(e10));
     }, [r10, e10, p10]);
     return (0, import_jsx_runtime.jsx)(vie, { className: `deep-link-anchor`, "data-deep-link-anchor": true, children: (0, import_jsx_runtime.jsxs)(yie, { $variant: n10, to: e10, state: { smoothScroll: true }, "aria-label": t10 ?? `link to ${e10}`, "aria-current": o10 ? `location` : void 0, "data-tooltip-open": d10 || void 0, onClick: _10, onPointerEnter: h10, onPointerLeave: m10, onFocus: g10, onBlur: p10, children: [(0, import_jsx_runtime.jsx)(bie, { ref: s10, children: (0, import_jsx_runtime.jsx)(uie, { color: `--heading-anchor-color` }) }), c10 ? (0, import_jsx_runtime.jsx)(hie, { at: c10 }) : null] }) });
@@ -37305,7 +36503,7 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
       return true;
     }
   }
-  var vb = (0, import_react2.memo)(mie), yb = `data-deep-link-anchor`, bb = `
+  var vb = (0, import_react3.memo)(mie), yb = `data-deep-link-anchor`, bb = `
   & [${yb}] svg {
     visibility: hidden;
   }
@@ -37411,7 +36609,7 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
     let v10 = (e11, t11) => e11.length <= t11 ? e11 : e11.slice(0, t11) + `...`, y10 = (e11) => {
       if (typeof e11 == `string`) return e11;
       if (typeof e11 == `number`) return e11.toString();
-      if (import_react2.default.isValidElement(e11)) {
+      if (import_react3.default.isValidElement(e11)) {
         let t11 = e11.props;
         if (typeof t11.children == `string`) return t11.children;
       }
@@ -37422,13 +36620,13 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
         let n11 = e11.toString();
         return n11.length > t11 ? v10(n11, t11) : e11;
       }
-      if (import_react2.default.isValidElement(e11)) {
+      if (import_react3.default.isValidElement(e11)) {
         if (y10(e11).length <= t11) return e11;
         let n11 = e11.props;
-        if (typeof n11.children == `string`) return import_react2.default.cloneElement(e11, { ...n11, children: v10(n11.children, t11) });
+        if (typeof n11.children == `string`) return import_react3.default.cloneElement(e11, { ...n11, children: v10(n11.children, t11) });
       }
       return e11;
-    }, x10 = () => p10 ? typeof e10 == `string` ? v10(e10, p10) : import_react2.default.isValidElement(e10) ? b10(e10, p10) : e10 : e10;
+    }, x10 = () => p10 ? typeof e10 == `string` ? v10(e10, p10) : import_react3.default.isValidElement(e10) ? b10(e10, p10) : e10 : e10;
     return (0, import_jsx_runtime.jsxs)(wie, { tabIndex: a10, "data-component-name": `Tag/Tag`, $borderless: u10, $color: t10, $size: l10, onClick: o10, onKeyDown: s10, $hasCloseButton: i10, $textTransform: m10, $variant: h10, $selectable: g10, ..._10, children: [d10 ? (0, import_jsx_runtime.jsx)(Tie, { $color: f10 }) : n10 || null, (0, import_jsx_runtime.jsx)(Sb, { children: x10() }), i10 && (0, import_jsx_runtime.jsx)(Cie, { onClick: (e11) => {
       c10?.(e11);
     }, children: (0, import_jsx_runtime.jsx)(Ri, {}) }), r10 && (0, import_jsx_runtime.jsx)(Eie, {})] });
@@ -39924,9 +39122,9 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
       }
       super.send(e10, t10, { env: `production` });
     }
-  }, OE = new DE({ disabled: true }), kE = (0, import_react2.createContext)(OE);
+  }, OE = new DE({ disabled: true }), kE = (0, import_react3.createContext)(OE);
   function AE() {
-    return (0, import_react2.useContext)(kE);
+    return (0, import_react3.useContext)(kE);
   }
   function jE() {
     return AE();
@@ -39956,8 +39154,8 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
     t10(LE, { via: n10, at: performance.now() });
   });
   function zE(e10) {
-    let t10 = (0, import_react2.useContext)(kE), n10 = Go(), r10 = I(fs), { specType: i10, collectorUrl: a10, serviceName: o10, serviceVersion: s10, disabled: c10, typeOfUsage: l10 } = e10 ?? {};
-    return (0, import_react2.useMemo)(() => t10 === OE ? new DE({ specType: i10 ?? r10, collectorUrl: a10, serviceName: o10, serviceVersion: s10, disabled: c10, typeOfUsage: l10, beforeSend: (e11, t11) => n10.set(PE, { event: e11, data: t11 }) }) : t10, [t10, n10, r10, i10, a10, o10, s10, c10, l10]);
+    let t10 = (0, import_react3.useContext)(kE), n10 = Go(), r10 = I(fs), { specType: i10, collectorUrl: a10, serviceName: o10, serviceVersion: s10, disabled: c10, typeOfUsage: l10 } = e10 ?? {};
+    return (0, import_react3.useMemo)(() => t10 === OE ? new DE({ specType: i10 ?? r10, collectorUrl: a10, serviceName: o10, serviceVersion: s10, disabled: c10, typeOfUsage: l10, beforeSend: (e11, t11) => n10.set(PE, { event: e11, data: t11 }) }) : t10, [t10, n10, r10, i10, a10, o10, s10, c10, l10]);
   }
   Ds();
   function BE(e10, t10) {
@@ -40031,7 +39229,7 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
   }
   function hD() {
     let e10 = jE();
-    return (0, import_react2.useCallback)((t10) => e10.sendSchemaFieldExpandedMessage([{ ...VE.schemaFieldToggle, ...t10 }]), [e10]);
+    return (0, import_react3.useCallback)((t10) => e10.sendSchemaFieldExpandedMessage([{ ...VE.schemaFieldToggle, ...t10 }]), [e10]);
   }
   var gD = `[data-component-name="Menu/MenuItem"]`, _D = `[data-testid="menu-item-label"]`;
   function vD(e10) {
@@ -40043,7 +39241,7 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
   }
   function yD() {
     let e10 = jE(), t10 = Qo(RE);
-    return (0, import_react2.useCallback)((n10) => {
+    return (0, import_react3.useCallback)((n10) => {
       let r10 = vD(n10.target);
       r10 && (r10.navigates && t10(`sidebar`), e10.sendSidebarItemClickedMessage([{ ...VE.sidebarItem, type: r10.type, depth: r10.depth }]));
     }, [e10, t10]);
@@ -40130,8 +39328,8 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
     return { id: `redocInitial`, object: `initial`, uri: e10.uri, layout: e10.layout, ...e10.typeOfUsage ? { typeOfUsage: e10.typeOfUsage } : {}, operationsCount: a10.operations, schemasCount: Object.keys(n10.schemaStore ?? {}).length, ...c10 ? { specVersion: c10 } : {}, extensionsCount: s10?.extensionsCount ?? 0, ...s10 && Object.keys(s10.redocExtensions).length ? { redocExtensions: s10.redocExtensions } : {}, hasCodeSamples: s10?.hasCodeSamples ?? false, ...e10.buildTimings ?? {}, isLocalhost: MD(e10.hostname), landedOn: e10.landedOn, ...e10.options ? { options: e10.options } : {}, shape: u10 };
   }
   function LD(e10, t10 = true) {
-    let n10 = (0, import_react2.useContext)(bc), r10 = Qo(tp(n10 ?? ``)), { schemasExpansionLevel: i10 } = I(ds), a10 = i10 === 1 / 0 || void 0;
-    return (0, import_react2.useEffect)(() => {
+    let n10 = (0, import_react3.useContext)(bc), r10 = Qo(tp(n10 ?? ``)), { schemasExpansionLevel: i10 } = I(ds), a10 = i10 === 1 / 0 || void 0;
+    return (0, import_react3.useEffect)(() => {
       if (e10 && n10 && t10) return r10((t11) => e10 in t11.expandableSections ? {} : { expandableSections: { ...t11.expandableSections, [e10]: a10 } }), () => r10((t11) => {
         if (!(e10 in t11.expandableSections)) return {};
         let n11 = { ...t11.expandableSections };
@@ -40140,17 +39338,17 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
     }, [e10, n10, t10, r10, a10]), I(sp(n10 ?? ``, e10 ?? ``));
   }
   function RD(e10) {
-    let t10 = (0, import_react2.useContext)(bc), n10 = (0, import_react2.useId)();
+    let t10 = (0, import_react3.useContext)(bc), n10 = (0, import_react3.useId)();
     return e10 && t10 ? sre(e10, n10) : void 0;
   }
   function zD(e10, t10) {
-    let n10 = (0, import_react2.useContext)(bc), r10 = Qo(tp(n10 ?? ``));
-    (0, import_react2.useEffect)(() => {
+    let n10 = (0, import_react3.useContext)(bc), r10 = Qo(tp(n10 ?? ``));
+    (0, import_react3.useEffect)(() => {
       if (e10 && n10) return () => r10((t11) => {
         let n11 = { ...t11.collapsibles };
         return delete n11[e10], { collapsibles: n11 };
       });
-    }, [e10, n10, r10]), (0, import_react2.useEffect)(() => {
+    }, [e10, n10, r10]), (0, import_react3.useEffect)(() => {
       e10 && n10 && r10((n11) => n11.collapsibles[e10] === t10 ? {} : { collapsibles: { ...n11.collapsibles, [e10]: t10 } });
     }, [e10, n10, t10, r10]);
   }
@@ -40162,8 +39360,8 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
     return t10.bottom >= 0 && t10.top <= n10;
   }
   function HD({ forceMount: e10 = false, estimatedHeight: t10, children: n10 }) {
-    let [r10, i10] = (0, import_react2.useState)(e10), a10 = (0, import_react2.useRef)(null);
-    return (0, import_react2.useLayoutEffect)(() => {
+    let [r10, i10] = (0, import_react3.useState)(e10), a10 = (0, import_react3.useRef)(null);
+    return (0, import_react3.useLayoutEffect)(() => {
       if (r10 || e10) return;
       let t11 = a10.current;
       if (!t11 || typeof IntersectionObserver > `u` || VD(t11)) {
@@ -40171,12 +39369,12 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
         return;
       }
       let n11 = new IntersectionObserver((e11) => {
-        e11.some((e12) => e12.isIntersecting) && ((0, import_react2.startTransition)(() => i10(true)), n11.disconnect());
+        e11.some((e12) => e12.isIntersecting) && ((0, import_react3.startTransition)(() => i10(true)), n11.disconnect());
       }, { rootMargin: BD });
       return n11.observe(t11), () => n11.disconnect();
     }, [r10, e10]), r10 || e10 ? (0, import_jsx_runtime.jsx)(import_jsx_runtime.Fragment, { children: n10 }) : (0, import_jsx_runtime.jsx)(WD, { ref: a10, "aria-hidden": `true`, style: t10 ? { minHeight: t10 } : void 0 });
   }
-  var UD = (0, import_react2.memo)(HD), WD = Tt.div`
+  var UD = (0, import_react3.memo)(HD), WD = Tt.div`
   min-height: var(--line-height-base, 24px);
 `;
   Ds(), _c();
@@ -40186,7 +39384,7 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
   }
   function qD(e10) {
     let t10 = Jh();
-    return (0, import_react2.useMemo)(() => {
+    return (0, import_react3.useMemo)(() => {
       if (!e10 || !t10) return false;
       let n10 = xs(t10.slice(1)).toLowerCase(), r10 = e10.toLowerCase();
       if (n10.includes(`path=${r10}/`) || n10.includes(`path=${r10}&`) || n10.includes(`path=${r10}[]`)) return true;
@@ -40214,11 +39412,11 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
   }
   var XD = 40;
   function ZD({ level: e10, skipReadOnly: t10, skipWriteOnly: n10, property: r10, children: i10, fieldPath: a10, expandByDefault: o10, required: s10 }) {
-    let c10 = qD(a10), l10 = zh(), { schemasExpansionLevel: u10 } = I(ds), d10 = (0, import_react2.useContext)(bc) ?? ``, f10 = ig(), p10 = ag(), m10 = RD(f10), h10 = Qo(tp(d10)), g10 = I((0, import_react2.useMemo)(() => Eu(tp(d10), (e11) => m10 ? e11.collapsibles[m10] : void 0), [d10, m10])), [_10, v10] = (0, import_react2.useState)(void 0), y10 = (m10 ? g10 : _10) ?? p10 ?? (c10 || KD(o10, e10, u10) || Ore(e10, s10, u10));
-    zD(m10, y10), (0, import_react2.useEffect)(() => {
+    let c10 = qD(a10), l10 = zh(), { schemasExpansionLevel: u10 } = I(ds), d10 = (0, import_react3.useContext)(bc) ?? ``, f10 = ig(), p10 = ag(), m10 = RD(f10), h10 = Qo(tp(d10)), g10 = I((0, import_react3.useMemo)(() => Eu(tp(d10), (e11) => m10 ? e11.collapsibles[m10] : void 0), [d10, m10])), [_10, v10] = (0, import_react3.useState)(void 0), y10 = (m10 ? g10 : _10) ?? p10 ?? (c10 || KD(o10, e10, u10) || Ore(e10, s10, u10));
+    zD(m10, y10), (0, import_react3.useEffect)(() => {
       c10 && (m10 ? h10((e11) => ({ collapsibles: { ...e11.collapsibles, [m10]: true } })) : v10(true));
     }, [c10, m10, h10, l10]);
-    let b10 = fb(), x10 = hD(), S10 = (0, import_react2.useMemo)(() => YD(r10, t10, n10, b10), [r10, t10, n10, b10]), C10 = (0, import_react2.useMemo)(() => JD(r10, t10, n10), [r10, t10, n10]), w10 = C10 && C10.count > 0 ? C10.count * XD : void 0;
+    let b10 = fb(), x10 = hD(), S10 = (0, import_react3.useMemo)(() => YD(r10, t10, n10, b10), [r10, t10, n10, b10]), C10 = (0, import_react3.useMemo)(() => JD(r10, t10, n10), [r10, t10, n10]), w10 = C10 && C10.count > 0 ? C10.count * XD : void 0;
     return (0, import_jsx_runtime.jsxs)(Cre, { "data-schema-nested-open": y10 ? `true` : `false`, children: [(0, import_jsx_runtime.jsxs)(xre, { type: `button`, onClick: () => {
       let t11 = !y10;
       x10({ depth: e10, expanded: t11, kind: `property`, ...C10 ? { childCount: C10.count, isArray: C10.isArray } : {} }), m10 ? h10((e11) => ({ collapsibles: { ...e11.collapsibles, [m10]: t11 } })) : v10(t11);
@@ -40231,7 +39429,7 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
   na();
   var $D = 150;
   function eO({ value: e10 }) {
-    let t10 = fb(), [n10, r10] = (0, import_react2.useState)(false), i10 = e10.length > $D, a10 = n10 || !i10 ? e10 : e10.slice(0, $D);
+    let t10 = fb(), [n10, r10] = (0, import_react3.useState)(false), i10 = e10.length > $D, a10 = n10 || !i10 ? e10 : e10.slice(0, $D);
     return (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [(0, import_jsx_runtime.jsx)($_, { children: a10 }), i10 && (0, import_jsx_runtime.jsx)(tO, { variant: `link`, size: `small`, onClick: () => r10((e11) => !e11), children: n10 ? t10(`hideExample`, `Hide example`) : t10(`showExample`, `Show example`) })] });
   }
   var tO = Tt(ta)`
@@ -40245,14 +39443,14 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
   }
   var rO = 45;
   function iO({ pattern: e10 }) {
-    let { hideSchemaPattern: t10 } = I(ds), n10 = fb(), [r10, i10] = (0, import_react2.useState)(false);
+    let { hideSchemaPattern: t10 } = I(ds), n10 = fb(), [r10, i10] = (0, import_react3.useState)(false);
     if (!e10 || t10) return null;
     let a10 = e10.length > 48, o10 = r10 || !a10 ? e10 : `${e10.slice(0, rO)}...`;
     return (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [(0, import_jsx_runtime.jsx)(mre, { children: o10 }), a10 ? (0, import_jsx_runtime.jsx)(tv, { type: `button`, onClick: () => i10((e11) => !e11), children: r10 ? n10(`openapi.hidePattern`, `Hide pattern`) : n10(`openapi.showPattern`, `Show pattern`) }) : null] });
   }
   pp(), _c();
   function aO({ name: e10, property: t10, level: n10, expandByDefault: r10, isFirst: i10, fieldParentsName: a10 = [], skipReadOnly: o10, skipWriteOnly: s10, onOneOfChange: c10 }) {
-    let { hidePropertiesPrefix: l10, showExtensions: u10, jsonSamplesExpandLevel: d10 } = I(ds), f10 = fb(), p10 = !!t10.switcher, m10 = !t10.isCircular && (!!t10.properties || !!(t10.items && t10.items.length > 0)), h10 = (0, import_react2.useMemo)(() => [...a10, e10].join(`/`), [a10, e10]), g10 = rg(h10), _10 = t10.enum, v10 = _10 && !Array.isArray(_10) ? _10 : void 0, y10 = _10 && Array.isArray(_10) ? _10 : void 0, b10 = Eb(t10.extensions ?? {}, u10), x10 = (0, import_react2.useMemo)(() => p10 && t10.switcher?.type !== `discriminator` ? (0, import_jsx_runtime.jsx)(ZO, { property: t10, level: n10 + 1, expandByDefault: r10, fieldParentsName: [...a10, e10], skipReadOnly: o10, skipWriteOnly: s10, onOneOfChange: c10 }) : p10 && t10.switcher?.type === `discriminator` || m10 ? (0, import_jsx_runtime.jsx)(ZD, { level: n10, expandByDefault: r10, required: t10.isRequired, skipReadOnly: o10, skipWriteOnly: s10, property: t10, fieldPath: h10, children: (0, import_jsx_runtime.jsx)(ZO, { property: t10, level: n10 + 1, fieldParentsName: [...a10, e10], skipReadOnly: o10, skipWriteOnly: s10, onOneOfChange: c10 }) }) : null, [r10, a10, h10, m10, p10, n10, e10, t10, o10, s10, c10]), { before: S10, after: C10 } = kb(t10.badges);
+    let { hidePropertiesPrefix: l10, showExtensions: u10, jsonSamplesExpandLevel: d10 } = I(ds), f10 = fb(), p10 = !!t10.switcher, m10 = !t10.isCircular && (!!t10.properties || !!(t10.items && t10.items.length > 0)), h10 = (0, import_react3.useMemo)(() => [...a10, e10].join(`/`), [a10, e10]), g10 = rg(h10), _10 = t10.enum, v10 = _10 && !Array.isArray(_10) ? _10 : void 0, y10 = _10 && Array.isArray(_10) ? _10 : void 0, b10 = Eb(t10.extensions ?? {}, u10), x10 = (0, import_react3.useMemo)(() => p10 && t10.switcher?.type !== `discriminator` ? (0, import_jsx_runtime.jsx)(ZO, { property: t10, level: n10 + 1, expandByDefault: r10, fieldParentsName: [...a10, e10], skipReadOnly: o10, skipWriteOnly: s10, onOneOfChange: c10 }) : p10 && t10.switcher?.type === `discriminator` || m10 ? (0, import_jsx_runtime.jsx)(ZD, { level: n10, expandByDefault: r10, required: t10.isRequired, skipReadOnly: o10, skipWriteOnly: s10, property: t10, fieldPath: h10, children: (0, import_jsx_runtime.jsx)(ZO, { property: t10, level: n10 + 1, fieldParentsName: [...a10, e10], skipReadOnly: o10, skipWriteOnly: s10, onOneOfChange: c10 }) }) : null, [r10, a10, h10, m10, p10, n10, e10, t10, o10, s10, c10]), { before: S10, after: C10 } = kb(t10.badges);
     return (0, import_jsx_runtime.jsxs)(I_, { $isFirst: i10, id: $s(g10), className: `schema-property-item`, children: [(0, import_jsx_runtime.jsxs)(L_, { children: [(0, import_jsx_runtime.jsxs)(R_, { children: [g10 && (0, import_jsx_runtime.jsx)(vb, { to: g10, label: `link to ${e10}`, variant: `field` }), !l10 && a10.map((e11, t11) => {
       let n11 = nc(e11);
       return n11 ? (0, import_jsx_runtime.jsxs)(z_, { children: [n11, `.`, `\u200B`] }, t11) : null;
@@ -40285,8 +39483,8 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
   }
   Ds(), _c();
   function lO(e10, t10, n10 = []) {
-    let r10 = Jh(), i10 = (0, import_react2.useContext)(bc), a10 = Cc(), o10 = (0, import_react2.useContext)(wc), s10 = n10.join(`/`), c10 = rc(`${ng(o10, s10) || `path=${s10}`}&${e10}=`.toLowerCase());
-    return (0, import_react2.useMemo)(() => {
+    let r10 = Jh(), i10 = (0, import_react3.useContext)(bc), a10 = Cc(), o10 = (0, import_react3.useContext)(wc), s10 = n10.join(`/`), c10 = rc(`${ng(o10, s10) || `path=${s10}`}&${e10}=`.toLowerCase());
+    return (0, import_react3.useMemo)(() => {
       if (!r10) return -1;
       if (i10) {
         let e12 = Ks(r10);
@@ -40303,10 +39501,10 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
     let { tabListProps: o10, getTabProps: s10 } = aee({ count: e10.length, activeIndex: e10.findIndex((e11) => n10 == e11.value), onChange: (n11) => t10(e10[n11]) });
     return (0, import_jsx_runtime.jsx)(fO, { ref: a10, "data-component-name": `Segmented/Segmented`, className: `tag-grey ${i10} ${r10}`, ...o10, $size: i10, children: e10.map((e11, t11) => {
       let { "aria-controls": r11, ...a11 } = s10(t11);
-      return (0, import_jsx_runtime.jsxs)(import_react2.default.Fragment, { children: [e11.divider, (0, import_jsx_runtime.jsx)(pO, { ...a11, title: e11.label, $isActive: n10 == e11.value, $size: i10, children: e11.element || e11.label }, e11.label)] }, t11);
+      return (0, import_jsx_runtime.jsxs)(import_react3.default.Fragment, { children: [e11.divider, (0, import_jsx_runtime.jsx)(pO, { ...a11, title: e11.label, $isActive: n10 == e11.value, $size: i10, children: e11.element || e11.label }, e11.label)] }, t11);
     }) });
   }
-  var dO = ju((0, import_react2.forwardRef)(uO)), fO = Tt.div`
+  var dO = ju((0, import_react3.forwardRef)(uO)), fO = Tt.div`
   display: flex;
   background: var(--segmented-buttons-bg-color-main);
   padding: calc(var(--spacing-xxs) / 2);
@@ -40387,10 +39585,10 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
   qf(), na();
   var xO = 7;
   function SO({ options: e10, value: t10, onChange: n10, className: r10, triggerVariant: i10 = `outlined`, triggerSize: a10 = `small`, fullWidth: o10 = false }) {
-    let [s10, c10] = (0, import_react2.useState)(``), l10 = fb(), u10 = e10.find((e11) => e11.value === t10), d10 = e10.length >= xO, f10 = (0, import_react2.useMemo)(() => e10.filter((e11) => e11.label?.toLowerCase().includes(s10.toLowerCase()) ?? false), [e10, s10]);
+    let [s10, c10] = (0, import_react3.useState)(``), l10 = fb(), u10 = e10.find((e11) => e11.value === t10), d10 = e10.length >= xO, f10 = (0, import_react3.useMemo)(() => e10.filter((e11) => e11.label?.toLowerCase().includes(s10.toLowerCase()) ?? false), [e10, s10]);
     return e10.length === 1 ? (0, import_jsx_runtime.jsx)(FO, { children: u10?.element || u10?.label }) : (0, import_jsx_runtime.jsx)(wO, { className: r10, $fullWidth: o10, portalled: true, trigger: (0, import_jsx_runtime.jsx)(TO, { variant: i10, size: a10, type: `button`, $fullWidth: o10, children: (0, import_jsx_runtime.jsx)(EO, { children: u10?.element || u10?.label }) }), withArrow: true, onClose: () => c10(``), children: (0, import_jsx_runtime.jsx)(DO, { $fullWidth: o10, children: d10 ? (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [(0, import_jsx_runtime.jsx)(AO, { prefix: (0, import_jsx_runtime.jsx)(NO, { children: (0, import_jsx_runtime.jsx)(bO, { color: `var(--icon-color-additional)`, onClick: (e11) => e11.stopPropagation() }) }), content: (0, import_jsx_runtime.jsx)(PO, { placeholder: l10(`discriminator.searchPlaceholder`, `Search items`), onClick: (e11) => e11.stopPropagation(), onChange: (e11) => {
       c10(e11.target.value);
-    }, value: s10 }) }), (0, import_jsx_runtime.jsx)(MO, { children: f10.length ? f10.map((e11, r11) => (0, import_jsx_runtime.jsxs)(import_react2.default.Fragment, { children: [e11.divider, (0, import_jsx_runtime.jsx)(kO, { active: e11.value === t10, onAction: () => n10(e11), suffix: e11.value === t10 ? (0, import_jsx_runtime.jsx)(OO, {}) : void 0, children: (0, import_jsx_runtime.jsx)(EO, { children: e11.element || e11.label }) }, String(e11.label))] }, r11)) : (0, import_jsx_runtime.jsx)(jO, { content: l10(`discriminator.searchNoResults`, `No items found`) }) })] }) : (0, import_jsx_runtime.jsx)(import_jsx_runtime.Fragment, { children: e10.map((e11, r11) => (0, import_jsx_runtime.jsxs)(import_react2.default.Fragment, { children: [e11.divider, (0, import_jsx_runtime.jsx)(kO, { active: e11.value === t10, onAction: () => n10(e11), suffix: e11.value === t10 ? (0, import_jsx_runtime.jsx)(OO, {}) : void 0, children: (0, import_jsx_runtime.jsx)(EO, { children: e11.element || e11.label }) }, String(e11.label))] }, r11)) }) }) });
+    }, value: s10 }) }), (0, import_jsx_runtime.jsx)(MO, { children: f10.length ? f10.map((e11, r11) => (0, import_jsx_runtime.jsxs)(import_react3.default.Fragment, { children: [e11.divider, (0, import_jsx_runtime.jsx)(kO, { active: e11.value === t10, onAction: () => n10(e11), suffix: e11.value === t10 ? (0, import_jsx_runtime.jsx)(OO, {}) : void 0, children: (0, import_jsx_runtime.jsx)(EO, { children: e11.element || e11.label }) }, String(e11.label))] }, r11)) : (0, import_jsx_runtime.jsx)(jO, { content: l10(`discriminator.searchNoResults`, `No items found`) }) })] }) : (0, import_jsx_runtime.jsx)(import_jsx_runtime.Fragment, { children: e10.map((e11, r11) => (0, import_jsx_runtime.jsxs)(import_react3.default.Fragment, { children: [e11.divider, (0, import_jsx_runtime.jsx)(kO, { active: e11.value === t10, onAction: () => n10(e11), suffix: e11.value === t10 ? (0, import_jsx_runtime.jsx)(OO, {}) : void 0, children: (0, import_jsx_runtime.jsx)(EO, { children: e11.element || e11.label }) }, String(e11.label))] }, r11)) }) }) });
   }
   var CO = ju(SO), wO = Tt(Xg)`
   ${({ $fullWidth: e10 }) => e10 && `
@@ -40502,10 +39700,10 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
   }
   var zO = 5;
   function BO({ optionEntries: e10, activeIndex: t10, onChange: n10, "data-testid": r10 = `segmented-schema` }) {
-    let i10 = fb()(`discriminator.defaultMapping`, IO), a10 = (0, import_react2.useMemo)(() => RO(e10, i10), [e10, i10]), o10 = (0, import_react2.useMemo)(() => e10.map(([e11, t11]) => `${e11}|${t11.isDefaultMapping ? `default` : `regular`}|${t11.isDeprecated ? `deprecated` : `active`}`).join(`||`), [e10]), s10 = a10[t10]?.value, [c10, l10] = (0, import_react2.useState)(false), u10 = (0, import_react2.useRef)(null);
-    (0, import_react2.useEffect)(() => {
+    let i10 = fb()(`discriminator.defaultMapping`, IO), a10 = (0, import_react3.useMemo)(() => RO(e10, i10), [e10, i10]), o10 = (0, import_react3.useMemo)(() => e10.map(([e11, t11]) => `${e11}|${t11.isDefaultMapping ? `default` : `regular`}|${t11.isDeprecated ? `deprecated` : `active`}`).join(`||`), [e10]), s10 = a10[t10]?.value, [c10, l10] = (0, import_react3.useState)(false), u10 = (0, import_react3.useRef)(null);
+    (0, import_react3.useEffect)(() => {
       l10(false);
-    }, [o10]), (0, import_react2.useEffect)(() => {
+    }, [o10]), (0, import_react3.useEffect)(() => {
       if (e10.length > zO) {
         l10(false);
         return;
@@ -40520,7 +39718,7 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
       };
       return t11(), window.addEventListener(`resize`, t11), () => window.removeEventListener(`resize`, t11);
     }, [c10, e10.length, o10]);
-    let d10 = (0, import_react2.useCallback)((e11) => {
+    let d10 = (0, import_react3.useCallback)((e11) => {
       e11.value !== void 0 && n10(e11.value);
     }, [n10]);
     return Pe2(s10) ? null : a10.length > zO || c10 ? (0, import_jsx_runtime.jsx)(CO, { options: a10, value: s10, onChange: d10 }) : (0, import_jsx_runtime.jsx)(dO, { ref: u10, value: s10, onChange: d10, options: a10, size: `small`, "data-testid": r10 });
@@ -40547,23 +39745,23 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
     return s10 ? s10.type === `oneOf` ? (0, import_jsx_runtime.jsx)(GO, { property: e10, switcher: s10, level: t10, expandByDefault: n10, fieldParentsName: r10, skipReadOnly: i10, skipWriteOnly: a10, onOneOfChange: o10 }) : (0, import_jsx_runtime.jsx)(KO, { property: e10, switcher: s10, level: t10, expandByDefault: n10, fieldParentsName: r10, skipReadOnly: i10, skipWriteOnly: a10, onOneOfChange: o10 }) : (0, import_jsx_runtime.jsx)(import_jsx_runtime.Fragment, {});
   }
   function GO({ property: e10, switcher: t10, level: n10, expandByDefault: r10, fieldParentsName: i10, skipReadOnly: a10, skipWriteOnly: o10, onOneOfChange: s10 }) {
-    let c10 = (0, import_react2.useContext)(bc), l10 = rp(c10 ?? ``, (0, import_react2.useContext)(wc)), u10 = I((0, import_react2.useMemo)(() => op(l10), [l10])), d10 = Qo(tp(l10)), f10 = (0, import_react2.useMemo)(() => Object.entries(t10.options), [t10.options]), p10 = ip(i10, t10.label), m10 = zh(), h10 = lO(`oneof`, f10.length, i10), g10 = u10[p10], _10 = g10 === void 0 ? h10 === -1 ? 0 : h10 : g10;
-    (0, import_react2.useEffect)(() => {
+    let c10 = (0, import_react3.useContext)(bc), l10 = rp(c10 ?? ``, (0, import_react3.useContext)(wc)), u10 = I((0, import_react3.useMemo)(() => op(l10), [l10])), d10 = Qo(tp(l10)), f10 = (0, import_react3.useMemo)(() => Object.entries(t10.options), [t10.options]), p10 = ip(i10, t10.label), m10 = zh(), h10 = lO(`oneof`, f10.length, i10), g10 = u10[p10], _10 = g10 === void 0 ? h10 === -1 ? 0 : h10 : g10;
+    (0, import_react3.useEffect)(() => {
       c10 && h10 !== -1 && d10((e11) => ({ activeOneOf: { ...e11.activeOneOf, [p10]: h10 } }));
     }, [c10, h10, p10, d10, m10]);
-    let v10 = (0, import_react2.useCallback)((e11) => {
+    let v10 = (0, import_react3.useCallback)((e11) => {
       c10 && d10((t11) => ({ activeOneOf: { ...t11.activeOneOf, [p10]: e11 } })), t10.jsonPointer !== void 0 && s10?.({ pointer: t10.jsonPointer, index: e11 });
-    }, [c10, s10, p10, d10, t10.jsonPointer]), y10 = f10[_10] ?? f10[0], b10 = y10?.[1], x10 = b10 && (b10.properties || b10.switcher || b10.items) ? { ...e10, type: qO(e10, b10), description: b10.description, switcher: b10.switcher, properties: b10.properties, items: b10.items } : null, S10 = (0, import_react2.useMemo)(() => ec(i10, `&oneof=${_10}`), [i10, _10]), C10 = !!(x10?.properties || x10?.items || x10?.switcher?.type === `discriminator`) && n10 > 1, w10 = x10 !== null && (0, import_jsx_runtime.jsx)(ZO, { property: x10, level: n10, expandByDefault: r10, fieldParentsName: S10, skipReadOnly: a10, skipWriteOnly: o10, onOneOfChange: s10 }), T10 = (0, import_react2.useMemo)(() => S10.join(`/`), [S10]), E10 = x10 !== null && C10 ? (0, import_jsx_runtime.jsx)(ZD, { level: n10 - 1, expandByDefault: r10, skipReadOnly: a10, skipWriteOnly: o10, property: x10, fieldPath: T10, children: w10 }) : w10;
+    }, [c10, s10, p10, d10, t10.jsonPointer]), y10 = f10[_10] ?? f10[0], b10 = y10?.[1], x10 = b10 && (b10.properties || b10.switcher || b10.items) ? { ...e10, type: qO(e10, b10), description: b10.description, switcher: b10.switcher, properties: b10.properties, items: b10.items } : null, S10 = (0, import_react3.useMemo)(() => ec(i10, `&oneof=${_10}`), [i10, _10]), C10 = !!(x10?.properties || x10?.items || x10?.switcher?.type === `discriminator`) && n10 > 1, w10 = x10 !== null && (0, import_jsx_runtime.jsx)(ZO, { property: x10, level: n10, expandByDefault: r10, fieldParentsName: S10, skipReadOnly: a10, skipWriteOnly: o10, onOneOfChange: s10 }), T10 = (0, import_react3.useMemo)(() => S10.join(`/`), [S10]), E10 = x10 !== null && C10 ? (0, import_jsx_runtime.jsx)(ZD, { level: n10 - 1, expandByDefault: r10, skipReadOnly: a10, skipWriteOnly: o10, property: x10, fieldPath: T10, children: w10 }) : w10;
     return (0, import_jsx_runtime.jsxs)(Tre, { children: [(0, import_jsx_runtime.jsxs)(cv, { [Xl]: `switcher`, children: [(0, import_jsx_runtime.jsx)(lv, { children: t10.label }), (0, import_jsx_runtime.jsx)(BO, { optionEntries: f10, activeIndex: _10, onChange: v10, "data-testid": `one-of-schema` })] }), (0, import_jsx_runtime.jsx)(ub, { value: b10?.description || e10.description }), x10 ? E10 : y10?.[1] ? (0, import_jsx_runtime.jsx)(JO, { option: y10[1], label: y10[0] }) : null] });
   }
   function KO({ property: e10, switcher: t10, level: n10, expandByDefault: r10, fieldParentsName: i10 = [], skipReadOnly: a10, skipWriteOnly: o10, onOneOfChange: s10 }) {
-    let c10 = (0, import_react2.useContext)(bc), l10 = rp(c10 ?? ``, (0, import_react2.useContext)(wc)), u10 = I((0, import_react2.useMemo)(() => ap(l10), [l10])), d10 = Qo(tp(l10)), f10 = (0, import_react2.useMemo)(() => Object.entries(t10.options), [t10.options]), p10 = ip(i10, i10?.length ? t10.propertyName ?? `discriminator` : t10.propertyName ?? t10.label), m10 = zh(), h10 = lO(`d`, f10.length, i10), g10 = u10[p10], _10 = g10 === void 0 ? h10 === -1 ? 0 : h10 : g10;
-    (0, import_react2.useEffect)(() => {
+    let c10 = (0, import_react3.useContext)(bc), l10 = rp(c10 ?? ``, (0, import_react3.useContext)(wc)), u10 = I((0, import_react3.useMemo)(() => ap(l10), [l10])), d10 = Qo(tp(l10)), f10 = (0, import_react3.useMemo)(() => Object.entries(t10.options), [t10.options]), p10 = ip(i10, i10?.length ? t10.propertyName ?? `discriminator` : t10.propertyName ?? t10.label), m10 = zh(), h10 = lO(`d`, f10.length, i10), g10 = u10[p10], _10 = g10 === void 0 ? h10 === -1 ? 0 : h10 : g10;
+    (0, import_react3.useEffect)(() => {
       c10 && h10 !== -1 && d10((e11) => ({ activeDiscriminator: { ...e11.activeDiscriminator, [p10]: h10 } }));
     }, [c10, h10, p10, d10, m10]);
-    let v10 = (0, import_react2.useCallback)((e11) => {
+    let v10 = (0, import_react3.useCallback)((e11) => {
       c10 && d10((t11) => ({ activeDiscriminator: { ...t11.activeDiscriminator, [p10]: e11 } })), t10.jsonPointer !== void 0 && s10?.({ pointer: t10.jsonPointer, index: e11 });
-    }, [c10, s10, p10, d10, t10.jsonPointer]), y10 = (f10[_10] ?? f10[0])?.[1]?.properties ?? {}, b10 = HO(UO(e10.properties ?? {}, t10), y10), { schemasExpansionLevel: x10 } = I(ds), S10 = r10 ?? uv(n10, x10, 1), C10 = (0, import_react2.useMemo)(() => ec(i10, `&d=${_10}`), [i10, _10]), w10 = Object.entries(b10).filter(([, e11]) => !(a10 && e11.accessMode === `read-only` || o10 && e11.accessMode === `write-only`));
+    }, [c10, s10, p10, d10, t10.jsonPointer]), y10 = (f10[_10] ?? f10[0])?.[1]?.properties ?? {}, b10 = HO(UO(e10.properties ?? {}, t10), y10), { schemasExpansionLevel: x10 } = I(ds), S10 = r10 ?? uv(n10, x10, 1), C10 = (0, import_react3.useMemo)(() => ec(i10, `&d=${_10}`), [i10, _10]), w10 = Object.entries(b10).filter(([, e11]) => !(a10 && e11.accessMode === `read-only` || o10 && e11.accessMode === `write-only`));
     return (0, import_jsx_runtime.jsx)(F_, { children: w10.map(([e11, r11], c11) => {
       if (e11 === t10.propertyName) {
         let t11 = f10.map(([e12]) => e12);
@@ -40586,7 +39784,7 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
   function XO({ property: e10, level: t10, expandByDefault: n10, fieldParentsName: r10, skipReadOnly: i10, skipWriteOnly: a10, onOneOfChange: o10 }) {
     return e10.isCircular ? (0, import_jsx_runtime.jsxs)(L_, { children: [(0, import_jsx_runtime.jsx)(V_, { children: e10.type }), (0, import_jsx_runtime.jsx)(Ab, { title: e10.title, schemaName: e10.schemaName }), (0, import_jsx_runtime.jsx)(q_, { children: `Recursive` })] }) : e10.switcher ? (0, import_jsx_runtime.jsx)(WO, { property: e10, level: t10, expandByDefault: n10, fieldParentsName: r10, skipReadOnly: i10, skipWriteOnly: a10, onOneOfChange: o10 }) : e10.properties ? (0, import_jsx_runtime.jsx)(sO, { property: e10, level: t10, expandByDefault: n10, fieldParentsName: r10, skipReadOnly: i10, skipWriteOnly: a10, onOneOfChange: o10 }) : e10.items && e10.items.length > 0 ? (0, import_jsx_runtime.jsx)(cO, { property: e10, level: t10, fieldParentsName: r10, skipReadOnly: i10, skipWriteOnly: a10, onOneOfChange: o10 }) : (0, import_jsx_runtime.jsx)(YO, { property: e10 });
   }
-  var ZO = (0, import_react2.memo)(XO);
+  var ZO = (0, import_react3.memo)(XO);
   function QO(e10, t10) {
     var n10 = {};
     for (var r10 in e10) Object.prototype.hasOwnProperty.call(e10, r10) && t10.indexOf(r10) < 0 && (n10[r10] = e10[r10]);
@@ -41442,10 +40640,10 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
   }
   var lj = /* @__PURE__ */ new WeakMap();
   function Dae({ schemaId: e10, schema: t10, level: n10 = 1, expandByDefault: r10, skipReadOnly: i10, skipWriteOnly: a10, onOneOfChange: o10, rootJsonPointer: s10, exampleSerializer: c10 }) {
-    let l10 = I(kc(e10 ?? ``)), { sortRequiredPropsFirst: u10 } = I(ds), d10 = tg(), f10 = ng((0, import_react2.useContext)(wc), ``), p10 = s10 ?? (e10 ? `#/${e10}` : `#`), m10 = t10 ?? l10?.data, h10;
+    let l10 = I(kc(e10 ?? ``)), { sortRequiredPropsFirst: u10 } = I(ds), d10 = tg(), f10 = ng((0, import_react3.useContext)(wc), ``), p10 = s10 ?? (e10 ? `#/${e10}` : `#`), m10 = t10 ?? l10?.data, h10;
     return m10 && (!c10 && lj.has(m10) ? h10 = lj.get(m10) : (h10 = Eae(m10, d10, { rootJsonPointer: p10, exampleSerializer: c10, sortRequiredPropsFirst: u10 }), h10 && !c10 && lj.set(m10, h10))), LD(f10, !!h10?.isExpandable), h10 ? (0, import_jsx_runtime.jsx)(ZO, { property: h10, level: n10, expandByDefault: r10, skipReadOnly: i10, skipWriteOnly: a10, onOneOfChange: o10 }) : (0, import_jsx_runtime.jsx)(import_jsx_runtime.Fragment, {});
   }
-  var uj = (0, import_react2.memo)(Dae);
+  var uj = (0, import_react3.memo)(Dae);
   F2();
   var Oae = Tt((e10) => (0, import_jsx_runtime.jsxs)(`svg`, { viewBox: `0 0 16 16`, fill: `none`, xmlns: `http://www.w3.org/2000/svg`, ...e10, children: [(0, import_jsx_runtime.jsx)(`path`, { d: `M13 12V14H3V12H2V14C2 14.2652 2.10536 14.5196 2.29289 14.7071C2.48043 14.8946 2.73478 15 3 15H13C13.2652 15 13.5196 14.8946 13.7071 14.7071C13.8946 14.5196 14 14.2652 14 14V12H13Z` }), (0, import_jsx_runtime.jsx)(`path`, { d: `M13 7L12.295 6.295L8.5 10.085V1H7.5V10.085L3.705 6.295L3 7L8 12L13 7Z` })] })).attrs({ "data-component-name": `icons/DownloadIcon/DownloadIcon` })`
   path {
@@ -41625,7 +40823,7 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
   color: var(--panel-heading-text-color);
 `;
   function bj({ expanded: e10 = true, isExpandable: t10 = true, renderChildrenHidden: n10 = false, header: r10, footer: i10, className: a10 = `panel-default`, children: o10, onToggle: s10, description: c10 }) {
-    let [l10, u10] = (0, import_react2.useState)(e10), [d10, f10] = (0, import_react2.useState)(false), [p10, m10] = (0, import_react2.useState)(e10);
+    let [l10, u10] = (0, import_react3.useState)(e10), [d10, f10] = (0, import_react3.useState)(false), [p10, m10] = (0, import_react3.useState)(e10);
     p10 !== e10 && (m10(e10), u10(e10));
     let h10 = ({ target: e11 }) => {
       e11 instanceof HTMLAnchorElement || !t10 || (f10(true), u10(!l10), s10?.(!l10));
@@ -41679,7 +40877,7 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
   }
   B2(), Ds();
   function Wae({ node: e10 }) {
-    let t10 = fb(), n10 = jE(), r10 = e10.children.filter((e11) => e11.kind === z2.DOWNLOAD), i10 = { yaml: (0, import_jsx_runtime.jsx)(Mae, {}), json: (0, import_jsx_runtime.jsx)(jae, {}), file: (0, import_jsx_runtime.jsx)(dj, {}), graphql: (0, import_jsx_runtime.jsx)(fj, {}), gql: (0, import_jsx_runtime.jsx)(fj, {}) }, a10 = Tj(t10, e10.titleTranslationKey, e10.title), o10 = (0, import_react2.useCallback)((e11, t11) => {
+    let t10 = fb(), n10 = jE(), r10 = e10.children.filter((e11) => e11.kind === z2.DOWNLOAD), i10 = { yaml: (0, import_jsx_runtime.jsx)(Mae, {}), json: (0, import_jsx_runtime.jsx)(jae, {}), file: (0, import_jsx_runtime.jsx)(dj, {}), graphql: (0, import_jsx_runtime.jsx)(fj, {}), gql: (0, import_jsx_runtime.jsx)(fj, {}) }, a10 = Tj(t10, e10.titleTranslationKey, e10.title), o10 = (0, import_react3.useCallback)((e11, t11) => {
       n10.sendDownloadDefinitionClickedMessage([HE(e11, t11)]);
     }, [n10]);
     return (0, import_jsx_runtime.jsx)(Sj, { header: a10, className: `panel-api-docs`, isExpandable: false, children: (0, import_jsx_runtime.jsx)(Jae, { children: r10.map(({ label: e11, url: t11 }) => {
@@ -41816,12 +41014,12 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
 `;
   qf();
   function roe({ expandByDefault: e10, level: t10, expandable: n10 = false, expandText: r10, hideText: i10, hideDivider: a10 = false, children: o10, expandedAll: s10, isNestedArray: c10 }) {
-    let [l10, u10] = (0, import_react2.useState)((e10 || c10) ?? false), d10 = Pe2(s10) ? l10 : s10, f10 = d10 ? j_(t10) : void 0;
+    let [l10, u10] = (0, import_react3.useState)((e10 || c10) ?? false), d10 = Pe2(s10) ? l10 : s10, f10 = d10 ? j_(t10) : void 0;
     return n10 ? c10 ? (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [(0, import_jsx_runtime.jsx)(ooe, { children: `Array [` }), (0, import_jsx_runtime.jsx)(jj, { $isArrayInsideArray: c10, className: `view-nested-wrapper`, children: (0, import_jsx_runtime.jsx)(Aj, { $color: f10, children: o10 }) })] }) : (0, import_jsx_runtime.jsx)(import_jsx_runtime.Fragment, { children: (0, import_jsx_runtime.jsxs)(jj, { $divider: !a10 && !d10, className: `view-nested-wrapper`, children: [(0, import_jsx_runtime.jsx)(aoe, { expanded: d10, label: d10 ? i10 || `` : r10 || ``, color: f10, onClick: () => {
       u10((e11) => !e11);
     } }), d10 && (0, import_jsx_runtime.jsx)(Aj, { $color: f10, children: o10 })] }) }) : o10;
   }
-  var ioe = (0, import_react2.memo)(roe), aoe = Tt(kj)`
+  var ioe = (0, import_react3.memo)(roe), aoe = Tt(kj)`
   margin: var(--spacing-xxs) 0 var(--spacing-xs);
   width: 100%;
 `, Aj = Tt.div`
@@ -41863,8 +41061,8 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
 `;
   na();
   var soe = ({ description: e10 }) => {
-    let [t10, n10] = (0, import_react2.useState)(false);
-    return (0, import_react2.useEffect)(() => {
+    let [t10, n10] = (0, import_react3.useState)(false);
+    return (0, import_react3.useEffect)(() => {
       let e11 = () => {
         t10 && n10(false);
       };
@@ -42006,7 +41204,7 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
     let t10 = e10.children[0], n10 = fb(), r10 = t10?.servers ?? [], i10 = Tj(n10, e10.titleTranslationKey, e10.title);
     return (0, import_jsx_runtime.jsx)(Sj, { header: i10, className: `panel-api-docs`, isExpandable: false, children: (0, import_jsx_runtime.jsx)(hj, { children: r10.map((e11) => (0, import_jsx_runtime.jsx)(boe, { server: e11 }, e11.url)) }) });
   }
-  var boe = (0, import_react2.memo)(function({ server: e10 }) {
+  var boe = (0, import_react3.memo)(function({ server: e10 }) {
     return (0, import_jsx_runtime.jsx)(poe, { server: e10 });
   });
   F2();
@@ -42064,7 +41262,7 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
   text-align: ${({ textAlign: e10 }) => e10};
 `;
   function Zj(e10, t10) {
-    (0, import_react2.useEffect)(() => {
+    (0, import_react3.useEffect)(() => {
       let n10 = (n11) => {
         e10.current && !e10.current.contains(n11.target) && t10();
       }, r10 = (e11) => {
@@ -42081,7 +41279,7 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
     let n10 = Coe(e10.description);
     return (0, import_jsx_runtime.jsx)(Toe, { $compact: !!t10, "data-testid": `external-documentation`, children: (0, import_jsx_runtime.jsx)(`a`, { href: e10.url, target: `_blank`, rel: `noreferrer`, "aria-label": n10 || e10.url, children: n10 || e10.url }) });
   }
-  var Qj = (0, import_react2.memo)(woe), Toe = Tt.div`
+  var Qj = (0, import_react3.memo)(woe), Toe = Tt.div`
   ${k_};
   font-size: var(--font-size-base);
   line-height: var(--line-height-base);
@@ -42388,7 +41586,7 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
     return (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [e10.oauth2MetadataUrl && (0, import_jsx_runtime.jsx)(fM, { label: `${t10(`oauth2MetadataUrl`, `OAuth2 Metadata URL`)}:`, value: (0, import_jsx_runtime.jsx)(eM, { href: e10.oauth2MetadataUrl, target: `_blank`, rel: `noopener noreferrer`, children: e10.oauth2MetadataUrl }) }), i10.map(([n11, r11]) => (0, import_jsx_runtime.jsx)(sse, { flowType: n11, flow: r11, requiredScopes: e10.scopes, translate: t10 }, n11)), (0, import_jsx_runtime.jsx)(pM, { scopes: e10.scopes, scopeDescriptions: r10, translate: t10 })] });
   }
   function sse({ flowType: e10, flow: t10, requiredScopes: n10, translate: r10 }) {
-    let [i10, a10] = (0, import_react2.useState)(false), o10 = jE(), { authorizationUrl: s10, tokenUrl: c10, refreshUrl: l10, deviceAuthorizationUrl: u10, scopes: d10 } = t10, f10 = lse(n10, d10);
+    let [i10, a10] = (0, import_react3.useState)(false), o10 = jE(), { authorizationUrl: s10, tokenUrl: c10, refreshUrl: l10, deviceAuthorizationUrl: u10, scopes: d10 } = t10, f10 = lse(n10, d10);
     return (0, import_jsx_runtime.jsxs)(Hoe, { children: [(0, import_jsx_runtime.jsxs)($oe, { children: [(0, import_jsx_runtime.jsx)(`span`, { children: r10(`flowType`, `Flow type`) }), (0, import_jsx_runtime.jsx)(Uoe, { children: e10 })] }), (0, import_jsx_runtime.jsxs)(Woe, { children: [s10 && (0, import_jsx_runtime.jsx)(fM, { label: `${r10(`authorizationUrl`, `Authorization URL`)}:`, value: (0, import_jsx_runtime.jsx)(eM, { href: s10, children: s10 }) }), u10 && (0, import_jsx_runtime.jsx)(fM, { label: `${r10(`deviceAuthorizationUrl`, `Device Authorization URL`)}:`, value: (0, import_jsx_runtime.jsx)(eM, { href: u10, children: u10 }) }), c10 && (0, import_jsx_runtime.jsx)(fM, { label: `${r10(`tokenUrl`, `Token URL`)}:`, value: (0, import_jsx_runtime.jsx)(eM, { href: c10, children: c10 }) }), l10 && (0, import_jsx_runtime.jsx)(fM, { label: `${r10(`refreshUrl`, `Refresh URL`)}:`, value: (0, import_jsx_runtime.jsx)(eM, { href: l10, children: l10 }) }), f10.length > 0 && (0, import_jsx_runtime.jsxs)(tM, { children: [(0, import_jsx_runtime.jsxs)(Xoe, { type: `button`, onClick: () => {
       let t11 = !i10;
       tD.has(e10) && o10.sendSecurityOptionalScopesExpandedMessage([{ ...VE.securityOptionalScopesToggle, expanded: t11, flow: e10, optionalScopesCount: f10.length, requiredScopesCount: oM(n10).length }]), a10(t11);
@@ -42484,7 +41682,7 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
         return (0, import_jsx_runtime.jsx)(T_, { data: r10, expandLevel: t10 });
     }
   }, bse = ({ broker: e10, panelLabel: t10 }) => {
-    let { jsonSamplesDepth: n10 } = I(ds), r10 = (0, import_react2.useMemo)(() => Object.entries(e10.bindings || {}).map(([e11, t11]) => ({ key: e11, value: t11 }))[0], [e10.bindings]);
+    let { jsonSamplesDepth: n10 } = I(ds), r10 = (0, import_react3.useMemo)(() => Object.entries(e10.bindings || {}).map(([e11, t11]) => ({ key: e11, value: t11 }))[0], [e10.bindings]);
     return (0, import_jsx_runtime.jsxs)(mM, { "data-component-name": `BrokerBindingsSection/BrokerBindingsSection`, children: [(0, import_jsx_runtime.jsxs)(hM, { children: [t10, ` Configuration`] }), yse({ binding: r10, jsonSamplesDepth: n10 })] });
   };
   na(), zi(), qf();
@@ -42498,7 +41696,7 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
         return (0, import_jsx_runtime.jsx)(Kj, { size: `24px` });
     }
   }, Cse = ({ broker: e10, onClose: t10, panelLabel: n10 }) => {
-    let [r10, i10] = (0, import_react2.useState)(0), a10 = (0, import_react2.useRef)(null), o10 = (0, import_react2.useId)();
+    let [r10, i10] = (0, import_react3.useState)(0), a10 = (0, import_react3.useRef)(null), o10 = (0, import_react3.useId)();
     Zj(a10, t10), see(a10);
     let s10 = [...xse];
     return e10.bindings && s10.push({ label: `Configuration`, value: 2 }), (0, import_jsx_runtime.jsx)(wse, { "data-component-name": `BrokerModal/BrokerModal`, children: (0, import_jsx_runtime.jsxs)(Tse, { ref: a10, tabIndex: 0, role: `dialog`, "aria-modal": `true`, "aria-labelledby": o10, children: [(0, import_jsx_runtime.jsx)(Ese, { onClick: t10, "data-testid": `close`, variant: `ghost`, icon: (0, import_jsx_runtime.jsx)(Ri, {}) }), (0, import_jsx_runtime.jsxs)(Dse, { id: o10, children: [(0, import_jsx_runtime.jsx)(Sse, { protocol: e10.protocol || `` }), e10.protocol, `: `, e10.name] }), (0, import_jsx_runtime.jsx)(dO, { value: r10, onChange: ({ value: e11 }) => i10(e11), options: s10 }), (0, import_jsx_runtime.jsxs)(Ose, { children: [r10 === 0 && (0, import_jsx_runtime.jsx)(hse, { broker: e10 }), r10 === 2 && (0, import_jsx_runtime.jsx)(bse, { broker: e10, panelLabel: n10 })] })] }) });
@@ -42560,15 +41758,15 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
         return (0, import_jsx_runtime.jsx)(Kj, { size: `20px` });
     }
   }
-  var Ase = (0, import_react2.memo)(function({ broker: e10, showMoreDetailsButton: t10, onOpenModal: n10 }) {
+  var Ase = (0, import_react3.memo)(function({ broker: e10, showMoreDetailsButton: t10, onOpenModal: n10 }) {
     return (0, import_jsx_runtime.jsxs)(zse, { "data-component-name": `BrokerPanel/BrokerItem`, children: [(0, import_jsx_runtime.jsxs)(Fse, { children: [(0, import_jsx_runtime.jsx)(Pse, { children: kse(e10.protocol) }), (0, import_jsx_runtime.jsx)(Ise, { children: e10.name })] }), e10.url && (0, import_jsx_runtime.jsxs)(Lse, { children: [(0, import_jsx_runtime.jsx)(bM, { children: e10.url.split(` `).map((e11, t11) => (0, import_jsx_runtime.jsx)(`span`, { children: e11 }, t11)) }), (0, import_jsx_runtime.jsx)(Hg, { data: e10.url }, e10.url)] }), !t10 && (0, import_jsx_runtime.jsx)(Rse, { onClick: () => n10(e10), children: (0, import_jsx_runtime.jsx)(Yj, { expanded: false }) })] });
   });
   function jse({ node: e10 }) {
-    let t10 = e10.children[0], n10 = t10?.brokers ?? [], r10 = fb(), i10 = jE(), a10 = Tj(r10, e10.titleTranslationKey, e10.title), o10 = t10?.panelLabel || a10 || `Brokers`, s10 = !e10.title, [c10, l10] = (0, import_react2.useState)(null), u10 = (0, import_react2.useRef)(null);
+    let t10 = e10.children[0], n10 = t10?.brokers ?? [], r10 = fb(), i10 = jE(), a10 = Tj(r10, e10.titleTranslationKey, e10.title), o10 = t10?.panelLabel || a10 || `Brokers`, s10 = !e10.title, [c10, l10] = (0, import_react3.useState)(null), u10 = (0, import_react3.useRef)(null);
     lr(c10 !== null);
-    let d10 = (0, import_react2.useCallback)((e11) => {
+    let d10 = (0, import_react3.useCallback)((e11) => {
       i10.sendServerModalOpenedMessage([{ ...VE.serverModalButton, protocol: eD(e11.protocol), serversCount: n10.length }]), u10.current = document.activeElement instanceof HTMLElement ? document.activeElement : null, l10(e11);
-    }, [i10, n10.length]), f10 = (0, import_react2.useCallback)(() => {
+    }, [i10, n10.length]), f10 = (0, import_react3.useCallback)(() => {
       l10(null), u10.current?.focus();
     }, []), p10 = (0, import_jsx_runtime.jsx)(Bse, { children: n10.map((e11) => (0, import_jsx_runtime.jsx)(Ase, { broker: e11, showMoreDetailsButton: s10, onOpenModal: d10 }, e11.name)) }), m10 = c10 && (0, import_jsx_runtime.jsx)(Mi, { mountId: `api-content`, children: (0, import_jsx_runtime.jsx)(Cse, { broker: c10, onClose: f10, panelLabel: o10 }) });
     return s10 ? (0, import_jsx_runtime.jsxs)(Nse, { children: [p10, m10] }) : (0, import_jsx_runtime.jsxs)(Mse, { header: e10.title, className: `panel-api-docs`, isExpandable: false, children: [p10, m10] });
@@ -42675,13 +41873,13 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
   padding: var(--spacing-xs) var(--spacing-md);
 `, MM = Tt.div`
   padding: var(--spacing-sm) var(--spacing-md);
-`, Vse = { "cleanup.policy": `Cleanup policy`, "retention.ms": `Retention, ms`, "retention.bytes": `Retention, bytes`, "delete.retention.ms": `Delete retention, ms`, "max.message.bytes": `Max message bytes`, "confluent.key.schema.validation": `Confluent key schema validation`, "confluent.key.subject.name.strategy": `Confluent key subject name strategy`, "confluent.value.schema.validation": `Confluent value schema validation`, "confluent.value.subject.name.strategy": `Confluent value subject name strategy` }, Hse = (0, import_react2.memo)(function({ topicConfiguration: e10 }) {
+`, Vse = { "cleanup.policy": `Cleanup policy`, "retention.ms": `Retention, ms`, "retention.bytes": `Retention, bytes`, "delete.retention.ms": `Delete retention, ms`, "max.message.bytes": `Max message bytes`, "confluent.key.schema.validation": `Confluent key schema validation`, "confluent.key.subject.name.strategy": `Confluent key subject name strategy`, "confluent.value.schema.validation": `Confluent value schema validation`, "confluent.value.subject.name.strategy": `Confluent value subject name strategy` }, Hse = (0, import_react3.memo)(function({ topicConfiguration: e10 }) {
     return (0, import_jsx_runtime.jsx)(Gse, { children: Object.entries(e10).map(([e11, t10]) => (0, import_jsx_runtime.jsxs)(Kse, { children: [(0, import_jsx_runtime.jsx)(`span`, { children: Vse[e11] ?? e11 }), (0, import_jsx_runtime.jsx)(`span`, { children: Array.isArray(t10) ? t10.join(`, `) : String(t10) })] }, e11)) });
-  }), NM = (0, import_react2.memo)(function({ bindingValue: e10, jsonSamplesDepth: t10 }) {
+  }), NM = (0, import_react3.memo)(function({ bindingValue: e10, jsonSamplesDepth: t10 }) {
     return (0, import_jsx_runtime.jsx)(MM, { children: (0, import_jsx_runtime.jsx)(T_, { data: wM(e10), expandLevel: t10 }) });
   });
   function Use({ node: e10 }) {
-    let t10 = e10.children[0], [n10, r10] = (0, import_react2.useState)(false), { jsonSamplesDepth: i10 } = I(ds), a10 = hD();
+    let t10 = e10.children[0], [n10, r10] = (0, import_react3.useState)(false), { jsonSamplesDepth: i10 } = I(ds), a10 = hD();
     if (!t10) return (0, import_jsx_runtime.jsx)(TM, { header: e10.title, className: `panel-api-docs`, isExpandable: false });
     let { bindingKey: o10, bindingValue: s10 } = t10;
     if (o10 === `kafka`) {
@@ -42731,14 +41929,14 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
     let { bindingKey: r10, bindingValue: i10, groupIdSchemaId: a10, clientIdSchemaId: o10 } = t10;
     return r10 === `kafka` && (a10 || o10) ? (0, import_jsx_runtime.jsxs)(TM, { header: e10.title, className: `panel-api-docs`, isExpandable: false, children: [a10 && (0, import_jsx_runtime.jsx)(jM, { children: (0, import_jsx_runtime.jsx)(uj, { schemaId: a10, expandByDefault: true, level: 1 }) }), o10 && (0, import_jsx_runtime.jsx)(jM, { children: (0, import_jsx_runtime.jsx)(uj, { schemaId: o10, expandByDefault: true, level: 1 }) })] }) : (0, import_jsx_runtime.jsx)(EM, { header: e10.title, className: `panel-api-docs`, isExpandable: false, children: (0, import_jsx_runtime.jsx)(MM, { children: (0, import_jsx_runtime.jsx)(T_, { data: wM(i10), expandLevel: n10 }) }) });
   }
-  var Jse = (0, import_react2.memo)(function({ keySchemaId: e10, bindingValue: t10, messageKey: n10 }) {
-    let r10 = (0, import_react2.useMemo)(() => n10 ? { asyncSection: `messages`, messageKey: n10, t: `bindings` } : null, [n10]);
+  var Jse = (0, import_react3.memo)(function({ keySchemaId: e10, bindingValue: t10, messageKey: n10 }) {
+    let r10 = (0, import_react3.useMemo)(() => n10 ? { asyncSection: `messages`, messageKey: n10, t: `bindings` } : null, [n10]);
     return (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [e10 && (0, import_jsx_runtime.jsx)(jM, { children: (0, import_jsx_runtime.jsx)(wc.Provider, { value: r10, children: (0, import_jsx_runtime.jsx)(uj, { schemaId: e10, expandByDefault: true, level: 1 }) }) }), t10.schemaIdLocation && (0, import_jsx_runtime.jsxs)(DM, { children: [(0, import_jsx_runtime.jsx)(OM, { children: `Schema ID Location` }), (0, import_jsx_runtime.jsx)(kM, { children: (0, import_jsx_runtime.jsx)(AM, { borderless: true, children: t10.schemaIdLocation }) })] }), t10.schemaIdPayloadEncoding && (0, import_jsx_runtime.jsxs)(DM, { children: [(0, import_jsx_runtime.jsx)(OM, { children: `Schema ID payload encoding` }), (0, import_jsx_runtime.jsx)(kM, { children: (0, import_jsx_runtime.jsx)(AM, { borderless: true, children: t10.schemaIdPayloadEncoding }) })] }), t10.schemaLookupStrategy && (0, import_jsx_runtime.jsxs)(DM, { children: [(0, import_jsx_runtime.jsx)(OM, { children: `Schema lookup strategy` }), (0, import_jsx_runtime.jsx)(kM, { children: (0, import_jsx_runtime.jsx)(AM, { borderless: true, children: t10.schemaLookupStrategy }) })] })] });
-  }), Yse = (0, import_react2.memo)(function({ bindingValue: e10, jsonSamplesDepth: t10 }) {
+  }), Yse = (0, import_react3.memo)(function({ bindingValue: e10, jsonSamplesDepth: t10 }) {
     return (0, import_jsx_runtime.jsx)(MM, { children: (0, import_jsx_runtime.jsx)(T_, { data: wM(e10), expandLevel: t10 }) });
   });
   function Xse({ node: e10 }) {
-    let t10 = e10.children[0], { jsonSamplesDepth: n10 } = I(ds), r10 = (0, import_react2.useContext)(bc) ?? ``, i10 = I((0, import_react2.useMemo)(() => np({ itemId: r10, key: `activeMessageKey` }), [r10]));
+    let t10 = e10.children[0], { jsonSamplesDepth: n10 } = I(ds), r10 = (0, import_react3.useContext)(bc) ?? ``, i10 = I((0, import_react3.useMemo)(() => np({ itemId: r10, key: `activeMessageKey` }), [r10]));
     if (!t10) return (0, import_jsx_runtime.jsx)(TM, { header: e10.title, className: `panel-api-docs`, isExpandable: false });
     let { bindingsByMessageKey: a10 } = t10, o10 = Object.keys(a10), s10 = i10 && a10[i10] ? i10 : o10[0], c10 = s10 ? a10[s10] : void 0;
     if (!c10) return null;
@@ -42746,7 +41944,7 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
     return l10 === `kafka` ? (0, import_jsx_runtime.jsx)(TM, { header: e10.title, className: `panel-api-docs`, isExpandable: false, children: (0, import_jsx_runtime.jsx)(Jse, { keySchemaId: d10, bindingValue: u10, messageKey: s10 }) }) : (0, import_jsx_runtime.jsx)(EM, { header: e10.title, className: `panel-api-docs`, isExpandable: false, children: (0, import_jsx_runtime.jsx)(Yse, { bindingValue: u10, jsonSamplesDepth: n10 }) });
   }
   var Zse = Tt((e10) => {
-    let t10 = `list-icon-clip-${(0, import_react2.useId)().replace(/[^a-zA-Z0-9-]/g, ``)}`;
+    let t10 = `list-icon-clip-${(0, import_react3.useId)().replace(/[^a-zA-Z0-9-]/g, ``)}`;
     return (0, import_jsx_runtime.jsxs)(`svg`, { viewBox: `0 0 22 22`, fill: `none`, xmlns: `http://www.w3.org/2000/svg`, "data-component-name": `icons/ListIcon/ListIcon`, ...e10, children: [(0, import_jsx_runtime.jsxs)(`g`, { clipPath: `url(#${t10})`, children: [(0, import_jsx_runtime.jsx)(`path`, { d: `M0 11H22`, strokeLinecap: `round` }), (0, import_jsx_runtime.jsx)(`circle`, { cx: `4`, cy: `11`, r: `4` })] }), (0, import_jsx_runtime.jsx)(`defs`, { children: (0, import_jsx_runtime.jsx)(`clipPath`, { id: t10, children: (0, import_jsx_runtime.jsx)(`rect`, { width: `22`, height: `22`, fill: `white` }) }) })] });
   }).withConfig({ shouldForwardProp: (e10) => e10 !== `size` })`
   path,
@@ -42762,12 +41960,12 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
     let t10 = [];
     return e10.exchanges.length > 0 && t10.push(`${e10.exchanges.length} exchange${e10.exchanges.length > 1 ? `s` : ``}`), e10.queues.length > 0 && t10.push(`${e10.queues.length} queue${e10.queues.length > 1 ? `s` : ``}`), t10.length === 0 ? `` : `Used in ${t10.join(` and `)}`;
   }
-  var PM = (0, import_react2.memo)(function({ reference: e10, to: t10, isActive: n10, onReferencedInClick: r10 }) {
-    let i10 = (0, import_react2.useCallback)(() => r10(e10.label), [r10, e10.label]);
+  var PM = (0, import_react3.memo)(function({ reference: e10, to: t10, isActive: n10, onReferencedInClick: r10 }) {
+    let i10 = (0, import_react3.useCallback)(() => r10(e10.label), [r10, e10.label]);
     return (0, import_jsx_runtime.jsxs)(tce, { children: [(0, import_jsx_runtime.jsx)(nce, { size: `22px`, color: n10 ? `var(--color-info-border)` : `var(--border-color-primary)` }), (0, import_jsx_runtime.jsx)(rce, { to: t10, onClick: i10, children: e10.label })] });
   });
   function $se({ node: e10 }) {
-    let t10 = e10.children[0], n10 = (0, import_react2.useContext)(bc) ?? ``, r10 = I(Mh), i10 = (0, import_react2.useCallback)((e11) => (r10 ?? []).some((t11) => t11.endsWith(e11.toLowerCase())), [r10]), a10 = vc(), o10 = jE(), s10 = Qo(RE), c10 = I((0, import_react2.useMemo)(() => np({ itemId: n10, key: `activeMessageKey` }), [n10])), l10 = (0, import_react2.useCallback)(() => {
+    let t10 = e10.children[0], n10 = (0, import_react3.useContext)(bc) ?? ``, r10 = I(Mh), i10 = (0, import_react3.useCallback)((e11) => (r10 ?? []).some((t11) => t11.endsWith(e11.toLowerCase())), [r10]), a10 = vc(), o10 = jE(), s10 = Qo(RE), c10 = I((0, import_react3.useMemo)(() => np({ itemId: n10, key: `activeMessageKey` }), [n10])), l10 = (0, import_react3.useCallback)(() => {
       s10(`referencedIn`), o10.sendReferencedInClickedMessage([{ ...VE.asyncapiDocsChannelLink, fromKind: `channel`, toKind: `channel` }]);
     }, [o10, s10]);
     if (!t10) return (0, import_jsx_runtime.jsx)(import_jsx_runtime.Fragment, {});
@@ -42825,17 +42023,17 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
   }
 `;
   na(), F2();
-  var LM = 8, ice = (0, import_react2.memo)(function({ item: e10, deprecatedLabel: t10 }) {
+  var LM = 8, ice = (0, import_react3.memo)(function({ item: e10, deprecatedLabel: t10 }) {
     return (0, import_jsx_runtime.jsx)(zg, { disabled: !e10.summary, tip: e10.summary, placement: `left`, children: (0, import_jsx_runtime.jsx)(VM, { to: e10.href, variant: `outlined`, size: `large`, children: (0, import_jsx_runtime.jsxs)(`span`, { children: [e10.prefix && (0, import_jsx_runtime.jsx)(dce, { color: e10.prefix.color, children: e10.prefix.name }), (0, import_jsx_runtime.jsx)(HM, { children: e10.title }), e10.badges && e10.badges.map((e11) => (0, import_jsx_runtime.jsx)(zg, { disabled: !e11.description, tip: e11.description, placement: `top`, children: (0, import_jsx_runtime.jsx)(RM, { color: e11.color, children: e11.name }) }, e11.name)), e10.deprecated && (0, import_jsx_runtime.jsx)(RM, { $deprecated: true, children: t10 })] }) }) });
   });
   function ace() {
     return (0, import_jsx_runtime.jsxs)(`svg`, { width: `12`, height: `12`, viewBox: `0 0 12 12`, fill: `none`, "aria-hidden": `true`, children: [(0, import_jsx_runtime.jsx)(`path`, { d: `M7.125 3L6.59471 3.53029L8.31446 5.25H3.75C3.55109 5.25 3.36032 5.32902 3.21967 5.46967C3.07902 5.61032 3 5.80109 3 6V10.5H3.75V6H8.31446L6.59471 7.71971L7.125 8.25L9.75 5.625L7.125 3Z`, fill: `currentColor` }), (0, import_jsx_runtime.jsx)(`path`, { d: `M3.75 1.5H3V4.5H3.75V1.5Z`, fill: `currentColor` })] });
   }
-  var oce = (0, import_react2.memo)(function({ item: e10 }) {
+  var oce = (0, import_react3.memo)(function({ item: e10 }) {
     return (0, import_jsx_runtime.jsxs)(fce, { to: e10.href, variant: `outlined`, size: `large`, children: [(0, import_jsx_runtime.jsx)(mce, { children: (0, import_jsx_runtime.jsx)(ace, {}) }), (0, import_jsx_runtime.jsxs)(`span`, { children: [(0, import_jsx_runtime.jsx)(HM, { children: e10.title }), e10.summary && e10.summary !== e10.title && (0, import_jsx_runtime.jsx)(pce, { children: e10.summary })] })] });
   });
   function sce({ node: e10 }) {
-    let t10 = fb(), n10 = vc(), [r10, i10] = (0, import_react2.useState)(false), a10 = t10(`badges.deprecated`, `deprecated`), o10 = t10(`actions.show`, `Show`), s10 = t10(`actions.more`, `more`), c10 = (0, import_react2.useMemo)(() => {
+    let t10 = fb(), n10 = vc(), [r10, i10] = (0, import_react3.useState)(false), a10 = t10(`badges.deprecated`, `deprecated`), o10 = t10(`actions.show`, `Show`), s10 = t10(`actions.more`, `more`), c10 = (0, import_react3.useMemo)(() => {
       let r11 = [];
       for (let i11 of e10.children) {
         let e11 = (i11.items ?? []).map((e12) => ({ ...e12, href: xe2(n10(e12.link)) }));
@@ -42844,7 +42042,7 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
         r11.push({ title: a11, items: e11, isChildTag: e11.every((e12) => e12.childTag) });
       }
       return r11;
-    }, [e10.children, n10, t10]), l10 = (0, import_react2.useMemo)(() => c10.reduce((e11, t11) => e11 + (t11.isChildTag ? 0 : t11.items.length), 0), [c10]), u10 = !r10 && l10 > LM ? l10 - LM : 0, { operationSections: d10, childTagSections: f10 } = (0, import_react2.useMemo)(() => {
+    }, [e10.children, n10, t10]), l10 = (0, import_react3.useMemo)(() => c10.reduce((e11, t11) => e11 + (t11.isChildTag ? 0 : t11.items.length), 0), [c10]), u10 = !r10 && l10 > LM ? l10 - LM : 0, { operationSections: d10, childTagSections: f10 } = (0, import_react3.useMemo)(() => {
       let e11 = r10 ? 1 / 0 : LM, t11 = [], n11 = [];
       for (let r11 of c10) {
         if (r11.isChildTag) {
@@ -42857,7 +42055,7 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
       }
       return { operationSections: t11, childTagSections: n11 };
     }, [c10, r10]);
-    return (0, import_jsx_runtime.jsxs)(cce, { $isStacked: true, "data-testid": `items-navigation-list`, children: [d10.map((e11, t11) => (0, import_jsx_runtime.jsxs)(import_react2.Fragment, { children: [e11.title && (0, import_jsx_runtime.jsx)(zM, { children: e11.title }), e11.items.map((e12, n11) => (0, import_jsx_runtime.jsx)(ice, { item: e12, deprecatedLabel: a10 }, `op-${t11}-${n11}`))] }, `op-${t11}`)), !r10 && !!u10 && (0, import_jsx_runtime.jsxs)(BM, { variant: `link`, size: `large`, "data-testid": `show-more-operations`, fullWidth: true, onClick: () => i10(true), children: [o10, ` `, u10, ` `, s10, `...`] }), f10.length > 0 && (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [d10.length > 0 && (0, import_jsx_runtime.jsx)(uce, {}), (0, import_jsx_runtime.jsx)(lce, { children: f10.map((e11, t11) => (0, import_jsx_runtime.jsxs)(import_react2.Fragment, { children: [e11.title && (0, import_jsx_runtime.jsx)(zM, { children: e11.title }), e11.items.map((e12, n11) => (0, import_jsx_runtime.jsx)(oce, { item: e12 }, `group-${t11}-${n11}`))] }, `group-${t11}`)) })] })] });
+    return (0, import_jsx_runtime.jsxs)(cce, { $isStacked: true, "data-testid": `items-navigation-list`, children: [d10.map((e11, t11) => (0, import_jsx_runtime.jsxs)(import_react3.Fragment, { children: [e11.title && (0, import_jsx_runtime.jsx)(zM, { children: e11.title }), e11.items.map((e12, n11) => (0, import_jsx_runtime.jsx)(ice, { item: e12, deprecatedLabel: a10 }, `op-${t11}-${n11}`))] }, `op-${t11}`)), !r10 && !!u10 && (0, import_jsx_runtime.jsxs)(BM, { variant: `link`, size: `large`, "data-testid": `show-more-operations`, fullWidth: true, onClick: () => i10(true), children: [o10, ` `, u10, ` `, s10, `...`] }), f10.length > 0 && (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [d10.length > 0 && (0, import_jsx_runtime.jsx)(uce, {}), (0, import_jsx_runtime.jsx)(lce, { children: f10.map((e11, t11) => (0, import_jsx_runtime.jsxs)(import_react3.Fragment, { children: [e11.title && (0, import_jsx_runtime.jsx)(zM, { children: e11.title }), e11.items.map((e12, n11) => (0, import_jsx_runtime.jsx)(oce, { item: e12 }, `group-${t11}-${n11}`))] }, `group-${t11}`)) })] })] });
   }
   var cce = Tt.div`
   display: flex;
@@ -42977,11 +42175,11 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
 `;
   Km();
   function UM(e10) {
-    let [t10, n10] = $o(Sh), r10 = (0, import_react2.useContext)(bc) ?? ``, i10 = I((0, import_react2.useMemo)(() => np({ itemId: r10, key: `activeMessageKey` }), [r10])), a10 = e10.mediaTypeSchemas, o10 = a10 ? Object.keys(a10) : e10.mediaTypes ?? [], s10 = t10 && o10.includes(t10) ? t10 : o10[0], c10 = a10?.[s10 ?? ``], l10 = `messagesByKey` in e10 ? e10.messagesByKey : void 0, u10 = i10 || (l10 ? Object.keys(l10)[0] : void 0), d10 = l10 && u10 ? l10[u10] : void 0, f10 = !!d10, p10 = c10?.schemaId ?? (f10 ? d10.schemaId : e10.schemaId), m10 = I(qm), h10 = c10?.exampleIds ?? (f10 ? d10?.exampleIds : `exampleIds` in e10 ? e10.exampleIds : void 0), g10 = (0, import_react2.useMemo)(() => h10?.filter((e11) => m10[e11] !== void 0), [h10, m10]), _10 = (0, import_react2.useCallback)((e11) => n10(e11), [n10]);
+    let [t10, n10] = $o(Sh), r10 = (0, import_react3.useContext)(bc) ?? ``, i10 = I((0, import_react3.useMemo)(() => np({ itemId: r10, key: `activeMessageKey` }), [r10])), a10 = e10.mediaTypeSchemas, o10 = a10 ? Object.keys(a10) : e10.mediaTypes ?? [], s10 = t10 && o10.includes(t10) ? t10 : o10[0], c10 = a10?.[s10 ?? ``], l10 = `messagesByKey` in e10 ? e10.messagesByKey : void 0, u10 = i10 || (l10 ? Object.keys(l10)[0] : void 0), d10 = l10 && u10 ? l10[u10] : void 0, f10 = !!d10, p10 = c10?.schemaId ?? (f10 ? d10.schemaId : e10.schemaId), m10 = I(qm), h10 = c10?.exampleIds ?? (f10 ? d10?.exampleIds : `exampleIds` in e10 ? e10.exampleIds : void 0), g10 = (0, import_react3.useMemo)(() => h10?.filter((e11) => m10[e11] !== void 0), [h10, m10]), _10 = (0, import_react3.useCallback)((e11) => n10(e11), [n10]);
     return { mediaTypes: o10, activeMediaType: s10, effectiveSchemaId: p10, effectiveExampleIds: g10, encoding: c10?.encoding, isMessageWithoutPayload: f10 && !p10 && !g10?.length, onMediaTypeChange: _10 };
   }
   function WM(e10, t10) {
-    let n10 = I(Oc), r10 = rp((0, import_react2.useContext)(bc) ?? ``, t10), i10 = I((0, import_react2.useMemo)(() => ap(r10), [r10])), a10 = I((0, import_react2.useMemo)(() => op(r10), [r10])), o10 = (0, import_react2.useMemo)(() => e10 ? vm(e10, n10) : void 0, [e10, n10]), s10 = o10?.[Cm(o10, i10, a10)];
+    let n10 = I(Oc), r10 = rp((0, import_react3.useContext)(bc) ?? ``, t10), i10 = I((0, import_react3.useMemo)(() => ap(r10), [r10])), a10 = I((0, import_react3.useMemo)(() => op(r10), [r10])), o10 = (0, import_react3.useMemo)(() => e10 ? vm(e10, n10) : void 0, [e10, n10]), s10 = o10?.[Cm(o10, i10, a10)];
     if (!s10 || !e10 || !n10[s10.schemaId]) return e10;
     let c10 = n10[e10]?.data;
     return (s10.picks.length > 1 ? fm(c10) : dm(c10, n10[s10.schemaId].data)) ? e10 : s10.schemaId;
@@ -42991,11 +42189,11 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
     return r10 ? e10 : i10;
   }
   function KM(e10, t10) {
-    let n10 = I(Oc), r10 = (0, import_react2.useContext)(bc), i10 = rp(r10 ?? ``, t10), a10 = I((0, import_react2.useMemo)(() => ap(i10), [i10])), o10 = I((0, import_react2.useMemo)(() => op(i10), [i10])), s10 = Qo(tp(i10)), c10 = (0, import_react2.useMemo)(() => {
+    let n10 = I(Oc), r10 = (0, import_react3.useContext)(bc), i10 = rp(r10 ?? ``, t10), a10 = I((0, import_react3.useMemo)(() => ap(i10), [i10])), o10 = I((0, import_react3.useMemo)(() => op(i10), [i10])), s10 = Qo(tp(i10)), c10 = (0, import_react3.useMemo)(() => {
       if (!e10) return;
       let t11 = vm(e10, n10, { includeNested: true });
       if (!(!t11 || t11.length < 2)) return t11;
-    }, [e10, n10]), l10 = (0, import_react2.useCallback)((e11) => {
+    }, [e10, n10]), l10 = (0, import_react3.useCallback)((e11) => {
       let t11 = c10?.[e11];
       t11 && r10 && s10((e12) => bm(e12, t11.picks));
     }, [c10, r10, s10]);
@@ -43003,7 +42201,7 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
   }
   function qM(e10) {
     let t10 = jE();
-    return (0, import_react2.useCallback)((n10) => () => {
+    return (0, import_react3.useCallback)((n10) => () => {
       t10.sendCopyCodeSnippetClickedMessage([{ ...VE.copyCodeSnippetButton, snippetType: e10, ...n10 ? { language: QE(n10) } : {} }]);
     }, [t10, e10]);
   }
@@ -43356,22 +42554,22 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
   }
 `;
   function SN({ servers: e10, method: t10, path: n10 }) {
-    let [r10, i10] = $o(vh), { events: a10 } = I(ds), o10 = jE(), s10 = r10[0], c10 = I(yh), l10 = ![`get`, `post`, `put`, `delete`, `patch`, `head`, `options`, `trace`, `query`, `x-query`].includes(t10.toLowerCase()), u10 = cn({ httpVerb: t10.toLowerCase(), isAdditionalOperation: l10 }), d10 = (0, import_react2.useMemo)(() => e10.map((e11) => {
+    let [r10, i10] = $o(vh), { events: a10 } = I(ds), o10 = jE(), s10 = r10[0], c10 = I(yh), l10 = ![`get`, `post`, `put`, `delete`, `patch`, `head`, `options`, `trace`, `query`, `x-query`].includes(t10.toLowerCase()), u10 = cn({ httpVerb: t10.toLowerCase(), isAdditionalOperation: l10 }), d10 = (0, import_react3.useMemo)(() => e10.map((e11) => {
       let t11 = Wj(e11.url);
       return { ...e11, resolvedUrl: Bce(e11), envUrl: t11, envName: String(Yf({ ...e11, url: t11 })) };
-    }), [e10]), f10 = (0, import_react2.useMemo)(() => {
+    }), [e10]), f10 = (0, import_react3.useMemo)(() => {
       let e11 = d10.find((e12) => e12.url === s10.server || e12.resolvedUrl === s10.server || e12.envUrl === s10.server);
       return e11 ? e11.resolvedUrl : d10[0]?.resolvedUrl ?? ``;
     }, [s10.server, d10]);
-    (0, import_react2.useEffect)(() => {
+    (0, import_react3.useEffect)(() => {
       if (!s10.server && d10.length > 0) {
         let e11 = (c10 ? d10.find((e12) => e12.envName === c10) : void 0) ?? d10[0];
         i10({ ...!c10 && { environment: e11.envName }, environments: { [e11.envName]: { server: e11.envUrl } } });
       }
     }, []);
-    let p10 = (0, import_react2.useCallback)((e11) => {
+    let p10 = (0, import_react3.useCallback)((e11) => {
       e11.stopPropagation();
-    }, []), m10 = (0, import_react2.useCallback)((r11) => () => {
+    }, []), m10 = (0, import_react3.useCallback)((r11) => () => {
       if (e10.length <= 1) return;
       let s11 = r11.envName;
       o10.sendSwitchServersClickedMessage([{ ...VE.switchServersButton, index: d10.indexOf(r11), total: e10.length, protocol: eD(r11.url) }]), i10({ environment: s11, environments: { [s11]: { server: r11.envUrl } } }), a10?.targetServerSwitch?.(Hce({ operation: { id: `${t10}:${n10}`, path: n10, httpVerb: t10, name: `${t10.toUpperCase()} ${n10}` }, serverUrl: r11.url }));
@@ -43472,10 +42670,10 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
     let i10 = ale[qE(e10)];
     return (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [(0, import_jsx_runtime.jsxs)(DN, { children: [r10 && (0, import_jsx_runtime.jsx)(tle, { children: i10 }), (0, import_jsx_runtime.jsx)(ele, { $active: t10, title: e10.title, children: e10.title })] }), n10 && t10 && (0, import_jsx_runtime.jsx)(yO, {})] });
   }, ON = ({ samples: e10, activeTab: t10, onChange: n10, trigger: r10, width: i10, withArrow: a10 = true, withCheckmark: o10 = true, withIcon: s10 = true }) => {
-    let c10 = jE(), l10 = (0, import_react2.useCallback)((t11) => () => {
+    let c10 = jE(), l10 = (0, import_react3.useCallback)((t11) => () => {
       let r11 = e10.find(({ key: e11 }) => e11 === t11.key);
       r11 && (c10.sendSelectLanguageClickedMessage([{ ...VE.selectLanguageButton, language: QE(r11.key) }]), n10(r11.key));
-    }, [n10, e10, c10]), u10 = (0, import_react2.useMemo)(() => e10.map((e11) => (0, import_jsx_runtime.jsx)(nle, { $width: i10, onAction: l10(e11), children: (0, import_jsx_runtime.jsx)(ole, { item: e11, active: t10 === e11.key, withCheckmark: o10, withIcon: s10 }) }, e11.key)), [t10, l10, e10, i10, o10, s10]), d10 = e10.find(({ key: e11 }) => e11 === t10);
+    }, [n10, e10, c10]), u10 = (0, import_react3.useMemo)(() => e10.map((e11) => (0, import_jsx_runtime.jsx)(nle, { $width: i10, onAction: l10(e11), children: (0, import_jsx_runtime.jsx)(ole, { item: e11, active: t10 === e11.key, withCheckmark: o10, withIcon: s10 }) }, e11.key)), [t10, l10, e10, i10, o10, s10]), d10 = e10.find(({ key: e11 }) => e11 === t10);
     if (u10.length <= 1) return r10 ?? (0, import_jsx_runtime.jsx)(ile, { children: d10?.title });
     let f10 = r10 || (0, import_jsx_runtime.jsx)(rle, { variant: `ghost`, children: d10?.title });
     return (0, import_jsx_runtime.jsx)(Xg, { trigger: f10, withArrow: a10, alignment: `end`, portalled: true, children: (0, import_jsx_runtime.jsx)($ce, { children: u10 }) });
@@ -43485,18 +42683,18 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
   flex: 1 1 auto;
 `;
   function cle({ node: e10 }) {
-    let t10 = fb(), n10 = I(np({ itemId: (0, import_react2.useContext)(bc) ?? ``, key: `selectedCallback` })), r10 = e10.callbackName, i10 = e10.definitionSamples, a10 = r10 != null && n10 === r10, { mediaTypes: o10, activeMediaType: s10, effectiveSchemaId: c10, effectiveExampleIds: l10, encoding: u10, onMediaTypeChange: d10 } = UM(e10), f10 = { t: `request`, cb: r10, schemaId: c10 }, p10 = Xh(GM(c10, s10, f10), l10, `response`, s10, f10), m10 = Yh(l10), [h10, g10] = (0, import_react2.useState)(0), [_10, v10] = (0, import_react2.useState)(kN);
-    (0, import_react2.useEffect)(() => g10(0), [l10, s10]);
-    let y10 = p10[h10] ?? p10[0], b10 = m10[h10]?.description, x10 = (0, import_react2.useMemo)(() => {
+    let t10 = fb(), n10 = I(np({ itemId: (0, import_react3.useContext)(bc) ?? ``, key: `selectedCallback` })), r10 = e10.callbackName, i10 = e10.definitionSamples, a10 = r10 != null && n10 === r10, { mediaTypes: o10, activeMediaType: s10, effectiveSchemaId: c10, effectiveExampleIds: l10, encoding: u10, onMediaTypeChange: d10 } = UM(e10), f10 = { t: `request`, cb: r10, schemaId: c10 }, p10 = Xh(GM(c10, s10, f10), l10, `response`, s10, f10), m10 = Yh(l10), [h10, g10] = (0, import_react3.useState)(0), [_10, v10] = (0, import_react3.useState)(kN);
+    (0, import_react3.useEffect)(() => g10(0), [l10, s10]);
+    let y10 = p10[h10] ?? p10[0], b10 = m10[h10]?.description, x10 = (0, import_react3.useMemo)(() => {
       let e11 = [{ key: kN, lang: `json`, title: `Payload` }];
       if (i10) for (let t11 of i10) {
         let n11 = `x-${t11.lang}`;
         e11.push({ key: n11, lang: t11.lang, title: t11.label || t11.lang });
       }
       return e11;
-    }, [i10]), S10 = (0, import_react2.useMemo)(() => {
+    }, [i10]), S10 = (0, import_react3.useMemo)(() => {
       if (_10 !== kN && i10) return i10.find((e11) => `x-${e11.lang}` === _10);
-    }, [_10, i10]), C10 = qM(`response`), w10 = (0, import_react2.useCallback)((e11) => v10(e11), []);
+    }, [_10, i10]), C10 = qM(`response`), w10 = (0, import_react3.useCallback)((e11) => v10(e11), []);
     return a10 ? (0, import_jsx_runtime.jsx)(xj, { className: `panel-callback-samples`, header: () => (0, import_jsx_runtime.jsxs)(YM, { isExpandable: false, children: [(0, import_jsx_runtime.jsx)(sle, { children: (0, import_jsx_runtime.jsx)(SN, { servers: e10.servers ?? [], method: (e10.httpVerb ?? `post`).toUpperCase(), path: e10.path ?? `Callback` }) }), (0, import_jsx_runtime.jsx)(ON, { activeTab: _10, samples: x10, onChange: w10 })] }), isExpandable: false, children: S10 ? (0, import_jsx_runtime.jsx)(Cj, { lang: YE(S10.lang), source: S10.source, header: { className: `code-block-header`, controls: { copy: { onClick: C10(S10.lang) } } } }) : (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [(0, import_jsx_runtime.jsx)(gN, { mediaTypes: o10, value: s10, onChange: d10, label: t10(`contentType`, `Payload media type`) }), (0, import_jsx_runtime.jsx)(hN, { exampleIds: l10, selectedIdx: h10, onSelect: g10 }), (0, import_jsx_runtime.jsx)(vN, { description: b10 }), (0, import_jsx_runtime.jsx)(yN, { payload: y10, emptyMessage: `// No callback payload`, mediaType: s10, encoding: u10 })] }) }) : null;
   }
   function AN(e10, t10, n10) {
@@ -43511,11 +42709,11 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
   }
   var jN = UE.find((e10) => e10.key === `payload`) ?? UE[0], MN = { key: jN.key, lang: jN.lang, title: jN.label }, NN = [MN];
   function mle(e10, t10) {
-    let [{ activeLanguage: n10, languages: r10 }, i10] = $o(Ah), a10 = e10.isWebhook ? `payload` : n10 || `curl`, o10 = e10.definitionSamples, s10 = (0, import_react2.useMemo)(() => {
+    let [{ activeLanguage: n10, languages: r10 }, i10] = $o(Ah), a10 = e10.isWebhook ? `payload` : n10 || `curl`, o10 = e10.definitionSamples, s10 = (0, import_react3.useMemo)(() => {
       if (!o10?.length) return o10;
       let e11 = new Set((r10 ?? []).map((e12) => e12.key));
       return o10.filter((t11) => e11.has(KE(t11)));
-    }, [o10, r10]), c10 = (0, import_react2.useMemo)(() => {
+    }, [o10, r10]), c10 = (0, import_react3.useMemo)(() => {
       let n11 = (r10 ?? []).map(({ key: e11, lang: t11, title: n12 }) => ({ key: e11, lang: t11, title: n12 })), i11 = t10 ? n11 : n11.filter((e11) => e11.key !== `payload`), a11 = new Set(s10?.map((e11) => KE(e11)) ?? []);
       e10.isWebhook && (i11 = i11.filter((e11) => e11.key === `payload` || a11.has(e11.key)));
       let o11 = ple(i11, a11);
@@ -43525,21 +42723,21 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
   }
   Km();
   function hle({ node: e10 }) {
-    let t10 = I(ds), n10 = fb(), r10 = e10.source, i10 = I(qm), { mediaTypes: a10, activeMediaType: o10, effectiveSchemaId: s10, effectiveExampleIds: c10, encoding: l10, onMediaTypeChange: u10 } = UM(e10), d10 = e10.isWebhook ? `response` : `request`, f10 = { t: `request`, schemaId: s10 }, p10 = KM(c10?.length ? void 0 : s10, f10), m10 = WM(s10, f10), h10 = Xh(Bm(o10) ? s10 : m10, c10, d10, o10, f10), g10 = (0, import_react2.useContext)(bc) ?? ``, _10 = Qo(tp(g10)), v10 = I(np({ itemId: g10, key: `activeExampleKey` }));
+    let t10 = I(ds), n10 = fb(), r10 = e10.source, i10 = I(qm), { mediaTypes: a10, activeMediaType: o10, effectiveSchemaId: s10, effectiveExampleIds: c10, encoding: l10, onMediaTypeChange: u10 } = UM(e10), d10 = e10.isWebhook ? `response` : `request`, f10 = { t: `request`, schemaId: s10 }, p10 = KM(c10?.length ? void 0 : s10, f10), m10 = WM(s10, f10), h10 = Xh(Bm(o10) ? s10 : m10, c10, d10, o10, f10), g10 = (0, import_react3.useContext)(bc) ?? ``, _10 = Qo(tp(g10)), v10 = I(np({ itemId: g10, key: `activeExampleKey` }));
     eg(g10, c10);
-    let y10 = `${o10}|${c10?.join(`,`)}`, b10 = AN(c10, v10 || void 0, (e11) => i10[e11]), x10 = b10 ? c10?.indexOf(b10) ?? -1 : -1, [S10, C10] = (0, import_react2.useState)({ contentKey: y10, idx: 0 }), w10 = x10 >= 0 ? x10 : S10.contentKey === y10 ? S10.idx : 0;
+    let y10 = `${o10}|${c10?.join(`,`)}`, b10 = AN(c10, v10 || void 0, (e11) => i10[e11]), x10 = b10 ? c10?.indexOf(b10) ?? -1 : -1, [S10, C10] = (0, import_react3.useState)({ contentKey: y10, idx: 0 }), w10 = x10 >= 0 ? x10 : S10.contentKey === y10 ? S10.idx : 0;
     (S10.idx !== w10 || S10.contentKey !== y10) && C10({ contentKey: y10, idx: w10 });
-    let T10 = (0, import_react2.useCallback)((e11) => {
+    let T10 = (0, import_react3.useCallback)((e11) => {
       C10({ contentKey: y10, idx: e11 });
       let t11 = c10?.[e11], n11 = t11 ? i10[t11]?.key : void 0;
       _10({ activeExampleKey: n11 ?? `` });
-    }, [y10, c10, i10, _10]), E10 = h10[w10] ?? h10[0], { languages: D10, filteredDefinitionSamples: O10, activeLanguage: k10, setLanguage: ee3 } = mle(e10, (c10?.length ?? 0) > 0 || !!s10), te3 = c10?.[w10], ne3 = te3 ? i10[te3]?.key ?? te3 : void 0, re3 = (0, import_react2.useMemo)(() => E10, [E10]), ie3 = (0, import_react2.useMemo)(() => {
+    }, [y10, c10, i10, _10]), E10 = h10[w10] ?? h10[0], { languages: D10, filteredDefinitionSamples: O10, activeLanguage: k10, setLanguage: ee3 } = mle(e10, (c10?.length ?? 0) > 0 || !!s10), te3 = c10?.[w10], ne3 = te3 ? i10[te3]?.key ?? te3 : void 0, re3 = (0, import_react3.useMemo)(() => E10, [E10]), ie3 = (0, import_react3.useMemo)(() => {
       if (k10 === `payload`) return ``;
       let e11 = O10?.find((e12) => KE(e12) === k10);
       return e11 ? e11.source : `// ${n10(`unsupportedLanguage`, `Language is not supported.`)}`;
-    }, [k10, O10, n10]), ae3 = D10.find((e11) => e11.key === k10) ?? D10[0], oe3 = e10.definitionSamples?.find((e11) => KE(e11) === k10), se3 = oe3?.lang ?? ae3?.lang, ce3 = se3 && YE(se3), le3 = qM(`request`), ue3 = (0, import_react2.useCallback)((e11) => () => {
+    }, [k10, O10, n10]), ae3 = D10.find((e11) => e11.key === k10) ?? D10[0], oe3 = e10.definitionSamples?.find((e11) => KE(e11) === k10), se3 = oe3?.lang ?? ae3?.lang, ce3 = se3 && YE(se3), le3 = qM(`request`), ue3 = (0, import_react3.useCallback)((e11) => () => {
       le3(e11)(), t10.events?.codeSamplesCopy?.(fle({ operation: { id: `${r10.method}:${r10.path}`, path: r10.path, httpVerb: r10.method, name: `${r10.method.toUpperCase()} ${r10.path}` }, type: `request`, lang: e11 ?? ``, label: ae3?.title ?? ``, activeMimeName: o10 ?? ``, activeExampleName: ne3 }));
-    }, [le3, t10.events, r10.method, r10.path, ae3, o10, ne3]), de3 = (0, import_react2.useCallback)((n11) => {
+    }, [le3, t10.events, r10.method, r10.path, ae3, o10, ne3]), de3 = (0, import_react3.useCallback)((n11) => {
       ee3(n11);
       let i11 = (e10.isWebhook ? NN : D10).find((e11) => e11.key === n11);
       t10.events?.codeSamplesLanguageSwitch && i11 && t10.events.codeSamplesLanguageSwitch(ule({ operation: { id: `${r10.method}:${r10.path}`, path: r10.path, httpVerb: r10.method, name: `${r10.method.toUpperCase()} ${r10.path}` }, sample: { lang: i11.lang, label: i11.title } }));
@@ -43719,7 +42917,7 @@ ${l10}
     return r10(t10), n10;
   }), Dle = Bo((e10) => wle(e10(Oc), e10(ms).graphqlMeta?.rootTypes)), Ole = { query: `querySample`, mutation: `mutationSample`, subscription: `subscriptionSample` };
   function kle({ node: e10 }) {
-    let t10 = I(XN), { jsonSamplesDepth: n10, samplesMaxInlineArgs: r10 } = I(ds), i10 = fb(), a10 = e10.graphqlOperationData, o10 = qM(`request`), s10 = I($N(QN(a10?.operationType, a10?.operationName))), { queryString: c10, variablesData: l10, hasVariables: u10 } = (0, import_react2.useMemo)(() => {
+    let t10 = I(XN), { jsonSamplesDepth: n10, samplesMaxInlineArgs: r10 } = I(ds), i10 = fb(), a10 = e10.graphqlOperationData, o10 = qM(`request`), s10 = I($N(QN(a10?.operationType, a10?.operationName))), { queryString: c10, variablesData: l10, hasVariables: u10 } = (0, import_react3.useMemo)(() => {
       if (!a10) return { queryString: `# No schema available`, variablesData: {}, hasVariables: false };
       if (!s10) return { queryString: `# Operation "${a10.operationName}" not found`, variablesData: {}, hasVariables: false };
       let e11 = s10.args ?? [], o11 = e11.length > r10;
@@ -43728,11 +42926,11 @@ ${l10}
     return (0, import_jsx_runtime.jsxs)(xj, { className: `panel-response-samples`, header: () => (0, import_jsx_runtime.jsx)(QM, { children: (0, import_jsx_runtime.jsx)(yj, { children: d10 }) }), isExpandable: false, children: [(0, import_jsx_runtime.jsx)(Cj, { lang: `graphql`, source: c10, header: { className: `code-block-header`, controls: { copy: { onClick: o10(`graphql`) } } } }), u10 && (0, import_jsx_runtime.jsx)(Cce, { children: (0, import_jsx_runtime.jsx)(wj, { data: l10, expandLevel: 1 / 0, title: (0, import_jsx_runtime.jsx)(wce, { children: i10(`variables`, `Variables`) }) }) })] });
   }
   function Ale({ node: e10 }) {
-    let t10 = I(XN), { jsonSamplesDepth: n10 } = I(ds), r10 = fb(), i10 = e10.graphqlOperationData, a10 = I($N(QN(i10?.operationType, i10?.operationName))), o10 = (0, import_react2.useMemo)(() => a10 ? Cle(a10.type.display, t10, n10) : null, [a10, t10, n10]);
+    let t10 = I(XN), { jsonSamplesDepth: n10 } = I(ds), r10 = fb(), i10 = e10.graphqlOperationData, a10 = I($N(QN(i10?.operationType, i10?.operationName))), o10 = (0, import_react3.useMemo)(() => a10 ? Cle(a10.type.display, t10, n10) : null, [a10, t10, n10]);
     return o10 ? (0, import_jsx_runtime.jsx)(xj, { className: `panel-response-samples`, header: () => (0, import_jsx_runtime.jsx)(QM, { children: (0, import_jsx_runtime.jsx)(yj, { children: r10(`responseSample`, `Response sample`) }) }), isExpandable: false, children: (0, import_jsx_runtime.jsx)(wj, { data: o10, expandLevel: 1 / 0 }) }) : (0, import_jsx_runtime.jsx)(import_jsx_runtime.Fragment, {});
   }
   function jle({ node: e10 }) {
-    let t10 = I(XN), { jsonSamplesDepth: n10 } = I(ds), r10 = fb(), i10 = e10.graphqlOperationData, { sampleData: a10, isInput: o10 } = (0, import_react2.useMemo)(() => {
+    let t10 = I(XN), { jsonSamplesDepth: n10 } = I(ds), r10 = fb(), i10 = e10.graphqlOperationData, { sampleData: a10, isInput: o10 } = (0, import_react3.useMemo)(() => {
       if (!i10) return { sampleData: null, isInput: false };
       let e11 = t10(i10.typeName);
       return e11 ? { sampleData: UN(i10.typeName, t10, n10), isInput: e11.variant === `input` } : { sampleData: null, isInput: false };
@@ -43740,15 +42938,15 @@ ${l10}
     return a10 == null ? (0, import_jsx_runtime.jsx)(import_jsx_runtime.Fragment, {}) : (0, import_jsx_runtime.jsx)(xj, { className: `panel-response-samples`, header: () => (0, import_jsx_runtime.jsx)(QM, { children: (0, import_jsx_runtime.jsx)(yj, { children: o10 ? r10(`requestSample`, `Request sample`) : r10(`responseSample`, `Response sample`) }) }), isExpandable: false, children: (0, import_jsx_runtime.jsx)(wj, { data: a10, expandLevel: 1 / 0 }) });
   }
   function Mle({ node: e10 }) {
-    let t10 = I(XN), { jsonSamplesDepth: n10 } = I(ds), r10 = fb(), i10 = e10.graphqlOperationData, a10 = I($N(QN(i10?.operationType, i10?.operationName))), o10 = (0, import_react2.useMemo)(() => {
+    let t10 = I(XN), { jsonSamplesDepth: n10 } = I(ds), r10 = fb(), i10 = e10.graphqlOperationData, a10 = I($N(QN(i10?.operationType, i10?.operationName))), o10 = (0, import_react3.useMemo)(() => {
       let e11 = a10?.args ?? [];
       return e11.length === 0 ? null : YN(e11, t10, n10);
     }, [a10, t10, n10]);
     return o10 ? (0, import_jsx_runtime.jsx)(xj, { className: `panel-response-samples`, header: () => (0, import_jsx_runtime.jsx)(QM, { children: (0, import_jsx_runtime.jsx)(yj, { children: r10(`variables`, `Variables`) }) }), isExpandable: false, children: (0, import_jsx_runtime.jsx)(wj, { data: o10, expandLevel: 1 / 0 }) }) : (0, import_jsx_runtime.jsx)(import_jsx_runtime.Fragment, {});
   }
   function tP({ node: e10 }) {
-    let { mediaTypes: t10, activeMediaType: n10, effectiveSchemaId: r10, effectiveExampleIds: i10, encoding: a10, isMessageWithoutPayload: o10, onMediaTypeChange: s10 } = UM(e10), c10 = fb(), l10 = KM(i10?.length ? void 0 : r10), u10 = GM(r10, n10), d10 = Xh(u10, i10, void 0, n10), f10 = Xh(u10, void 0, void 0, n10), p10 = Yh(i10), [m10, h10] = (0, import_react2.useState)(0);
-    (0, import_react2.useEffect)(() => h10(0), [i10, n10]);
+    let { mediaTypes: t10, activeMediaType: n10, effectiveSchemaId: r10, effectiveExampleIds: i10, encoding: a10, isMessageWithoutPayload: o10, onMediaTypeChange: s10 } = UM(e10), c10 = fb(), l10 = KM(i10?.length ? void 0 : r10), u10 = GM(r10, n10), d10 = Xh(u10, i10, void 0, n10), f10 = Xh(u10, void 0, void 0, n10), p10 = Yh(i10), [m10, h10] = (0, import_react3.useState)(0);
+    (0, import_react3.useEffect)(() => h10(0), [i10, n10]);
     let g10 = (m10 < d10.length ? d10[m10] : d10[0]) ?? f10[0], _10 = p10[m10]?.description, v10 = p10[m10]?.headers;
     return d10.length === 0 && !o10 ? (0, import_jsx_runtime.jsx)(import_jsx_runtime.Fragment, {}) : (0, import_jsx_runtime.jsxs)(xj, { className: `panel-response-samples`, header: () => (0, import_jsx_runtime.jsx)(Nle, { isExpandable: false, children: e10.panelLabel ?? c10(`payload`, `Payload`) }), isExpandable: false, children: [(0, import_jsx_runtime.jsx)(gN, { mediaTypes: t10, value: n10, onChange: s10, label: c10(`contentType`, `Payload media type`) }), !i10?.length && (0, import_jsx_runtime.jsx)(mN, { selection: l10 }), (0, import_jsx_runtime.jsx)(hN, { exampleIds: i10, selectedIdx: m10, onSelect: h10 }), (0, import_jsx_runtime.jsx)(vN, { description: _10 }), v10 && (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [(0, import_jsx_runtime.jsx)(nP, { children: c10(`header`, `Headers`) }), (0, import_jsx_runtime.jsx)(yN, { payload: v10, mediaType: `application/json` }), (0, import_jsx_runtime.jsx)(nP, { children: c10(`payload`, `Payload`) })] }), (0, import_jsx_runtime.jsx)(yN, { payload: g10, emptyMessage: `// No payload sample`, mediaType: n10, encoding: a10 })] });
   }
@@ -43808,20 +43006,20 @@ ${l10}
     }
   }
   function Ile({ node: e10 }) {
-    let { responseCodes: t10 } = e10, n10 = fb(), r10 = jE(), i10 = (0, import_react2.useContext)(bc) ?? ``, a10 = Qo(tp(i10)), o10 = (0, import_react2.useCallback)((e11) => {
+    let { responseCodes: t10 } = e10, n10 = fb(), r10 = jE(), i10 = (0, import_react3.useContext)(bc) ?? ``, a10 = Qo(tp(i10)), o10 = (0, import_react3.useCallback)((e11) => {
       r10.sendResponseCodeTabClickedMessage([{ ...VE.responseCodeTab, statusClass: $E(e11), total: t10?.length ?? 0 }]), a10({ activeResponseCode: e11 });
-    }, [r10, t10?.length, a10]), s10 = I(np({ itemId: i10, key: `activeResponseCode` })), c10 = I(np({ itemId: i10, key: `activeExampleKey` })), l10 = I(qm), u10 = (0, import_react2.useMemo)(() => Fle(t10, void 0, l10), [t10, void 0, l10]), d10 = s10 || u10?.code || t10?.[0]?.code, f10 = t10?.find((e11) => e11.code === d10) ?? t10?.[0], p10 = (0, import_react2.useMemo)(() => f10?.mediaTypeContent ? Object.keys(f10.mediaTypeContent) : f10?.mediaTypes ?? [], [f10]), [m10, h10] = $o(Sh), [g10, _10] = (0, import_react2.useState)(false), v10 = u10 && u10.code === d10 && u10.mediaType && p10.includes(u10.mediaType) ? u10.mediaType : void 0, y10 = !g10 && v10 ? v10 : m10 && p10.includes(m10) ? m10 : v10 ?? p10[0], b10 = f10?.mediaTypeContent?.[y10 ?? ``], x10 = !!t10?.length, S10 = b10?.schemaId ?? f10?.schemaId ?? (x10 ? void 0 : e10.schemaId), C10 = b10?.exampleIds ?? f10?.exampleIds ?? (x10 ? void 0 : e10.exampleIds);
+    }, [r10, t10?.length, a10]), s10 = I(np({ itemId: i10, key: `activeResponseCode` })), c10 = I(np({ itemId: i10, key: `activeExampleKey` })), l10 = I(qm), u10 = (0, import_react3.useMemo)(() => Fle(t10, void 0, l10), [t10, void 0, l10]), d10 = s10 || u10?.code || t10?.[0]?.code, f10 = t10?.find((e11) => e11.code === d10) ?? t10?.[0], p10 = (0, import_react3.useMemo)(() => f10?.mediaTypeContent ? Object.keys(f10.mediaTypeContent) : f10?.mediaTypes ?? [], [f10]), [m10, h10] = $o(Sh), [g10, _10] = (0, import_react3.useState)(false), v10 = u10 && u10.code === d10 && u10.mediaType && p10.includes(u10.mediaType) ? u10.mediaType : void 0, y10 = !g10 && v10 ? v10 : m10 && p10.includes(m10) ? m10 : v10 ?? p10[0], b10 = f10?.mediaTypeContent?.[y10 ?? ``], x10 = !!t10?.length, S10 = b10?.schemaId ?? f10?.schemaId ?? (x10 ? void 0 : e10.schemaId), C10 = b10?.exampleIds ?? f10?.exampleIds ?? (x10 ? void 0 : e10.exampleIds);
     eg(i10, C10);
-    let w10 = !t10?.length || !!(S10 || C10?.length), T10 = p10.length > 0 ? y10 ?? p10[0] : `application/json`, E10 = { t: `response`, c: d10, schemaId: S10 }, D10 = KM(C10?.length ? void 0 : S10, E10), O10 = Xh(GM(S10, T10, E10), C10, e10.isEvent ? `request` : `response`, T10, E10), k10 = Yh(C10), ee3 = `${d10}|${y10}|${C10?.join(`,`)}`, te3 = AN(C10, c10 || void 0, (e11) => l10[e11]), ne3 = te3 ? C10?.indexOf(te3) ?? -1 : -1, re3 = AN(C10, void 0, (e11) => l10[e11]), ie3 = re3 ? C10?.indexOf(re3) ?? -1 : -1, [ae3, oe3] = (0, import_react2.useState)({}), se3 = ae3[ee3], ce3 = ne3 >= 0 ? ne3 : se3?.picked ? se3.idx : ie3 >= 0 ? ie3 : se3?.idx ?? 0;
+    let w10 = !t10?.length || !!(S10 || C10?.length), T10 = p10.length > 0 ? y10 ?? p10[0] : `application/json`, E10 = { t: `response`, c: d10, schemaId: S10 }, D10 = KM(C10?.length ? void 0 : S10, E10), O10 = Xh(GM(S10, T10, E10), C10, e10.isEvent ? `request` : `response`, T10, E10), k10 = Yh(C10), ee3 = `${d10}|${y10}|${C10?.join(`,`)}`, te3 = AN(C10, c10 || void 0, (e11) => l10[e11]), ne3 = te3 ? C10?.indexOf(te3) ?? -1 : -1, re3 = AN(C10, void 0, (e11) => l10[e11]), ie3 = re3 ? C10?.indexOf(re3) ?? -1 : -1, [ae3, oe3] = (0, import_react3.useState)({}), se3 = ae3[ee3], ce3 = ne3 >= 0 ? ne3 : se3?.picked ? se3.idx : ie3 >= 0 ? ie3 : se3?.idx ?? 0;
     if (!se3 || se3.idx !== ce3) {
       let e11 = se3?.picked ?? false;
       oe3((t11) => ({ ...t11, [ee3]: { idx: ce3, picked: e11 } }));
     }
-    let le3 = (0, import_react2.useCallback)((e11) => {
+    let le3 = (0, import_react3.useCallback)((e11) => {
       oe3((t12) => ({ ...t12, [ee3]: { idx: e11, picked: true } }));
       let t11 = C10?.[e11], n11 = t11 ? l10[t11]?.key : void 0;
       a10({ activeExampleKey: n11 ?? `` });
-    }, [ee3, C10, l10, a10]), ue3 = O10[ce3] ?? O10[0], de3 = k10[ce3]?.description, fe3 = (0, import_react2.useCallback)(() => {
+    }, [ee3, C10, l10, a10]), ue3 = O10[ce3] ?? O10[0], de3 = k10[ce3]?.description, fe3 = (0, import_react3.useCallback)(() => {
       if (!e10.hideHeaderTitle || t10?.length) return (0, import_jsx_runtime.jsxs)(QM, { children: [!e10.hideHeaderTitle && (0, import_jsx_runtime.jsx)(yj, { children: n10(`response`, `Response`) }), t10 && t10.length > 0 && (0, import_jsx_runtime.jsx)(rP, { children: t10.map((e11) => {
         let n11 = e11.code === (d10 ?? t10[0]?.code);
         return (0, import_jsx_runtime.jsx)(iP, { type: `button`, $active: n11, $code: e11.code, onClick: () => o10(e11.code), children: e11.code }, e11.code);
@@ -43965,7 +43163,7 @@ ${l10}
 `;
   na();
   function cP(e10) {
-    let { button: t10, children: n10, variant: r10, size: i10, tone: a10, placement: o10 = `bottom`, alignment: s10 = `end`, portalled: c10, closeOnSelect: l10 = true, disabled: u10, toggleAriaLabel: d10, onOpen: f10, onClose: p10, className: m10 } = e10, h10 = typeof n10 == `function` || import_react2.default.Children.toArray(n10).length > 0, g10 = (0, import_react2.useRef)(null);
+    let { button: t10, children: n10, variant: r10, size: i10, tone: a10, placement: o10 = `bottom`, alignment: s10 = `end`, portalled: c10, closeOnSelect: l10 = true, disabled: u10, toggleAriaLabel: d10, onOpen: f10, onClose: p10, className: m10 } = e10, h10 = typeof n10 == `function` || import_react3.default.Children.toArray(n10).length > 0, g10 = (0, import_react3.useRef)(null);
     return (0, import_jsx_runtime.jsx)(qle, { "data-component-name": `SplitButton/SplitButton`, className: m10, ref: g10, children: (0, import_jsx_runtime.jsxs)(Gle, { variant: r10, size: i10, children: [t10, h10 ? (0, import_jsx_runtime.jsx)(Jle, { closeOnClick: l10, placement: o10, alignment: s10, portalled: c10, alignmentAnchorRef: g10, withArrow: true, onOpen: f10, onClose: p10, trigger: (0, import_jsx_runtime.jsx)(ta, { "aria-label": d10, "aria-haspopup": `menu`, variant: r10, size: i10, tone: a10, disabled: u10 }), children: n10 }) : null] }) });
   }
   var qle = Tt.div`
@@ -43997,7 +43195,7 @@ ${l10}
   function Qle(e10, t10) {
     return e10.kind === z2.ATTRIBUTE ? `${e10.label}-${t10}` : e10.kind === z2.TAGS ? `${e10.title || `tags`}-${t10}` : e10.kind === z2.EXTERNAL_LINK ? `${e10.url}-${t10}` : e10.kind === z2.CONNECT_MCP_BUTTON ? `${e10.mcpUrl}-${t10}` : `mcp-item-${t10}`;
   }
-  var $le = (0, import_react2.memo)(function({ item: e10, translate: t10 }) {
+  var $le = (0, import_react3.memo)(function({ item: e10, translate: t10 }) {
     let n10 = Tj(t10, e10.titleTranslationKey, e10.title), r10 = `label` in e10 ? Tj(t10, e10.labelTranslationKey, e10.label) : ``;
     return e10.kind === z2.ATTRIBUTE ? (0, import_jsx_runtime.jsxs)(lP, { children: [(0, import_jsx_runtime.jsx)(uP, { children: e10.title || r10 }), (0, import_jsx_runtime.jsx)(nue, { children: e10.value })] }) : e10.kind === z2.TAGS ? (0, import_jsx_runtime.jsxs)(lP, { children: [(0, import_jsx_runtime.jsx)(uP, { children: n10 || `Tags` }), (0, import_jsx_runtime.jsx)(rue, { children: e10.tags.map((e11) => (0, import_jsx_runtime.jsxs)(iue, { $variant: e11.color === `green` ? `success` : void 0, children: [e11.icon === `checkmark` && (0, import_jsx_runtime.jsx)(eue, {}), ` `, e11.text] }, e11.text)) })] }) : e10.kind === z2.EXTERNAL_LINK ? (0, import_jsx_runtime.jsxs)(lP, { children: [(0, import_jsx_runtime.jsx)(uP, { children: n10 || `Link` }), (0, import_jsx_runtime.jsx)(oue, { href: e10.url, target: `_blank`, rel: `noopener noreferrer`, children: e10.label })] }) : e10.kind === z2.CONNECT_MCP_BUTTON ? (0, import_jsx_runtime.jsx)(aue, { children: (0, import_jsx_runtime.jsx)(Xle, { actions: e10.actions, mcpUrl: e10.mcpUrl }) }) : null;
   });
@@ -44106,13 +43304,13 @@ ${l10}
   }
 `;
   function hP() {
-    let e10 = `panel-list-icon-clip-${(0, import_react2.useId)().replace(/[^a-zA-Z0-9-]/g, ``)}`;
+    let e10 = `panel-list-icon-clip-${(0, import_react3.useId)().replace(/[^a-zA-Z0-9-]/g, ``)}`;
     return (0, import_jsx_runtime.jsxs)(uue, { viewBox: `0 0 22 22`, fill: `none`, xmlns: `http://www.w3.org/2000/svg`, children: [(0, import_jsx_runtime.jsxs)(`g`, { clipPath: `url(#${e10})`, children: [(0, import_jsx_runtime.jsx)(`path`, { d: `M0 11H22`, strokeLinecap: `round` }), (0, import_jsx_runtime.jsx)(`circle`, { cx: `4`, cy: `11`, r: `4` })] }), (0, import_jsx_runtime.jsx)(`defs`, { children: (0, import_jsx_runtime.jsx)(`clipPath`, { id: e10, children: (0, import_jsx_runtime.jsx)(`rect`, { width: `22`, height: `22`, fill: `white` }) }) })] });
   }
   function due({ node: e10 }) {
-    let t10 = e10.children[0], n10 = fb(), r10 = I(Dle), i10 = I(eP), a10 = vc(), o10 = jE(), s10 = I(XN), c10 = Qo(RE), l10 = t10?.graphqlTypeName ? s10(t10.graphqlTypeName)?.variant ?? `other` : `other`, u10 = (0, import_react2.useCallback)((e11) => {
+    let t10 = e10.children[0], n10 = fb(), r10 = I(Dle), i10 = I(eP), a10 = vc(), o10 = jE(), s10 = I(XN), c10 = Qo(RE), l10 = t10?.graphqlTypeName ? s10(t10.graphqlTypeName)?.variant ?? `other` : `other`, u10 = (0, import_react3.useCallback)((e11) => {
       c10(`referencedIn`), o10.sendReferencedInClickedMessage([{ ...VE.graphqlDocsReferencedInLink, fromKind: l10, toKind: s10(e11)?.variant ?? `other` }]);
-    }, [o10, c10, s10, l10]), d10 = (0, import_react2.useMemo)(() => t10?.graphqlTypeName ? r10[t10.graphqlTypeName] ?? [] : t10?.references ?? [], [t10, r10]), f10 = (0, import_react2.useMemo)(() => d10.flatMap((e11) => {
+    }, [o10, c10, s10, l10]), d10 = (0, import_react3.useMemo)(() => t10?.graphqlTypeName ? r10[t10.graphqlTypeName] ?? [] : t10?.references ?? [], [t10, r10]), f10 = (0, import_react3.useMemo)(() => d10.flatMap((e11) => {
       let t11 = i10[e11.name];
       return t11 ? [{ reference: e11, typeTo: a10(t11), fieldTo: e11.field ? a10(`${t11}#${e11.name}-${e11.field}`) : void 0 }] : [];
     }), [d10, i10, a10]);
@@ -44120,8 +43318,8 @@ ${l10}
     let p10 = Tj(n10, e10.titleTranslationKey, e10.title);
     return (0, import_jsx_runtime.jsxs)(dP, { className: `panel-api-docs`, children: [(0, import_jsx_runtime.jsx)(fP, { children: p10 }), (0, import_jsx_runtime.jsx)(pP, { children: f10.map(({ reference: e11, typeTo: t11, fieldTo: n11 }) => (0, import_jsx_runtime.jsx)(fue, { reference: e11, typeTo: t11, fieldTo: n11, onReferencedInClick: u10 }, `${e11.name}.${e11.field ?? ``}`)) })] });
   }
-  var fue = (0, import_react2.memo)(function({ reference: e10, typeTo: t10, fieldTo: n10, onReferencedInClick: r10 }) {
-    let i10 = (0, import_react2.useCallback)(() => r10(e10.name), [r10, e10.name]), a10 = (0, import_react2.useCallback)(() => r10(e10.name), [r10, e10.name]);
+  var fue = (0, import_react3.memo)(function({ reference: e10, typeTo: t10, fieldTo: n10, onReferencedInClick: r10 }) {
+    let i10 = (0, import_react3.useCallback)(() => r10(e10.name), [r10, e10.name]), a10 = (0, import_react3.useCallback)(() => r10(e10.name), [r10, e10.name]);
     return (0, import_jsx_runtime.jsxs)(pue, { children: [(0, import_jsx_runtime.jsx)(hP, {}), (0, import_jsx_runtime.jsxs)(mue, { children: [(0, import_jsx_runtime.jsx)(gP, { to: t10, onClick: i10, children: e10.name }), e10.field && n10 && (0, import_jsx_runtime.jsxs)(hue, { children: [`.`, (0, import_jsx_runtime.jsx)(`wbr`, {}), (0, import_jsx_runtime.jsx)(gP, { to: n10, onClick: a10, children: e10.field })] })] })] });
   }), pue = Tt(mP)`
   align-items: flex-start;
@@ -44155,8 +43353,8 @@ ${l10}
   }
   function _P(e10, t10) {
     if (!xue(e10, t10)) return null;
-    let Component5 = bue[t10];
-    return Component5({ node: e10 });
+    let Component4 = bue[t10];
+    return Component4({ node: e10 });
   }
   function Sue(e10) {
     if (!e10?.children?.length) return null;
@@ -44214,10 +43412,10 @@ ${l10}
   function Cue({ node: e10 }) {
     return Sue(e10);
   }
-  var wue = (0, import_react2.memo)(Cue);
+  var wue = (0, import_react3.memo)(Cue);
   pe2(), qf(), eu();
-  var vP = `middle-panel`, yP = `right-panel`, bP = (0, import_react2.memo)(({ children: e10, panels: t10, sectionId: n10 }) => {
-    let r10 = I(Ch), i10 = r10 === fe2.STACKED, a10 = (0, import_react2.useMemo)(() => t10?.map((e11, t11) => {
+  var vP = `middle-panel`, yP = `right-panel`, bP = (0, import_react3.memo)(({ children: e10, panels: t10, sectionId: n10 }) => {
+    let r10 = I(Ch), i10 = r10 === fe2.STACKED, a10 = (0, import_react3.useMemo)(() => t10?.map((e11, t11) => {
       let n11 = e11.children?.[0]?.kind || `panel`;
       return (0, import_jsx_runtime.jsx)(wue, { node: e11 }, `${n11}-${t11}`);
     }), [t10]), o10 = n10 ? { [Xl]: n10 } : {};
@@ -44333,15 +43531,15 @@ ${l10}
     return !vp(e10, e10.type || mp(e10));
   }
   function Oue({ schemaRef: e10, exampleRef: t10, showReadOnly: n10 = true, showWriteOnly: r10 = false }) {
-    let i10 = as(e10), a10 = as(t10), o10 = I(kc(i10 ?? ``)), s10 = (0, import_react2.useMemo)(() => a10 ? [a10] : void 0, [a10]), c10 = Xh(i10, s10, `response`, `application/json`), l10 = (0, import_react2.useMemo)(() => ({ pathOnly: true, t: `response`, schemaId: i10 }), [i10]), u10 = (0, import_react2.useMemo)(() => {
+    let i10 = as(e10), a10 = as(t10), o10 = I(kc(i10 ?? ``)), s10 = (0, import_react3.useMemo)(() => a10 ? [a10] : void 0, [a10]), c10 = Xh(i10, s10, `response`, `application/json`), l10 = (0, import_react3.useMemo)(() => ({ pathOnly: true, t: `response`, schemaId: i10 }), [i10]), u10 = (0, import_react3.useMemo)(() => {
       let e11 = o10?.data, t11 = e11?.description;
       if (t11 && (typeof t11 != `string` || t11.trim()) && e11 && Due(e11)) return t11;
-    }, [o10?.data]), d10 = c10.length > 0, f10 = (0, import_react2.useMemo)(() => {
+    }, [o10?.data]), d10 = c10.length > 0, f10 = (0, import_react3.useMemo)(() => {
       if (i10 && o10 && d10) return [{ children: [{ kind: z2.RESPONSE, schemaId: i10, exampleIds: s10, hideHeaderTitle: true, examples: [] }] }];
     }, [i10, o10, d10, s10]);
     return !i10 || !o10 ? (0, import_jsx_runtime.jsx)(import_jsx_runtime.Fragment, {}) : (0, import_jsx_runtime.jsx)(`div`, { "data-testid": `schema-definition`, children: (0, import_jsx_runtime.jsxs)(bP, { panels: f10, children: [u10 ? (0, import_jsx_runtime.jsx)(Aue, { children: (0, import_jsx_runtime.jsx)(pv, { source: u10 }) }) : null, (0, import_jsx_runtime.jsx)(wc.Provider, { value: l10, children: (0, import_jsx_runtime.jsx)(uj, { expandByDefault: true, level: 1, schemaId: i10, skipReadOnly: !n10, skipWriteOnly: !r10 }) })] }) });
   }
-  var kue = (0, import_react2.memo)(Oue), Aue = Tt.div`
+  var kue = (0, import_react3.memo)(Oue), Aue = Tt.div`
   margin-bottom: var(--spacing-vertical);
   p:last-child {
     margin-bottom: 0;
@@ -44350,14 +43548,14 @@ ${l10}
   F2(), Bt2(), Ns();
   function jue({ level: e10, id: t10, children: n10, deepLinkHash: r10, "data-source": i10, "data-hash": a10, className: o10 }) {
     let s10 = I(ps), c10 = vc(), l10 = t10?.toLowerCase();
-    return (0, import_react2.createElement)(`h${e10}`, { id: l10, className: se2(Dt2, `md`, o10), "data-component-name": `Markdoc/Heading/Heading`, "data-source": i10, "data-hash": a10 }, (0, import_jsx_runtime.jsxs)(Mue, { children: [l10 && (0, import_jsx_runtime.jsx)(vb, { to: c10(Os(s10, r10 ?? l10)), label: `link to ${t10}` }), (0, import_jsx_runtime.jsx)(`span`, { children: n10 })] }));
+    return (0, import_react3.createElement)(`h${e10}`, { id: l10, className: se2(Dt2, `md`, o10), "data-component-name": `Markdoc/Heading/Heading`, "data-source": i10, "data-hash": a10 }, (0, import_jsx_runtime.jsxs)(Mue, { children: [l10 && (0, import_jsx_runtime.jsx)(vb, { to: c10(Os(s10, r10 ?? l10)), label: `link to ${t10}` }), (0, import_jsx_runtime.jsx)(`span`, { children: n10 })] }));
   }
   var Mue = Tt.div`
   position: relative;
   display: flex;
   align-items: center;
   ${bb}
-`, Nue = (0, import_react2.memo)(jue);
+`, Nue = (0, import_react3.memo)(jue);
   F2();
   var SP = Tt.h4.attrs(({ className: e10 }) => ({ "data-component-name": `Typography/H4`, className: e10 }))`
   color: var(--h4-text-color);
@@ -44389,7 +43587,7 @@ ${l10}
   B2(), lb();
   function OP(e10) {
     let t10 = fv(), n10 = Cc();
-    return (0, import_react2.useMemo)(() => {
+    return (0, import_react3.useMemo)(() => {
       if (!e10) return null;
       let r10 = t10.parse(e10);
       return n10 && r10 && typeof r10 == `object` && qy(r10, n10), r10;
@@ -44414,27 +43612,27 @@ ${l10}
   }
   _c();
   function Iue({ name: e10 }) {
-    let t10 = I(ms), n10 = fb(), r10 = (0, import_react2.useMemo)(() => t10.mcp?.tools?.find((t11) => t11.name === e10), [t10.mcp, e10]), i10 = OP(r10?.description), a10 = (0, import_react2.useMemo)(() => r10?.inputSchema ? [kP(r10.inputSchema, `input`)] : void 0, [r10?.inputSchema]), o10 = (0, import_react2.useMemo)(() => r10?.outputSchema ? [kP(r10.outputSchema, `output`)] : void 0, [r10?.outputSchema]), s10 = Ec(`input-schema`), c10 = (0, import_react2.useMemo)(() => ({ t: `input-schema` }), []), l10 = Ec(`output-schema`), u10 = (0, import_react2.useMemo)(() => ({ t: `output-schema` }), []);
+    let t10 = I(ms), n10 = fb(), r10 = (0, import_react3.useMemo)(() => t10.mcp?.tools?.find((t11) => t11.name === e10), [t10.mcp, e10]), i10 = OP(r10?.description), a10 = (0, import_react3.useMemo)(() => r10?.inputSchema ? [kP(r10.inputSchema, `input`)] : void 0, [r10?.inputSchema]), o10 = (0, import_react3.useMemo)(() => r10?.outputSchema ? [kP(r10.outputSchema, `output`)] : void 0, [r10?.outputSchema]), s10 = Ec(`input-schema`), c10 = (0, import_react3.useMemo)(() => ({ t: `input-schema` }), []), l10 = Ec(`output-schema`), u10 = (0, import_react3.useMemo)(() => ({ t: `output-schema` }), []);
     return r10 ? (0, import_jsx_runtime.jsxs)(CP, { children: [(0, import_jsx_runtime.jsx)(bP, { children: (0, import_jsx_runtime.jsxs)(wP, { children: [(0, import_jsx_runtime.jsxs)(`p`, { children: [n10(`openapi.mcp.toolName`, `Tool name`), `: `, (0, import_jsx_runtime.jsx)(`code`, { children: r10.name })] }), i10 ? (0, import_jsx_runtime.jsx)(pv, { source: i10 }) : null] }) }), r10.inputSchema && (0, import_jsx_runtime.jsx)(bP, { panels: a10, children: (0, import_jsx_runtime.jsxs)(wP, { children: [(0, import_jsx_runtime.jsx)(EP, { id: $s(s10), children: (0, import_jsx_runtime.jsxs)(DP, { children: [s10 && (0, import_jsx_runtime.jsx)(vb, { to: s10, label: `link to Input schema` }), n10(`openapi.mcp.inputSchema`, `Input schema`)] }) }), (0, import_jsx_runtime.jsx)(wc.Provider, { value: c10, children: (0, import_jsx_runtime.jsx)(uj, { schema: r10.inputSchema, expandByDefault: true }) })] }) }), r10.outputSchema && (0, import_jsx_runtime.jsx)(bP, { panels: o10, children: (0, import_jsx_runtime.jsxs)(wP, { children: [(0, import_jsx_runtime.jsx)(EP, { id: $s(l10), children: (0, import_jsx_runtime.jsxs)(DP, { children: [l10 && (0, import_jsx_runtime.jsx)(vb, { to: l10, label: `link to Output schema` }), n10(`openapi.mcp.outputSchema`, `Output schema`)] }) }), (0, import_jsx_runtime.jsx)(wc.Provider, { value: u10, children: (0, import_jsx_runtime.jsx)(uj, { schema: r10.outputSchema, expandByDefault: true }) })] }) })] }) : null;
   }
-  var Lue = (0, import_react2.memo)(Iue), jP = Tt(xb)`
+  var Lue = (0, import_react3.memo)(Iue), jP = Tt(xb)`
   text-transform: none;
 `;
   function Rue({ name: e10 }) {
-    let t10 = I(ms), n10 = fb(), r10 = (0, import_react2.useMemo)(() => t10.mcp?.resources?.find((t11) => t11.name === e10), [t10.mcp, e10]), i10 = OP(r10?.description), a10 = (0, import_react2.useMemo)(() => {
+    let t10 = I(ms), n10 = fb(), r10 = (0, import_react3.useMemo)(() => t10.mcp?.resources?.find((t11) => t11.name === e10), [t10.mcp, e10]), i10 = OP(r10?.description), a10 = (0, import_react3.useMemo)(() => {
       if (!r10) return;
       let e11 = Fue(r10);
       return e11 ? [e11] : void 0;
     }, [r10]);
     return r10 ? (0, import_jsx_runtime.jsxs)(CP, { children: [i10 ? (0, import_jsx_runtime.jsx)(bP, { children: (0, import_jsx_runtime.jsx)(wP, { children: (0, import_jsx_runtime.jsx)(pv, { source: i10 }) }) }) : null, (0, import_jsx_runtime.jsx)(bP, { panels: a10, children: (0, import_jsx_runtime.jsxs)(wP, { children: [(0, import_jsx_runtime.jsxs)(TP, { children: [n10(`openapi.mcp.uriTitle`, `Resource URI`), `:`, ` `, (0, import_jsx_runtime.jsx)(jP, { children: r10.uri })] }), (0, import_jsx_runtime.jsxs)(TP, { children: [n10(`openapi.mcp.mimeTypeTitle`, `Resource MIME type`), `:`, ` `, (0, import_jsx_runtime.jsx)(jP, { children: r10.mimeType })] })] }) })] }) : null;
   }
-  var zue = (0, import_react2.memo)(Rue);
+  var zue = (0, import_react3.memo)(Rue);
   _c();
   function Bue({ name: e10 }) {
-    let t10 = I(ms), n10 = fb(), r10 = (0, import_react2.useMemo)(() => t10.mcp?.prompts?.find((t11) => t11.name === e10), [t10.mcp, e10]), i10 = OP(r10?.description), a10 = (0, import_react2.useMemo)(() => r10?.arguments?.length ? AP(r10.arguments) : null, [r10]), o10 = (0, import_react2.useMemo)(() => a10 ? [kP(a10, `arguments`)] : void 0, [a10]), s10 = Ec(`arguments`), c10 = (0, import_react2.useMemo)(() => ({ t: `arguments` }), []);
+    let t10 = I(ms), n10 = fb(), r10 = (0, import_react3.useMemo)(() => t10.mcp?.prompts?.find((t11) => t11.name === e10), [t10.mcp, e10]), i10 = OP(r10?.description), a10 = (0, import_react3.useMemo)(() => r10?.arguments?.length ? AP(r10.arguments) : null, [r10]), o10 = (0, import_react3.useMemo)(() => a10 ? [kP(a10, `arguments`)] : void 0, [a10]), s10 = Ec(`arguments`), c10 = (0, import_react3.useMemo)(() => ({ t: `arguments` }), []);
     return r10 ? (0, import_jsx_runtime.jsxs)(CP, { children: [i10 ? (0, import_jsx_runtime.jsx)(bP, { children: (0, import_jsx_runtime.jsx)(wP, { children: (0, import_jsx_runtime.jsx)(pv, { source: i10 }) }) }) : null, a10 && (0, import_jsx_runtime.jsx)(bP, { panels: o10, children: (0, import_jsx_runtime.jsxs)(wP, { children: [(0, import_jsx_runtime.jsx)(EP, { id: $s(s10), children: (0, import_jsx_runtime.jsxs)(DP, { children: [s10 && (0, import_jsx_runtime.jsx)(vb, { to: s10, label: `link to Arguments` }), n10(`openapi.mcp.inputSchema`, `Arguments`)] }) }), (0, import_jsx_runtime.jsx)(wc.Provider, { value: c10, children: (0, import_jsx_runtime.jsx)(uj, { schema: a10, expandByDefault: true }) })] }) })] }) : null;
   }
-  var Vue = { SchemaDefinition: kue, McpTool: Lue, McpResource: zue, McpPrompt: (0, import_react2.memo)(Bue), Heading: Nue }, Hue = Object.create, MP = Object.defineProperty, Uue = Object.getOwnPropertyDescriptor, Wue = Object.getOwnPropertyNames, Gue = Object.getPrototypeOf, Kue = Object.prototype.hasOwnProperty, NP = (e10) => MP(e10, `__esModule`, { value: true }), H2 = (e10, t10) => function() {
+  var Vue = { SchemaDefinition: kue, McpTool: Lue, McpResource: zue, McpPrompt: (0, import_react3.memo)(Bue), Heading: Nue }, Hue = Object.create, MP = Object.defineProperty, Uue = Object.getOwnPropertyDescriptor, Wue = Object.getOwnPropertyNames, Gue = Object.getPrototypeOf, Kue = Object.prototype.hasOwnProperty, NP = (e10) => MP(e10, `__esModule`, { value: true }), H2 = (e10, t10) => function() {
     return t10 || (0, e10[Object.keys(e10)[0]])((t10 = { exports: {} }).exports, t10), t10.exports;
   }, PP = (e10, t10) => {
     for (var n10 in NP(e10), t10) MP(e10, n10, { get: t10[n10], enumerable: true });
@@ -46922,7 +46120,7 @@ ${l10}
   function jI(e10, t10) {
     return typeof e10 == `string` && e10[0] === e10[0].toUpperCase() ? t10 instanceof Function ? t10(e10) : t10[e10] : e10;
   }
-  function MI(e10, React13, { components: t10 = {}, resolveTagName: n10 = jI } = {}) {
+  function MI(e10, React2, { components: t10 = {}, resolveTagName: n10 = jI } = {}) {
     function r10(e11) {
       if (typeof e11 != `object` || !e11) return e11;
       if (Array.isArray(e11)) return e11.map((e12) => r10(e12));
@@ -46933,10 +46131,10 @@ ${l10}
       return t11;
     }
     function i10(e11) {
-      if (Array.isArray(e11)) return React13.createElement(React13.Fragment, null, ...e11.map(i10));
+      if (Array.isArray(e11)) return React2.createElement(React2.Fragment, null, ...e11.map(i10));
       if (typeof e11 != `object` || !e11 || !eF.isTag(e11)) return e11;
       let { name: a10, attributes: { class: o10, ...s10 } = {}, children: c10 = [] } = e11;
-      return o10 && (s10.className = o10), React13.createElement(n10(a10, t10), Object.keys(s10).length == 0 ? null : r10(s10), ...c10.map(i10));
+      return o10 && (s10.className = o10), React2.createElement(n10(a10, t10), Object.keys(s10).length == 0 ? null : r10(s10), ...c10.map(i10));
     }
     return i10(e10);
   }
@@ -47941,7 +47139,7 @@ ${l10}
     return (e11) => {
       if (typeof e11 == `string`) return (0, import_jsx_runtime.jsx)(import_jsx_runtime.Fragment, { children: e11 });
       let r10 = yL.Ast.fromJSON(JSON.stringify(e11)), i10 = yL.transform(r10, t10), a10 = Array.isArray(i10) ? i10 : i10.children;
-      return (0, import_jsx_runtime.jsx)(import_jsx_runtime.Fragment, { children: a10.map((e12, t11) => (0, import_jsx_runtime.jsx)(import_react2.Fragment, { children: (0, import_jsx_runtime.jsx)(wR, { children: yL.renderers.react(e12, import_react2.default, n10), as: `div` }) }, e12?.attributes?.id || t11)) });
+      return (0, import_jsx_runtime.jsx)(import_jsx_runtime.Fragment, { children: a10.map((e12, t11) => (0, import_jsx_runtime.jsx)(import_react3.Fragment, { children: (0, import_jsx_runtime.jsx)(wR, { children: yL.renderers.react(e12, import_react3.default, n10), as: `div` }) }, e12?.attributes?.id || t11)) });
     };
   }
   function ER(e10, t10) {
@@ -48082,17 +47280,17 @@ ${l10}
   var $R = Bo(null);
   Hs();
   function ez(e10, t10 = `/`) {
-    let n10 = Qo($R), { routes: r10, routeIndex: i10 } = (0, import_react2.useMemo)(() => {
+    let n10 = Qo($R), { routes: r10, routeIndex: i10 } = (0, import_react3.useMemo)(() => {
       let n11 = [], r11 = [], i11 = [];
       return Is({ apiItems: e10, allRoutes: n11, tagsWithItems: r11, parentTag: null, allTagsWithItems: i11 }), { routes: n11, routeIndex: { ...Ps(n11, r11, t10, i11) } };
     }, [e10, t10]);
-    return (0, import_react2.useEffect)(() => {
+    return (0, import_react3.useEffect)(() => {
       n10(i10);
     }, [i10, n10]), { routes: r10, routeIndex: i10 };
   }
   function tz() {
     let e10 = useLocation(), t10 = Qo(Mh);
-    (0, import_react2.useEffect)(() => {
+    (0, import_react3.useEffect)(() => {
       let n10 = e10.pathname.toLowerCase();
       t10((e11) => e11.includes(n10) ? e11 : [...e11, n10]);
     }, [e10.pathname, t10]);
@@ -48114,8 +47312,8 @@ ${l10}
     };
   }
   function sz(e10) {
-    let t10 = (0, import_react2.useRef)(false);
-    return (0, import_react2.useEffect)(() => {
+    let t10 = (0, import_react3.useRef)(false);
+    return (0, import_react3.useEffect)(() => {
       if (!Ie2) return;
       t10.current = false;
       let e11 = oz(), n10 = (n11) => {
@@ -48133,9 +47331,9 @@ ${l10}
   }
   function lz() {
     let e10 = useLocation(), t10 = Qo(jh), n10 = I(ps), r10 = Yn(e10, false, false), i10 = useHref(ks(bs(r10 || `/`))), a10 = sz(e10.key);
-    (0, import_react2.useEffect)(() => {
+    (0, import_react3.useEffect)(() => {
       t10(null);
-    }, [e10.pathname, t10]), (0, import_react2.useEffect)(() => {
+    }, [e10.pathname, t10]), (0, import_react3.useEffect)(() => {
       Ie2 && r10 && a10.current && (t10(r10), (r10 === n10 || !window.location.pathname.includes(r10) && !window.location.hash.includes(r10)) && cz(i10));
     }, [r10, i10, n10, t10, a10]);
   }
@@ -48149,8 +47347,8 @@ ${l10}
   }
   Hs();
   function pz(e10, t10) {
-    let n10 = jE(), r10 = Go(), { pathname: i10 } = useLocation(), a10 = (0, import_react2.useRef)(false);
-    (0, import_react2.useEffect)(() => {
+    let n10 = jE(), r10 = Go(), { pathname: i10 } = useLocation(), a10 = (0, import_react3.useRef)(false);
+    (0, import_react3.useEffect)(() => {
       if (a10.current) return;
       a10.current = true;
       let { items: o10, store: s10, definition: c10 } = r10.get(cs);
@@ -48160,18 +47358,18 @@ ${l10}
   Hs();
   var mz = 2e3;
   function hz(e10) {
-    let t10 = jE(), n10 = Go(), { pathname: r10 } = useLocation(), i10 = (0, import_react2.useRef)(t10);
+    let t10 = jE(), n10 = Go(), { pathname: r10 } = useLocation(), i10 = (0, import_react3.useRef)(t10);
     i10.current = t10;
-    let a10 = (0, import_react2.useRef)(e10);
+    let a10 = (0, import_react3.useRef)(e10);
     a10.current = e10;
-    let o10 = (0, import_react2.useRef)(null);
-    (0, import_react2.useEffect)(() => {
+    let o10 = (0, import_react3.useRef)(null);
+    (0, import_react3.useEffect)(() => {
       if (typeof window > `u`) return;
       let e11 = () => {
         n10.set(RE, `history`);
       };
       return window.addEventListener(`popstate`, e11), () => window.removeEventListener(`popstate`, e11);
-    }, [n10]), (0, import_react2.useEffect)(() => {
+    }, [n10]), (0, import_react3.useEffect)(() => {
       if (typeof window > `u`) return;
       let e11 = o10.current === null;
       if (o10.current === r10) return;
@@ -48446,10 +47644,10 @@ ${l10}
     });
   };
   function oB() {
-    let e10 = jE(), t10 = (0, import_react2.useRef)(e10);
+    let e10 = jE(), t10 = (0, import_react3.useRef)(e10);
     t10.current = e10;
-    let n10 = (0, import_react2.useRef)(false);
-    (0, import_react2.useEffect)(() => {
+    let n10 = (0, import_react3.useRef)(false);
+    (0, import_react3.useEffect)(() => {
       if (typeof window > `u` || n10.current) return;
       n10.current = true;
       let e11 = SE(), r10 = {}, i10 = false, a10 = false, o10 = () => {
@@ -48474,8 +47672,8 @@ ${l10}
   }
   var sB = 1e3;
   function cB() {
-    let e10 = jE(), t10 = Go(), n10 = (0, import_react2.useRef)(e10);
-    n10.current = e10, (0, import_react2.useEffect)(() => {
+    let e10 = jE(), t10 = Go(), n10 = (0, import_react3.useRef)(e10);
+    n10.current = e10, (0, import_react3.useEffect)(() => {
       if (typeof document > `u`) return;
       let e11 = performance.now(), r10 = SE(), i10, a10 = t10.sub(jh, () => {
         let e12 = t10.get(jh);
@@ -48529,8 +47727,8 @@ ${l10}
     `};
 `, fB = typeof window < `u` && typeof CSS < `u` && typeof CSS.supports == `function` && CSS.supports(`overflow-anchor`, `auto`);
   function pB({ ref: e10, mounted: t10, placeholderHeight: n10 }) {
-    let r10 = (0, import_react2.useRef)(t10);
-    (0, import_react2.useLayoutEffect)(() => {
+    let r10 = (0, import_react3.useRef)(t10);
+    (0, import_react3.useLayoutEffect)(() => {
       if (fB) return;
       if (!t10) {
         r10.current = false;
@@ -48553,24 +47751,24 @@ ${l10}
   }
   var gB = `0px 0px 200px 0px`, _B = 100;
   function vB({ sectionId: e10, eager: t10 = false, children: n10 }) {
-    let [r10, i10] = (0, import_react2.useState)(() => t10 || mB.has(e10));
+    let [r10, i10] = (0, import_react3.useState)(() => t10 || mB.has(e10));
     t10 && !r10 && i10(true);
-    let a10 = (0, import_react2.useRef)(null), o10 = (0, import_react2.useRef)(null);
-    return pB({ ref: o10, mounted: r10, placeholderHeight: _B }), (0, import_react2.useEffect)(() => {
+    let a10 = (0, import_react3.useRef)(null), o10 = (0, import_react3.useRef)(null);
+    return pB({ ref: o10, mounted: r10, placeholderHeight: _B }), (0, import_react3.useEffect)(() => {
       r10 && mB.add(e10);
-    }, [r10, e10]), (0, import_react2.useEffect)(() => {
+    }, [r10, e10]), (0, import_react3.useEffect)(() => {
       if (r10) return;
       let e11 = a10.current;
       if (!e11 || typeof IntersectionObserver > `u`) return;
       let t11 = new IntersectionObserver((e12) => {
-        e12.some((e13) => e13.isIntersecting) && ((0, import_react2.startTransition)(() => i10(true)), t11.disconnect());
+        e12.some((e13) => e13.isIntersecting) && ((0, import_react3.startTransition)(() => i10(true)), t11.disconnect());
       }, { rootMargin: gB });
       return t11.observe(e11), () => t11.disconnect();
     }, [r10, e10]), r10 ? (0, import_jsx_runtime.jsx)(SB, { ref: o10, children: n10 }) : (0, import_jsx_runtime.jsx)(xB, { ref: a10, [Xl]: e10 });
   }
-  var yB = (0, import_react2.memo)(vB, (e10, t10) => e10.sectionId === t10.sectionId && e10.eager === t10.eager && bB(e10.children) === bB(t10.children));
+  var yB = (0, import_react3.memo)(vB, (e10, t10) => e10.sectionId === t10.sectionId && e10.eager === t10.eager && bB(e10.children) === bB(t10.children));
   function bB(e10) {
-    return (0, import_react2.isValidElement)(e10) ? e10.props.content : e10;
+    return (0, import_react3.isValidElement)(e10) ? e10.props.content : e10;
   }
   var xB = Tt.div`
   min-height: var(--lazy-section-min-height, ${_B}px);
@@ -48636,11 +47834,11 @@ ${l10}
   overflow-wrap: anywhere;
 `;
   function jB(...e10) {
-    return (Component5) => e10.reduceRight((e11, t10) => t10(e11), Component5);
+    return (Component4) => e10.reduceRight((e11, t10) => t10(e11), Component4);
   }
   function MB(e10) {
     function t10(t11) {
-      return (0, import_react2.useContext)(bc) === t11.itemPath ? (0, import_jsx_runtime.jsx)(e10, { ...t11 }) : (0, import_jsx_runtime.jsx)(bc.Provider, { value: t11.itemPath, children: (0, import_jsx_runtime.jsx)(e10, { ...t11 }) });
+      return (0, import_react3.useContext)(bc) === t11.itemPath ? (0, import_jsx_runtime.jsx)(e10, { ...t11 }) : (0, import_jsx_runtime.jsx)(bc.Provider, { value: t11.itemPath, children: (0, import_jsx_runtime.jsx)(e10, { ...t11 }) });
     }
     return t10.displayName = `WithItemId(${NB(e10)})`, t10;
   }
@@ -48649,9 +47847,9 @@ ${l10}
   }
   function PB({ content: e10, itemPath: t10 }) {
     let { children: n10 } = e10 || {};
-    return (0, import_jsx_runtime.jsx)(IB, { children: n10?.map((e11, n11) => (0, import_jsx_runtime.jsx)(import_react2.Fragment, { children: (0, import_jsx_runtime.jsx)(E1, { type: e11.nodeType, node: e11 }, `${t10}-${e11.nodeType}`) }, `${t10}-${e11.nodeType}`)) });
+    return (0, import_jsx_runtime.jsx)(IB, { children: n10?.map((e11, n11) => (0, import_jsx_runtime.jsx)(import_react3.Fragment, { children: (0, import_jsx_runtime.jsx)(E1, { type: e11.nodeType, node: e11 }, `${t10}-${e11.nodeType}`) }, `${t10}-${e11.nodeType}`)) });
   }
-  var FB = jB(MB, import_react2.memo)(PB), IB = Tt.div`
+  var FB = jB(MB, import_react3.memo)(PB), IB = Tt.div`
   padding: var(--spacing-xs) 0 var(--spacing-xxl) 0;
   border-bottom: 1px solid var(--border-color-secondary);
 
@@ -48665,9 +47863,9 @@ ${l10}
   Ns(), eu();
   function LB({ content: e10, itemPath: t10, sectionId: n10 }) {
     let { children: r10 } = e10 || {}, i10 = I(ps), a10 = n10 ? { [Xl]: n10 } : {}, o10 = t10 ? js(t10, i10) : void 0;
-    return (0, import_jsx_runtime.jsxs)(BB, { id: o10, ...a10, "data-item-kind": e10.itemVariant, "data-has-divider": e10.showDivider || void 0, children: [r10?.map((e11, n11) => (0, import_jsx_runtime.jsx)(import_react2.Fragment, { children: (0, import_jsx_runtime.jsx)(E1, { type: e11.nodeType, node: e11, itemPath: t10 }) }, `${t10}-${e11.nodeType}-${n11}`)), e10.showDivider && (0, import_jsx_runtime.jsx)(bP, { children: (0, import_jsx_runtime.jsx)(zB, {}) })] });
+    return (0, import_jsx_runtime.jsxs)(BB, { id: o10, ...a10, "data-item-kind": e10.itemVariant, "data-has-divider": e10.showDivider || void 0, children: [r10?.map((e11, n11) => (0, import_jsx_runtime.jsx)(import_react3.Fragment, { children: (0, import_jsx_runtime.jsx)(E1, { type: e11.nodeType, node: e11, itemPath: t10 }) }, `${t10}-${e11.nodeType}-${n11}`)), e10.showDivider && (0, import_jsx_runtime.jsx)(bP, { children: (0, import_jsx_runtime.jsx)(zB, {}) })] });
   }
-  var RB = jB(MB, import_react2.memo)(LB), zB = Tt.div`
+  var RB = jB(MB, import_react3.memo)(LB), zB = Tt.div`
   border-bottom: 1px solid var(--border-color-secondary);
 `, BB = Tt.div`
   padding-top: calc(var(--spacing-unit) * 16);
@@ -48714,10 +47912,10 @@ ${l10}
     return (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [(0, import_jsx_runtime.jsx)(qB, { breadcrumb: r10, onClick: t10, maxLength: n10 }), (0, import_jsx_runtime.jsx)(eV, { children: `/` }), (0, import_jsx_runtime.jsx)(Xg, { trigger: (0, import_jsx_runtime.jsx)(tV, { children: `...` }), closeOnClick: true, alignment: `end`, children: (0, import_jsx_runtime.jsx)(t_, { children: a10.map((e11) => (0, import_jsx_runtime.jsx)($g, { onAction: () => t10(e11.href), children: e11.name }, e11.href)) }) }), (0, import_jsx_runtime.jsx)(eV, { children: `/` }), (0, import_jsx_runtime.jsx)(qB, { breadcrumb: i10, onClick: t10, maxLength: n10 })] });
   }
   function YB({ breadcrumbs: e10, onClick: t10, maxLength: n10 }) {
-    return (0, import_jsx_runtime.jsx)(import_jsx_runtime.Fragment, { children: e10.map((r10, i10) => (0, import_jsx_runtime.jsxs)(import_react2.Fragment, { children: [(0, import_jsx_runtime.jsx)(qB, { breadcrumb: r10, onClick: t10, maxLength: n10 }), i10 !== e10.length - 1 && (0, import_jsx_runtime.jsx)(eV, { children: `/` })] }, r10.href)) });
+    return (0, import_jsx_runtime.jsx)(import_jsx_runtime.Fragment, { children: e10.map((r10, i10) => (0, import_jsx_runtime.jsxs)(import_react3.Fragment, { children: [(0, import_jsx_runtime.jsx)(qB, { breadcrumb: r10, onClick: t10, maxLength: n10 }), i10 !== e10.length - 1 && (0, import_jsx_runtime.jsx)(eV, { children: `/` })] }, r10.href)) });
   }
   function XB({ breadcrumbs: e10, onClick: t10 }) {
-    let n10 = (0, import_react2.useRef)(null), r10 = (0, import_react2.useRef)(null), [i10, a10] = (0, import_react2.useState)(WB), o10 = e10.length > GB, s10 = (0, import_react2.useMemo)(() => o10 ? [e10[0], e10[e10.length - 1]] : e10, [e10, o10]), c10 = (0, import_react2.useCallback)(() => {
+    let n10 = (0, import_react3.useRef)(null), r10 = (0, import_react3.useRef)(null), [i10, a10] = (0, import_react3.useState)(WB), o10 = e10.length > GB, s10 = (0, import_react3.useMemo)(() => o10 ? [e10[0], e10[e10.length - 1]] : e10, [e10, o10]), c10 = (0, import_react3.useCallback)(() => {
       let e11 = n10.current, t11 = e11?.parentElement;
       if (!e11 || !t11 || !r10.current) return;
       let i11 = getComputedStyle(t11), c11 = parseFloat(i11.paddingLeft || `0`) + parseFloat(i11.paddingRight || `0`), l10 = t11.clientWidth - c11, u10 = t11.parentElement?.querySelector(`[data-component-name="PageActions/PageActions"]`);
@@ -48728,7 +47926,7 @@ ${l10}
       let d10 = UB(s10, l10, o10, r10.current);
       a10(d10);
     }, [s10, o10]);
-    return (0, import_react2.useLayoutEffect)(() => {
+    return (0, import_react3.useLayoutEffect)(() => {
       c10();
       let e11 = new ResizeObserver(c10), t11 = n10.current?.parentElement;
       return t11 && e11.observe(t11), () => {
@@ -48786,7 +47984,7 @@ ${l10}
   }
   function rV(e10) {
     let t10 = useLocation();
-    return (0, import_react2.useMemo)(() => nV(e10, t10.pathname), [e10, t10.pathname]);
+    return (0, import_react3.useMemo)(() => nV(e10, t10.pathname), [e10, t10.pathname]);
   }
   pe2(), na(), qf(), Ns(), eu(), B2();
   function iV(e10, t10) {
@@ -48801,10 +47999,10 @@ ${l10}
     return false;
   }
   function oV({ content: e10, itemPath: t10, sectionId: n10 }) {
-    let { meta: r10, children: i10 } = e10 || {}, a10 = fb(), o10 = useNavigate(), s10 = rV(t10), c10 = yc(t10), l10 = vc(), u10 = I(Ch) === fe2.STACKED, d10 = (0, import_react2.useMemo)(() => aV(e10), [e10]), f10 = (0, import_react2.useMemo)(() => r10?.breadcrumbs ? iV(r10.breadcrumbs, t10).map((e11) => ({ name: e11.label, href: l10(e11.link) })) : void 0, [r10?.breadcrumbs, t10, l10]), p10 = a10(`actions.show`, `Show`), m10 = I(ps), h10 = n10 ? { [Xl]: n10 } : {}, g10 = t10 ? js(t10, m10) : void 0;
+    let { meta: r10, children: i10 } = e10 || {}, a10 = fb(), o10 = useNavigate(), s10 = rV(t10), c10 = yc(t10), l10 = vc(), u10 = I(Ch) === fe2.STACKED, d10 = (0, import_react3.useMemo)(() => aV(e10), [e10]), f10 = (0, import_react3.useMemo)(() => r10?.breadcrumbs ? iV(r10.breadcrumbs, t10).map((e11) => ({ name: e11.label, href: l10(e11.link) })) : void 0, [r10?.breadcrumbs, t10, l10]), p10 = a10(`actions.show`, `Show`), m10 = I(ps), h10 = n10 ? { [Xl]: n10 } : {}, g10 = t10 ? js(t10, m10) : void 0;
     return (0, import_jsx_runtime.jsxs)(cV, { id: g10, ...h10, $isExpanded: s10, $isExpandable: d10, children: [f10 && f10.length > 0 && (0, import_jsx_runtime.jsx)(uV, { $isStacked: u10, children: (0, import_jsx_runtime.jsx)(XB, { breadcrumbs: f10, onClick: o10 }) }), i10.map((e11, n11) => (0, import_jsx_runtime.jsx)(E1, { type: e11.nodeType, node: e11, itemPath: t10 }, `${t10}-${e11.nodeType}-${n11}`)), !s10 && d10 && (0, import_jsx_runtime.jsxs)(lV, { type: `button`, variant: `text`, size: `medium`, onClick: () => o10(c10, { state: { expandInPlace: true } }), children: [`+ `, p10] })] });
   }
-  var sV = jB(MB, import_react2.memo)(oV), cV = Tt.div`
+  var sV = jB(MB, import_react3.memo)(oV), cV = Tt.div`
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -48999,7 +48197,7 @@ ${l10}
     let o10 = I(eP), s10 = vc(), c10 = fb(), l10 = e10.display.endsWith(`!`), u10 = o10[e10.name];
     return (0, import_jsx_runtime.jsxs)(jV, { className: a10, "data-testid": `return-type`, $inline: t10, $size: n10, children: [u10 ? (0, import_jsx_runtime.jsx)(MV, { to: s10(u10), children: e10.display }) : (0, import_jsx_runtime.jsx)(`span`, { children: e10.display }), l10 && (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [(0, import_jsx_runtime.jsx)(NV, { children: `,` }), (0, import_jsx_runtime.jsx)(TV, { children: c10(`nonNull`, `non-null`) })] }), r10 && (0, import_jsx_runtime.jsx)(OV, { "data-testid": `deprecated`, $type: `warning`, children: c10(`badges.deprecated`, `deprecated`) }), i10 && (0, import_jsx_runtime.jsx)(OV, { "data-testid": `required-arg`, $type: `error`, children: c10(`required`, `required`) })] });
   }
-  var AV = (0, import_react2.memo)(kV), jV = Tt.div`
+  var AV = (0, import_react3.memo)(kV), jV = Tt.div`
   display: ${({ $inline: e10 }) => e10 ? `inline-block` : `block`};
   min-width: 0;
   font-size: ${({ $size: e10 }) => `var(--font-size-${e10})`};
@@ -49021,15 +48219,15 @@ ${l10}
     let r10 = I($N(QN(n10, t10)));
     return e10 ? (0, import_jsx_runtime.jsx)(import_jsx_runtime.Fragment, { children: r10 && (0, import_jsx_runtime.jsxs)(DV, { "data-gql-return-type-details": true, children: [(0, import_jsx_runtime.jsx)(hV, {}), (0, import_jsx_runtime.jsx)(AV, { typeRef: r10.type, size: `lg` })] }) }) : null;
   }
-  var FV = (0, import_react2.memo)(PV);
+  var FV = (0, import_react3.memo)(PV);
   _c();
-  var IV = (0, import_react2.memo)(function({ routingBasePath: e10, relativePath: t10, itemId: n10, label: r10 }) {
-    let i10 = vc(), a10 = I(np({ itemId: n10, key: `activeResponseCode` })), o10 = (0, import_react2.useMemo)(() => {
+  var IV = (0, import_react3.memo)(function({ routingBasePath: e10, relativePath: t10, itemId: n10, label: r10 }) {
+    let i10 = vc(), a10 = I(np({ itemId: n10, key: `activeResponseCode` })), o10 = (0, import_react3.useMemo)(() => {
       let n11 = a10 ? Ys(`responses`, void 0, a10) : `responses`;
       return i10(Gs(e10, t10, n11));
     }, [e10, t10, a10, i10]);
     return (0, import_jsx_runtime.jsx)(vb, { to: o10, label: r10 });
-  }), LV = (0, import_react2.memo)(function({ codes: e10, itemId: t10, firstCode: n10 }) {
+  }), LV = (0, import_react3.memo)(function({ codes: e10, itemId: t10, firstCode: n10 }) {
     let r10 = I(np({ itemId: t10, key: `activeResponseCode` })), i10 = Qo(tp(t10)), a10 = jE(), o10 = r10 || n10, s10 = e10.includes(o10) ? o10 : e10[0], c10 = (t11) => {
       a10.sendResponseCodeTabClickedMessage([{ ...VE.responseCodeTab, statusClass: $E(t11), total: e10.length }]), i10({ activeResponseCode: t11 });
     }, l10 = (t11, n11) => {
@@ -54482,7 +53680,7 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
   }
   function cpe(e10) {
     let t10 = I(hs), n10 = I(gs), { downloadUrls: r10 } = I(ds), i10 = I($R), a10 = I(fs), o10 = I(ps);
-    return (0, import_react2.useMemo)(() => {
+    return (0, import_react3.useMemo)(() => {
       if (!t10 || !i10) return null;
       let s10 = spe(i10, e10, o10 ?? ``), c10 = s10 ? i10.tagByPath.get(s10.path)?.items.map((e11) => e11.content) : void 0, l10 = Lq(a10, s10?.content, s10?.label, c10);
       if (!l10) return null;
@@ -54504,8 +53702,8 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
     }
   }
   function upe({ pageSlug: e10 }) {
-    let t10 = fb(), n10 = jE(), r10 = cpe(e10), [i10, a10] = (0, import_react2.useState)(`idle`), o10 = (0, import_react2.useRef)(void 0);
-    if ((0, import_react2.useEffect)(() => () => clearTimeout(o10.current), []), !r10) return null;
+    let t10 = fb(), n10 = jE(), r10 = cpe(e10), [i10, a10] = (0, import_react3.useState)(`idle`), o10 = (0, import_react3.useRef)(void 0);
+    if ((0, import_react3.useEffect)(() => () => clearTimeout(o10.current), []), !r10) return null;
     let s10 = (e11, t11, r11) => {
       n10.sendPageActionsClickedMessage([{ ...VE.pageActions, actionType: e11, outcome: t11, ...r11 ? { tier: r11 } : {} }]);
     }, c10 = async () => {
@@ -54561,10 +53759,10 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
   }
   na();
   var V$ = ({ itemId: e10, deepLinkKeys: t10 }) => {
-    let n10 = fb(), r10 = I((0, import_react2.useMemo)(() => Eu(tp(e10), (e11) => {
+    let n10 = fb(), r10 = I((0, import_react3.useMemo)(() => Eu(tp(e10), (e11) => {
       let n11 = Object.entries(e11.collapsibles).filter(([e12]) => t10.includes(lp(e12)));
       return n11.length > 0 && n11.every(([, e12]) => e12);
-    }), [e10, t10])), i10 = Qo(tp(e10)), [a10, startTransition4] = (0, import_react2.useTransition)(), o10 = jE();
+    }), [e10, t10])), i10 = Qo(tp(e10)), [a10, startTransition4] = (0, import_react3.useTransition)(), o10 = jE();
     return (0, import_jsx_runtime.jsx)(mpe, { "data-testid": `schema-expand-all-button`, icon: (0, import_jsx_runtime.jsx)(Wg, { $collapse: r10 }), iconPosition: `right`, size: `small`, variant: `ghost`, onClick: () => {
       let e11 = !r10;
       o10.sendExpandCollapseAllClickedMessage([{ ...VE.expandCollapseAllButton, isExpanded: e11 }]), startTransition4(() => {
@@ -54585,21 +53783,21 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
     });
   }
   function U$(e10) {
-    let t10 = I(lre((0, import_react2.useContext)(bc) ?? ``));
-    return (0, import_react2.useMemo)(() => e10 ? t10.filter((t11) => H$(t11, e10)) : [], [t10, e10]);
+    let t10 = I(lre((0, import_react3.useContext)(bc) ?? ``));
+    return (0, import_react3.useMemo)(() => e10 ? t10.filter((t11) => H$(t11, e10)) : [], [t10, e10]);
   }
   function W$(e10) {
-    let t10 = (0, import_react2.useContext)(bc) ?? ``;
-    return I((0, import_react2.useMemo)(() => Eu(tp(t10), (t11) => !!e10 && Object.keys(t11.collapsibles).some((t12) => H$(lp(t12), e10))), [t10, e10]));
+    let t10 = (0, import_react3.useContext)(bc) ?? ``;
+    return I((0, import_react3.useMemo)(() => Eu(tp(t10), (t11) => !!e10 && Object.keys(t11.collapsibles).some((t12) => H$(lp(t12), e10))), [t10, e10]));
   }
   function gpe(e10, t10) {
-    return (0, import_react2.useMemo)(() => {
+    return (0, import_react3.useMemo)(() => {
       if (t10 === `responses` && e10?.nodeType === R2.CONTAINER) return e10.children.find((e11) => e11.nodeType === R2.ITEM && e11.variant === `responses`)?.responses?.map((e11) => e11.code);
     }, [e10, t10]);
   }
   B2(), qf(), Ns(), Ds(), _c();
   function _pe({ node: e10, path: t10, parentNode: n10 }) {
-    let { level: r10, label: i10, badges: a10, deprecated: o10, graphqlReturnType: s10, graphqlArgs: c10, graphqlDeprecated: l10, graphqlOperationType: u10, showPageActions: d10 = false, deepLinkSuffix: f10, protocolTag: p10, isWebhook: m10 } = e10, h10 = I(fs), g10 = fb(), _10 = h10 === es.GRAPHQL, v10 = o10 || _10 && l10, y10 = I(ps), b10 = vc(), x10 = (0, import_react2.useContext)(bc), S10 = gpe(n10, f10), C10 = S10?.[0] || ``, w10 = Tj(g10, e10.labelTranslationKey, e10.label), T10 = (0, import_react2.useMemo)(() => t10 ? Ms(t10, y10) : ``, [t10, y10]), E10 = (0, import_react2.useMemo)(() => T10 ? b10(f10 ? Gs(y10, T10, f10) : Os(y10, bs(T10.toLowerCase()))) : ``, [T10, y10, f10, b10]), D10 = f10 === `responses` && !!S10 && S10.length > 0 && !!t10, O10 = U$(f10), k10 = W$(f10), ee3 = (0, import_react2.useMemo)(() => a10?.filter((e11) => e11.position === `before`) ?? [], [a10]), te3 = (0, import_react2.useMemo)(() => a10?.filter((e11) => e11.position !== `before`) ?? [], [a10]), ne3 = (0, import_react2.useMemo)(() => !E10 || r10 <= 1 ? null : D10 ? (0, import_jsx_runtime.jsx)(IV, { routingBasePath: y10, relativePath: T10, itemId: x10 ?? ``, label: `link to ${w10}` }) : (0, import_jsx_runtime.jsx)(vb, { to: E10, label: `link to ${w10}` }), [E10, r10, D10, y10, T10, x10, w10]), re3 = (0, import_react2.useMemo)(() => {
+    let { level: r10, label: i10, badges: a10, deprecated: o10, graphqlReturnType: s10, graphqlArgs: c10, graphqlDeprecated: l10, graphqlOperationType: u10, showPageActions: d10 = false, deepLinkSuffix: f10, protocolTag: p10, isWebhook: m10 } = e10, h10 = I(fs), g10 = fb(), _10 = h10 === es.GRAPHQL, v10 = o10 || _10 && l10, y10 = I(ps), b10 = vc(), x10 = (0, import_react3.useContext)(bc), S10 = gpe(n10, f10), C10 = S10?.[0] || ``, w10 = Tj(g10, e10.labelTranslationKey, e10.label), T10 = (0, import_react3.useMemo)(() => t10 ? Ms(t10, y10) : ``, [t10, y10]), E10 = (0, import_react3.useMemo)(() => T10 ? b10(f10 ? Gs(y10, T10, f10) : Os(y10, bs(T10.toLowerCase()))) : ``, [T10, y10, f10, b10]), D10 = f10 === `responses` && !!S10 && S10.length > 0 && !!t10, O10 = U$(f10), k10 = W$(f10), ee3 = (0, import_react3.useMemo)(() => a10?.filter((e11) => e11.position === `before`) ?? [], [a10]), te3 = (0, import_react3.useMemo)(() => a10?.filter((e11) => e11.position !== `before`) ?? [], [a10]), ne3 = (0, import_react3.useMemo)(() => !E10 || r10 <= 1 ? null : D10 ? (0, import_jsx_runtime.jsx)(IV, { routingBasePath: y10, relativePath: T10, itemId: x10 ?? ``, label: `link to ${w10}` }) : (0, import_jsx_runtime.jsx)(vb, { to: E10, label: `link to ${w10}` }), [E10, r10, D10, y10, T10, x10, w10]), re3 = (0, import_react3.useMemo)(() => {
       let e11 = (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [ne3, ee3.map(Tb), w10, te3.map(Tb)] });
       switch (r10) {
         case 1:
@@ -54726,7 +53924,7 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
   font-weight: var(--font-weight-semibold);
   line-height: var(--line-height-lg);
   color: var(--text-color-primary);
-`, K$ = (0, import_react2.memo)(_pe);
+`, K$ = (0, import_react3.memo)(_pe);
   function jpe({ node: e10 }) {
     let t10 = fb();
     return (0, import_jsx_runtime.jsx)(Mpe, { children: Tj(t10, e10.labelTranslationKey, e10.label) });
@@ -54853,15 +54051,15 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
     let t10 = fb(), { rows: n10 } = e10;
     return n10.length === 0 ? null : (0, import_jsx_runtime.jsxs)(mb, { children: [(0, import_jsx_runtime.jsx)(pV, { children: t10(`info.metadata.title`, `Metadata`) }), (0, import_jsx_runtime.jsxs)(`table`, { className: `md`, children: [(0, import_jsx_runtime.jsx)(`thead`, { children: (0, import_jsx_runtime.jsxs)(`tr`, { children: [(0, import_jsx_runtime.jsx)(`th`, { scope: `col`, children: t10(`key`, `Key`) }), (0, import_jsx_runtime.jsx)(`th`, { scope: `col`, children: t10(`value`, `Value`) })] }) }), (0, import_jsx_runtime.jsx)(`tbody`, { children: n10.map(({ key: e11, value: t11 }) => (0, import_jsx_runtime.jsxs)(`tr`, { children: [(0, import_jsx_runtime.jsx)(`td`, { children: e11 }), (0, import_jsx_runtime.jsx)(`td`, { children: t11 })] }, e11)) })] })] });
   }
-  var Hpe = (0, import_react2.memo)(Vpe);
+  var Hpe = (0, import_react3.memo)(Vpe);
   function Upe({ node: e10, itemPath: t10, sectionId: n10 }) {
     let { children: r10, panels: i10 } = e10;
     return (0, import_jsx_runtime.jsx)(bP, { panels: i10, sectionId: n10, children: r10?.map((n11, r11) => (0, import_jsx_runtime.jsx)(E1, { type: n11.nodeType, node: n11, parentNode: e10, itemPath: t10 }, `${e10.nodeType}_${n11.nodeType}_${r11}`)) });
   }
-  var X$ = (0, import_react2.memo)(Upe);
+  var X$ = (0, import_react3.memo)(Upe);
   sN(), Ds();
   function Wpe({ node: e10 }) {
-    let t10 = e10.parameters, n10 = e10.variant, r10 = Sc(), i10 = (0, import_react2.useMemo)(() => ({ t: `request`, in: n10, cb: r10 }), [n10, r10]);
+    let t10 = e10.parameters, n10 = e10.variant, r10 = Sc(), i10 = (0, import_react3.useMemo)(() => ({ t: `request`, in: n10, cb: r10 }), [n10, r10]);
     return !t10 || t10.length === 0 ? (0, import_jsx_runtime.jsx)(import_jsx_runtime.Fragment, {}) : (0, import_jsx_runtime.jsx)(wc.Provider, { value: i10, children: (0, import_jsx_runtime.jsx)(qpe, { children: t10.map((e11, t11) => (0, import_jsx_runtime.jsx)(Kpe, { param: e11 }, `${e11.name}-${t11}`)) }) });
   }
   function Gpe(e10) {
@@ -54877,12 +54075,12 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
 `;
   na();
   function Jpe({ mediaTypes: e10, value: t10, onChange: n10, deepLink: r10, headingId: i10, required: a10 }) {
-    let o10 = fb(), s10 = (0, import_react2.useCallback)((e11) => n10(e11), [n10]);
+    let o10 = fb(), s10 = (0, import_react3.useCallback)((e11) => n10(e11), [n10]);
     if (!e10.length) return null;
     let c10 = t10 && e10.includes(t10) ? t10 : e10[0], l10 = e10.length > 1, u10 = o10(`body`, `Body`);
     return (0, import_jsx_runtime.jsxs)(Ype, { id: i10, children: [r10 ? (0, import_jsx_runtime.jsx)(vb, { to: r10, label: `link to ${u10}` }) : null, u10, l10 ? (0, import_jsx_runtime.jsx)(Xg, { portalled: true, trigger: (0, import_jsx_runtime.jsx)(ta, { variant: `ghost`, size: `large`, type: `button`, children: (0, import_jsx_runtime.jsx)(Q$, { "data-testid": `dropdown-item-media-type`, children: c10 }) }), withArrow: true, children: (0, import_jsx_runtime.jsx)(t_, { children: e10.map((e11) => (0, import_jsx_runtime.jsx)(Zpe, { active: e11 === c10, onAction: () => s10(e11), suffix: e11 === c10 && (0, import_jsx_runtime.jsx)(Xpe, {}), children: (0, import_jsx_runtime.jsx)(Q$, { children: e11 }) }, e11)) }) }) : (0, import_jsx_runtime.jsx)($pe, { children: e10[0] }), a10 ? (0, import_jsx_runtime.jsx)(Qpe, { children: o10(`required`, `required`) }) : null] });
   }
-  var Z$ = (0, import_react2.memo)(Jpe), Ype = Tt.div`
+  var Z$ = (0, import_react3.memo)(Jpe), Ype = Tt.div`
   position: relative;
   display: flex;
   align-items: center;
@@ -54945,8 +54143,8 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
   _c();
   function eme({ node: e10 }) {
     let t10 = e10.mediaTypeSchemas ? Object.keys(e10.mediaTypeSchemas) : e10.mediaTypes, [n10, r10] = $o(Sh);
-    $h((0, import_react2.useContext)(bc) ?? void 0, t10);
-    let i10 = n10 && t10?.includes(n10) ? n10 : t10?.[0], a10 = e10.mediaTypeSchemas?.[i10 ?? ``]?.schemaId ?? e10.schemaId, o10 = I(kc(a10 ?? ``)), s10 = t10 && t10.length > 0, c10 = t10 && t10.length > 1, l10 = e10.variant === `querystring-body` || e10.variant === `body` && !e10.isEvent, u10 = Ec((0, import_react2.useMemo)(() => Ys(`request`, `body`), [])), d10 = Sc(), f10 = (0, import_react2.useMemo)(() => ({ t: `request`, cb: d10, ct: c10 ? i10 : void 0, schemaId: a10 }), [d10, c10, i10, a10]);
+    $h((0, import_react3.useContext)(bc) ?? void 0, t10);
+    let i10 = n10 && t10?.includes(n10) ? n10 : t10?.[0], a10 = e10.mediaTypeSchemas?.[i10 ?? ``]?.schemaId ?? e10.schemaId, o10 = I(kc(a10 ?? ``)), s10 = t10 && t10.length > 0, c10 = t10 && t10.length > 1, l10 = e10.variant === `querystring-body` || e10.variant === `body` && !e10.isEvent, u10 = Ec((0, import_react3.useMemo)(() => Ys(`request`, `body`), [])), d10 = Sc(), f10 = (0, import_react3.useMemo)(() => ({ t: `request`, cb: d10, ct: c10 ? i10 : void 0, schemaId: a10 }), [d10, c10, i10, a10]);
     return (0, import_jsx_runtime.jsxs)(tme, { id: $s(u10), children: [s10 && t10 && (0, import_jsx_runtime.jsx)(Z$, { mediaTypes: t10, value: i10, onChange: r10, deepLink: u10, required: e10.required }), e10.description ? (0, import_jsx_runtime.jsx)(nme, { children: (0, import_jsx_runtime.jsx)(pv, { source: e10.description }) }) : null, o10 && (0, import_jsx_runtime.jsx)(wc.Provider, { value: f10, children: (0, import_jsx_runtime.jsx)(uj, { schemaId: a10, expandByDefault: true, level: 1, skipReadOnly: l10, skipWriteOnly: !l10 }) })] });
   }
   var tme = Tt.div`
@@ -54961,16 +54159,16 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
     margin-top: var(--spacing-xxs);
     margin-bottom: 0;
   }
-`, rme = (0, import_react2.memo)(eme);
+`, rme = (0, import_react3.memo)(eme);
   _c(), QR();
   function ime({ node: e10 }) {
-    let t10 = e10.responses, n10 = fb(), r10 = (0, import_react2.useContext)(bc), i10 = I(np({ itemId: r10 ?? ``, key: `activeResponseCode` })), a10 = Qo(tp(r10 ?? ``)), o10 = (0, import_react2.useMemo)(() => t10?.map((e11) => e11.code), [t10]), s10 = Qh(r10 ?? void 0, o10, `c`), c10 = zh(), l10 = i10 || s10 || t10?.[0]?.code || ``;
-    (0, import_react2.useEffect)(() => {
+    let t10 = e10.responses, n10 = fb(), r10 = (0, import_react3.useContext)(bc), i10 = I(np({ itemId: r10 ?? ``, key: `activeResponseCode` })), a10 = Qo(tp(r10 ?? ``)), o10 = (0, import_react3.useMemo)(() => t10?.map((e11) => e11.code), [t10]), s10 = Qh(r10 ?? void 0, o10, `c`), c10 = zh(), l10 = i10 || s10 || t10?.[0]?.code || ``;
+    (0, import_react3.useEffect)(() => {
       s10 && a10({ activeResponseCode: s10 });
     }, [s10, a10, c10]);
     let u10 = Zh(l10, `body`), d10 = Zh(l10, `headers`), { mediaTypes: f10, mediaType: p10, mediaTypeContent: m10, schemaId: h10, summary: g10, description: _10, headers: v10, headerSchemaId: y10 } = t10?.find((e11) => e11.code === l10) ?? t10?.[0] ?? {}, b10 = m10 ? Object.keys(m10) : f10 ?? (p10 ? [p10] : []), [x10, S10] = $o(Sh);
     $h(r10 ?? void 0, b10);
-    let C10 = x10 && b10.includes(x10) ? x10 : b10[0], w10 = m10?.[C10]?.schemaId ?? h10, T10 = Sc(), E10 = (0, import_react2.useMemo)(() => ({ t: `response`, c: l10, cb: T10, ct: b10.length > 1 ? C10 : void 0, schemaId: w10 }), [l10, T10, b10.length, C10, w10]);
+    let C10 = x10 && b10.includes(x10) ? x10 : b10[0], w10 = m10?.[C10]?.schemaId ?? h10, T10 = Sc(), E10 = (0, import_react3.useMemo)(() => ({ t: `response`, c: l10, cb: T10, ct: b10.length > 1 ? C10 : void 0, schemaId: w10 }), [l10, T10, b10.length, C10, w10]);
     return !t10 || t10.length === 0 ? (0, import_jsx_runtime.jsx)(import_jsx_runtime.Fragment, {}) : (0, import_jsx_runtime.jsx)(ame, { children: (0, import_jsx_runtime.jsxs)(ome, { children: [g10 && (0, import_jsx_runtime.jsx)($$, { children: (0, import_jsx_runtime.jsx)(pv, { source: g10 }) }), _10 && (0, import_jsx_runtime.jsx)($$, { children: (0, import_jsx_runtime.jsx)(pv, { source: _10 }) }), (0, import_jsx_runtime.jsxs)(wc.Provider, { value: E10, children: [(y10 || V2(v10)) && (0, import_jsx_runtime.jsxs)(lme, { children: [(0, import_jsx_runtime.jsxs)(sme, { id: $s(d10), children: [d10 && (0, import_jsx_runtime.jsx)(vb, { to: d10, label: `link to ${n10(`header`, `Headers`)}` }), (0, import_jsx_runtime.jsx)(cme, { children: n10(`header`, `Headers`) })] }), y10 ? (0, import_jsx_runtime.jsx)(uj, { schemaId: y10, expandByDefault: true, level: 1 }) : (0, import_jsx_runtime.jsx)(uj, { schema: v10, expandByDefault: true, level: 1 })] }), b10.length > 0 && (0, import_jsx_runtime.jsx)(Z$, { headingId: $s(u10), mediaTypes: b10, value: C10, onChange: S10, deepLink: u10 }), w10 && (0, import_jsx_runtime.jsx)(uj, { schemaId: w10, expandByDefault: true, level: 1, skipWriteOnly: true })] })] }) });
   }
   var ame = Tt.div`
@@ -55004,7 +54202,7 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
   function ume({ node: e10 }) {
     return e10.schemaId ? (0, import_jsx_runtime.jsx)(uj, { schemaId: e10.schemaId, expandByDefault: true }) : (0, import_jsx_runtime.jsx)(import_jsx_runtime.Fragment, {});
   }
-  var dme = (0, import_react2.memo)(ume);
+  var dme = (0, import_react3.memo)(ume);
   gv();
   function e1(e10) {
     return e10 ? typeof e10 == `string` ? mv(e10) ? e10 : (0, import_jsx_runtime.jsx)(pv, { source: e10 }) : Array.isArray(e10) || typeof e10 == `object` ? (0, import_jsx_runtime.jsx)(pv, { source: e10 }) : String(e10) : null;
@@ -55049,12 +54247,12 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
     return !t10 || t10.length === 0 ? (0, import_jsx_runtime.jsx)(import_jsx_runtime.Fragment, {}) : (0, import_jsx_runtime.jsx)(Sme, { messages: t10 });
   }
   function Sme({ messages: e10 }) {
-    let t10 = (0, import_react2.useContext)(bc), n10 = Qo(tp(t10 ?? ``)), r10 = I((0, import_react2.useMemo)(() => np({ itemId: t10 ?? ``, key: `activeMessageKey` }), [t10])), i10 = (0, import_react2.useMemo)(() => e10.map((e11) => e11.name), [e10]), a10 = Qh(t10 ?? void 0, i10, `m`), o10 = zh(), s10 = (0, import_react2.useRef)(void 0), c10 = (0, import_react2.useRef)(o10), l10 = a10 !== void 0 && (a10 !== s10.current || o10 !== c10.current) ? a10 : r10 || e10[0].name, u10 = (0, import_react2.useMemo)(() => e10.find((e11) => e11.name === l10) ?? e10[0], [e10, l10]);
-    (0, import_react2.useEffect)(() => {
+    let t10 = (0, import_react3.useContext)(bc), n10 = Qo(tp(t10 ?? ``)), r10 = I((0, import_react3.useMemo)(() => np({ itemId: t10 ?? ``, key: `activeMessageKey` }), [t10])), i10 = (0, import_react3.useMemo)(() => e10.map((e11) => e11.name), [e10]), a10 = Qh(t10 ?? void 0, i10, `m`), o10 = zh(), s10 = (0, import_react3.useRef)(void 0), c10 = (0, import_react3.useRef)(o10), l10 = a10 !== void 0 && (a10 !== s10.current || o10 !== c10.current) ? a10 : r10 || e10[0].name, u10 = (0, import_react3.useMemo)(() => e10.find((e11) => e11.name === l10) ?? e10[0], [e10, l10]);
+    (0, import_react3.useEffect)(() => {
       a10 && n10({ activeMessageKey: a10 }), s10.current = a10, c10.current = o10;
     }, [a10, o10, n10]);
-    let d10 = jE(), f10 = (0, import_react2.useMemo)(() => e10.map((e11) => ({ value: e11.name, label: e11.label || e11.name })), [e10]), p10 = (0, import_react2.useRef)(null), [m10, h10] = (0, import_react2.useState)(false);
-    (0, import_react2.useEffect)(() => {
+    let d10 = jE(), f10 = (0, import_react3.useMemo)(() => e10.map((e11) => ({ value: e11.name, label: e11.label || e11.name })), [e10]), p10 = (0, import_react3.useRef)(null), [m10, h10] = (0, import_react3.useState)(false);
+    (0, import_react3.useEffect)(() => {
       let e11 = () => {
         let e12 = p10.current;
         if (!e12) return;
@@ -55066,9 +54264,9 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
       };
       return e11(), window.addEventListener(`resize`, e11), () => window.removeEventListener(`resize`, e11);
     }, [f10]);
-    let g10 = e10.length > bme || e10.length > 1 && m10, _10 = (0, import_react2.useCallback)((e11) => {
+    let g10 = e10.length > bme || e10.length > 1 && m10, _10 = (0, import_react3.useCallback)((e11) => {
       d10.sendSwitchMessageClickedMessage([{ ...VE.switchMessageButton, index: i10.indexOf(e11), total: i10.length }]), n10({ activeMessageKey: e11 });
-    }, [d10, n10, i10]), v10 = Ec((0, import_react2.useMemo)(() => u10?.name ? Xs({ section: `messages`, messageKey: u10.name }) : ``, [u10?.name])), y10 = (0, import_react2.useMemo)(() => t10 ? `${t10}/messages` : void 0, [t10]);
+    }, [d10, n10, i10]), v10 = Ec((0, import_react3.useMemo)(() => u10?.name ? Xs({ section: `messages`, messageKey: u10.name }) : ``, [u10?.name])), y10 = (0, import_react3.useMemo)(() => t10 ? `${t10}/messages` : void 0, [t10]);
     return (0, import_jsx_runtime.jsxs)(`div`, { ...y10 ? { [Xl]: y10 } : {}, children: [(0, import_jsx_runtime.jsx)(wme, { children: e10.length > 1 ? (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [`Accepts `, (0, import_jsx_runtime.jsx)(Tme, { children: `one of` }), ` the following messages:`] }) : (0, import_jsx_runtime.jsx)(import_jsx_runtime.Fragment, { children: `Accepts the following message:` }) }), (0, import_jsx_runtime.jsxs)(Eme, { id: $s(v10), children: [v10 && (0, import_jsx_runtime.jsx)(Dme, { children: (0, import_jsx_runtime.jsx)(vb, { to: v10, label: `link to Message selector` }) }), g10 ? (0, import_jsx_runtime.jsx)(CO, { value: l10, options: f10, onChange: (e11) => {
       e11.value !== void 0 && _10(e11.value);
     } }) : (0, import_jsx_runtime.jsx)(dO, { ref: p10, size: `small`, value: l10, options: f10, onChange: (e11) => {
@@ -55076,7 +54274,7 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
     } })] }), u10 && (0, import_jsx_runtime.jsx)(Cme, { message: u10 })] });
   }
   function Cme({ message: e10 }) {
-    let t10 = fb(), n10 = t10(`header`, `Headers`), r10 = (0, import_react2.useMemo)(() => e10.name ? { asyncSection: `messages`, messageKey: e10.name, t: `headers` } : null, [e10.name]), i10 = (0, import_react2.useMemo)(() => e10.name ? { asyncSection: `messages`, messageKey: e10.name, t: `payload` } : null, [e10.name]), a10 = (0, import_react2.useMemo)(() => e10.name ? Xs({ section: `messages`, messageKey: e10.name, subsection: `headers` }) : ``, [e10.name]), o10 = (0, import_react2.useMemo)(() => e10.name ? Xs({ section: `messages`, messageKey: e10.name, subsection: `payload` }) : ``, [e10.name]), s10 = Ec(a10), c10 = Ec(o10), l10 = e10.payloadLabel ?? t10(`payload`, `Payload`), u10 = e10.externalDocs?.description == null ? void 0 : ib(e10.externalDocs.description);
+    let t10 = fb(), n10 = t10(`header`, `Headers`), r10 = (0, import_react3.useMemo)(() => e10.name ? { asyncSection: `messages`, messageKey: e10.name, t: `headers` } : null, [e10.name]), i10 = (0, import_react3.useMemo)(() => e10.name ? { asyncSection: `messages`, messageKey: e10.name, t: `payload` } : null, [e10.name]), a10 = (0, import_react3.useMemo)(() => e10.name ? Xs({ section: `messages`, messageKey: e10.name, subsection: `headers` }) : ``, [e10.name]), o10 = (0, import_react3.useMemo)(() => e10.name ? Xs({ section: `messages`, messageKey: e10.name, subsection: `payload` }) : ``, [e10.name]), s10 = Ec(a10), c10 = Ec(o10), l10 = e10.payloadLabel ?? t10(`payload`, `Payload`), u10 = e10.externalDocs?.description == null ? void 0 : ib(e10.externalDocs.description);
     return (0, import_jsx_runtime.jsxs)(Ome, { children: [e10.summary && (0, import_jsx_runtime.jsx)(kme, { children: e10.summary }), e10.description && (0, import_jsx_runtime.jsx)(t1, { children: (0, import_jsx_runtime.jsx)(pv, { source: e10.description }) }), e10.externalDocs?.url && (0, import_jsx_runtime.jsx)(Ame, { children: (0, import_jsx_runtime.jsx)(Qj, { externalDocs: { url: e10.externalDocs.url, description: u10 || void 0 }, compact: true }) }), e10.correlationId && (0, import_jsx_runtime.jsxs)(t1, { children: [(0, import_jsx_runtime.jsx)(`strong`, { children: `Correlation ID` }), ` `, (0, import_jsx_runtime.jsx)(`code`, { children: e10.correlationId.location }), e10.correlationId.description && (0, import_jsx_runtime.jsx)(pv, { source: e10.correlationId.description })] }), (e10.headerSchemaId || V2(e10.headers)) && (0, import_jsx_runtime.jsxs)(n1, { id: $s(s10), children: [(0, import_jsx_runtime.jsxs)(r1, { children: [s10 && (0, import_jsx_runtime.jsx)(vb, { to: s10, label: `link to ${n10}` }), n10] }), (0, import_jsx_runtime.jsx)(wc.Provider, { value: r10, children: e10.headerSchemaId ? (0, import_jsx_runtime.jsx)(uj, { schemaId: e10.headerSchemaId, expandByDefault: true }) : (0, import_jsx_runtime.jsx)(uj, { schema: e10.headers, expandByDefault: true }) })] }), (e10.schemaId || V2(e10.payload)) && (0, import_jsx_runtime.jsxs)(n1, { id: $s(c10), children: [(0, import_jsx_runtime.jsxs)(r1, { children: [c10 && (0, import_jsx_runtime.jsx)(vb, { to: c10, label: `link to ${l10}` }), l10, e10.contentType && (0, import_jsx_runtime.jsx)(jme, { children: e10.contentType })] }), (0, import_jsx_runtime.jsx)(wc.Provider, { value: i10, children: e10.schemaId ? (0, import_jsx_runtime.jsx)(uj, { schemaId: e10.schemaId, expandByDefault: true }) : (0, import_jsx_runtime.jsx)(uj, { schema: e10.payload, expandByDefault: true }) })] })] });
   }
   var wme = Tt.p`
@@ -55145,17 +54343,17 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
     return e10.target instanceof Element && e10.target.closest(`a`) !== null;
   }
   function Pme({ operation: e10, callbackId: t10, isExpanded: n10, onToggle: r10 }) {
-    let { httpVerb: i10, pathName: a10, summary: o10, operationId: s10, description: c10, deprecated: l10, contentChildren: u10, externalDocs: d10, extensions: f10 } = e10, p10 = o10 || s10 || c10 && ib(c10).substring(0, 50) || a10 || `<no summary>`, m10 = Ys(dc, t10), h10 = Ec(m10), g10 = (0, import_react2.useRef)(null), _10 = Ec(`${m10}/${pc}`), v10 = Ec(`${m10}/${mc}`), y10 = fb(), b10 = y10(`callbackRequest`, `Callback Request`), x10 = y10(`callbackResponse`, `Callback Response`), S10 = y10(`badges.deprecated`, `deprecated`);
+    let { httpVerb: i10, pathName: a10, summary: o10, operationId: s10, description: c10, deprecated: l10, contentChildren: u10, externalDocs: d10, extensions: f10 } = e10, p10 = o10 || s10 || c10 && ib(c10).substring(0, 50) || a10 || `<no summary>`, m10 = Ys(dc, t10), h10 = Ec(m10), g10 = (0, import_react3.useRef)(null), _10 = Ec(`${m10}/${pc}`), v10 = Ec(`${m10}/${mc}`), y10 = fb(), b10 = y10(`callbackRequest`, `Callback Request`), x10 = y10(`callbackResponse`, `Callback Response`), S10 = y10(`badges.deprecated`, `deprecated`);
     return (0, import_jsx_runtime.jsx)(Rme, { header: ({ expanded: e11, toggle: n11 }) => (0, import_jsx_runtime.jsxs)(zme, { ref: g10, expanded: e11, toggle: (e12) => {
       Nme(e12) || (n11?.(e12), r10(t10));
     }, id: $s(h10), children: [h10 && (0, import_jsx_runtime.jsx)(vb, { to: h10, label: `link to ${p10}` }), (0, import_jsx_runtime.jsxs)(Ime, { children: [(0, import_jsx_runtime.jsx)(Bme, { type: `button`, "aria-expanded": e11, "aria-label": p10, children: (0, import_jsx_runtime.jsx)(Vme, { $expanded: e11, "aria-hidden": `true` }) }), (0, import_jsx_runtime.jsxs)(Lme, { children: [(0, import_jsx_runtime.jsx)(Hme, { $deprecated: l10, children: p10 }), (0, import_jsx_runtime.jsx)(Ume, { color: i10, children: Mme(i10) }), l10 ? (0, import_jsx_runtime.jsx)(wb, { $deprecated: true, children: S10 }) : null] })] })] }), expanded: n10, className: `panel-response-callback`, children: (0, import_jsx_runtime.jsxs)(Wme, { children: [c10 && (0, import_jsx_runtime.jsx)(Kme, { children: (0, import_jsx_runtime.jsx)(pv, { source: c10 }) }), d10 && (0, import_jsx_runtime.jsx)(qme, { href: d10.url, target: `_blank`, rel: `noopener noreferrer`, children: d10.description || d10.url }), f10 && Object.keys(f10).length > 0 && (0, import_jsx_runtime.jsx)(Jme, { children: Object.entries(f10).map(([e11, t11]) => (0, import_jsx_runtime.jsxs)(Yme, { children: [(0, import_jsx_runtime.jsxs)(`strong`, { children: [e11, `:`] }), ` `, typeof t11 == `string` ? t11 : JSON.stringify(t11)] }, e11)) }), u10 && u10.length > 0 && (0, import_jsx_runtime.jsxs)(xc.Provider, { value: t10, children: [(0, import_jsx_runtime.jsxs)(i1, { id: $s(_10), children: [_10 && (0, import_jsx_runtime.jsx)(vb, { to: _10, label: `link to ${b10}` }), b10] }), u10.filter((e11) => e11.nodeType === R2.ITEM && e11.variant !== `responses`).map((e11, t11) => (0, import_jsx_runtime.jsx)(S1, { node: e11 }, t11)), u10.filter((e11) => e11.nodeType === R2.ITEM && e11.variant === `responses`).map((e11, t11) => (0, import_jsx_runtime.jsxs)(`div`, { children: [(0, import_jsx_runtime.jsxs)(i1, { id: $s(v10), children: [v10 && (0, import_jsx_runtime.jsx)(vb, { to: v10, label: `link to ${x10}` }), x10] }), (0, import_jsx_runtime.jsx)(S1, { node: e11 })] }, `resp-${t11}`))] }), (0, import_jsx_runtime.jsx)(Gme, {})] }) });
   }
   function Fme({ node: e10 }) {
-    let t10 = e10.callback, n10 = (0, import_react2.useContext)(bc) ?? ``, r10 = I(np({ itemId: n10, key: `selectedCallback` })), i10 = Qo(tp(n10)), a10 = Jh(), o10 = Cc(), s10 = t10?.callbackId, c10 = lte(a10, o10, s10) ? s10 : void 0;
-    (0, import_react2.useEffect)(() => {
+    let t10 = e10.callback, n10 = (0, import_react3.useContext)(bc) ?? ``, r10 = I(np({ itemId: n10, key: `selectedCallback` })), i10 = Qo(tp(n10)), a10 = Jh(), o10 = Cc(), s10 = t10?.callbackId, c10 = lte(a10, o10, s10) ? s10 : void 0;
+    (0, import_react3.useEffect)(() => {
       c10 && i10({ selectedCallback: c10 });
     }, [c10, i10]);
-    let l10 = (0, import_react2.useCallback)((e11) => {
+    let l10 = (0, import_react3.useCallback)((e11) => {
       i10((t11) => ({ selectedCallback: t11.selectedCallback === e11 ? `` : e11 }));
     }, [i10]);
     return t10 ? (0, import_jsx_runtime.jsx)(`div`, { children: (0, import_jsx_runtime.jsx)(Pme, { operation: t10, callbackId: t10.callbackId, isExpanded: r10 === t10.callbackId, onToggle: l10 }, t10.callbackId) }) : (0, import_jsx_runtime.jsx)(import_jsx_runtime.Fragment, {});
@@ -55295,7 +54493,7 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
     let s10 = e10 ? j_(t10) : void 0;
     return (0, import_jsx_runtime.jsxs)(Zme, { $expanded: e10, children: [(0, import_jsx_runtime.jsxs)(Qme, { children: [(0, import_jsx_runtime.jsx)(nhe, { expanded: e10, label: e10 ? r10 : n10, color: s10, onClick: o10 }), !e10 && a10.length > 0 && (0, import_jsx_runtime.jsx)($me, { children: a10.map((e11) => (0, import_jsx_runtime.jsxs)(ehe, { children: [e11.name, e11.required && (0, import_jsx_runtime.jsx)(the, { children: `*` })] }, e11.name)) })] }), e10 && (0, import_jsx_runtime.jsx)(rhe, { $color: s10, children: i10 })] });
   }
-  var a1 = (0, import_react2.memo)(Xme), Zme = Tt.div`
+  var a1 = (0, import_react3.memo)(Xme), Zme = Tt.div`
   width: 100%;
   margin: var(--spacing-xxs, 4px) 0;
   display: flex;
@@ -55345,12 +54543,12 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
     let a10 = I(ZN(e10)), o10 = a10?.fields ?? [];
     return o10.length === 0 ? null : (0, import_jsx_runtime.jsx)(import_jsx_runtime.Fragment, { children: o10.map((o11) => (0, import_jsx_runtime.jsx)(b1, { field: o11, contrast: t10, fieldExpandLevel: n10, parentTypeName: i10 ?? e10, parentRequiresScopes: a10?.requiresScopes ?? null, expanded: r10 }, o11.name)) });
   }
-  var ahe = (0, import_react2.memo)(ihe);
+  var ahe = (0, import_react3.memo)(ihe);
   function ohe({ name: e10 }) {
     let t10 = I(ZN(e10)), n10 = t10?.variant === `enum` ? t10.enumValues ?? [] : [];
     return n10.length === 0 ? null : (0, import_jsx_runtime.jsx)(import_jsx_runtime.Fragment, { children: n10.map((e11) => (0, import_jsx_runtime.jsxs)(xV, { children: [(0, import_jsx_runtime.jsx)(che, { children: e11.name }), e11.description && (0, import_jsx_runtime.jsx)(_V, { children: e1(e11.description) })] }, e11.name)) });
   }
-  var she = (0, import_react2.memo)(ohe), che = Tt(wV)`
+  var she = (0, import_react3.memo)(ohe), che = Tt(wV)`
   color: var(--text-color-primary);
 `;
   function lhe({ typeNames: e10 }) {
@@ -55360,7 +54558,7 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
       return (0, import_jsx_runtime.jsxs)(xV, { children: [(0, import_jsx_runtime.jsx)(uhe, { to: a10 ? r10(a10) : `#`, children: e11 }), i10?.description && (0, import_jsx_runtime.jsx)(_V, { children: e1(i10.description) })] }, e11);
     }) });
   }
-  var o1 = (0, import_react2.memo)(lhe), uhe = Tt(Link)`
+  var o1 = (0, import_react3.memo)(lhe), uhe = Tt(Link)`
   color: var(--link-color-primary, var(--text-color-secondary));
   text-decoration: none;
   cursor: pointer;
@@ -55375,16 +54573,16 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
     let t10 = I(ZN(e10)), n10 = t10?.variant === `union` ? t10.possibleTypes ?? [] : [];
     return n10.length === 0 ? null : (0, import_jsx_runtime.jsx)(o1, { typeNames: n10 });
   }
-  var fhe = (0, import_react2.memo)(dhe);
+  var fhe = (0, import_react3.memo)(dhe);
   function phe({ typeName: e10, contrast: t10, fieldExpandLevel: n10 = 0, expanded: r10, parentPath: i10 }) {
     let a10 = I(ZN(e10));
     return a10 ? a10.variant === `enum` ? (0, import_jsx_runtime.jsx)(she, { name: e10 }) : a10.variant === `scalar` ? a10.description ? (0, import_jsx_runtime.jsx)(_V, { children: e1(a10.description) }) : null : a10.variant === `object` || a10.variant === `interface` || a10.variant === `input` ? (0, import_jsx_runtime.jsx)(ahe, { name: e10, contrast: t10, fieldExpandLevel: n10, expanded: r10, parentPath: i10 }) : a10.variant === `union` ? (0, import_jsx_runtime.jsx)(fhe, { name: e10 }) : null : null;
   }
-  var s1 = (0, import_react2.memo)(phe);
+  var s1 = (0, import_react3.memo)(phe);
   function mhe({ args: e10, fieldExpandLevel: t10 = 0, parentName: n10, title: r10, expanded: i10 }) {
     return (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [r10 && (0, import_jsx_runtime.jsx)(`h4`, { style: { fontSize: `var(--font-size-base)`, fontWeight: `var(--font-weight-semibold)`, margin: `0 0 var(--spacing-xxs, 4px)` }, children: r10 }), e10.map((e11) => (0, import_jsx_runtime.jsx)(b1, { field: e11, isArgument: true, fieldExpandLevel: t10, parentTypeName: n10, expanded: i10 }, e11.name))] });
   }
-  var hhe = (0, import_react2.memo)(mhe);
+  var hhe = (0, import_react3.memo)(mhe);
   F2();
   var c1 = Tt((e10) => (0, import_jsx_runtime.jsxs)(`svg`, { viewBox: `0 0 16 16`, fill: `none`, xmlns: `http://www.w3.org/2000/svg`, ...e10, children: [(0, import_jsx_runtime.jsx)(`path`, { d: `M7 8.295L5.705 7L5 7.705L7 9.705L11 5.705L10.295 5L7 8.295Z` }), (0, import_jsx_runtime.jsx)(`path`, { d: `M8 15L4.9121 13.3535C4.03174 12.8852 3.29552 12.186 2.78248 11.3309C2.26944 10.4758 1.99893 9.49718 2 8.5V2C2.00028 1.73487 2.10573 1.48068 2.2932 1.2932C2.48068 1.10572 2.73487 1.00028 3 1H13C13.2651 1.00028 13.5193 1.10572 13.7068 1.2932C13.8943 1.48068 13.9997 1.73487 14 2V8.5C14.0011 9.49718 13.7306 10.4758 13.2175 11.3309C12.7045 12.186 11.9683 12.8852 11.0879 13.3535L8 15ZM3 2V8.5C2.99914 9.3159 3.22048 10.1166 3.64028 10.8163C4.06007 11.5159 4.66246 12.088 5.3828 12.4712L8 13.8666L10.6172 12.4712C11.3375 12.088 11.9399 11.5159 12.3597 10.8163C12.7795 10.1166 13.0009 9.3159 13 8.5V2H3Z` })] })).attrs({ "data-component-name": `icons/SecurityIcon/SecurityIcon` })`
   path {
@@ -55396,18 +54594,18 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
 `;
   na(), zi();
   function l1({ scopeGroup: e10 }) {
-    return (0, import_jsx_runtime.jsx)(She, { children: e10.map((t10, n10) => (0, import_jsx_runtime.jsxs)(import_react2.Fragment, { children: [(0, import_jsx_runtime.jsx)(Che, { children: t10 }), n10 < e10.length - 1 && (0, import_jsx_runtime.jsx)(whe, { children: `and` })] }, t10)) });
+    return (0, import_jsx_runtime.jsx)(She, { children: e10.map((t10, n10) => (0, import_jsx_runtime.jsxs)(import_react3.Fragment, { children: [(0, import_jsx_runtime.jsx)(Che, { children: t10 }), n10 < e10.length - 1 && (0, import_jsx_runtime.jsx)(whe, { children: `and` })] }, t10)) });
   }
   function u1({ label: e10 }) {
     return (0, import_jsx_runtime.jsxs)(The, { children: [(0, import_jsx_runtime.jsx)(Ehe, { children: e10 }), (0, import_jsx_runtime.jsx)(`hr`, {})] });
   }
   function ghe({ scopes: e10, onClose: t10, parentScopes: n10 }) {
-    let r10 = (0, import_react2.useRef)(null), i10 = fb();
+    let r10 = (0, import_react3.useRef)(null), i10 = fb();
     Zj(r10, t10);
-    let a10 = !!n10?.length, o10 = (0, import_jsx_runtime.jsx)(vhe, { children: (0, import_jsx_runtime.jsxs)(yhe, { ref: r10, tabIndex: 0, children: [(0, import_jsx_runtime.jsx)(bhe, { onClick: t10, "data-testid": `close`, variant: `ghost`, icon: (0, import_jsx_runtime.jsx)(Ri, {}) }), (0, import_jsx_runtime.jsxs)(xhe, { children: [(0, import_jsx_runtime.jsx)(c1, { size: `24px` }), i10(`requiredScopes`, `Required scopes`)] }), a10 && (0, import_jsx_runtime.jsxs)(d1, { children: [(0, import_jsx_runtime.jsx)(f1, { children: i10(`objectScopes`, `Object scopes`) }), n10?.map((e11) => (0, import_jsx_runtime.jsx)(l1, { scopeGroup: e11 }, e11.join(`,`)))] }), a10 && (0, import_jsx_runtime.jsx)(u1, { label: `and` }), (0, import_jsx_runtime.jsxs)(d1, { children: [a10 && (0, import_jsx_runtime.jsx)(f1, { children: i10(`fieldScopes`, `Field scopes`) }), e10.map((t11, n11) => (0, import_jsx_runtime.jsxs)(import_react2.Fragment, { children: [(0, import_jsx_runtime.jsx)(l1, { scopeGroup: t11 }), n11 < e10.length - 1 && (0, import_jsx_runtime.jsx)(u1, { label: `or` })] }, t11.join(`,`)))] })] }) });
+    let a10 = !!n10?.length, o10 = (0, import_jsx_runtime.jsx)(vhe, { children: (0, import_jsx_runtime.jsxs)(yhe, { ref: r10, tabIndex: 0, children: [(0, import_jsx_runtime.jsx)(bhe, { onClick: t10, "data-testid": `close`, variant: `ghost`, icon: (0, import_jsx_runtime.jsx)(Ri, {}) }), (0, import_jsx_runtime.jsxs)(xhe, { children: [(0, import_jsx_runtime.jsx)(c1, { size: `24px` }), i10(`requiredScopes`, `Required scopes`)] }), a10 && (0, import_jsx_runtime.jsxs)(d1, { children: [(0, import_jsx_runtime.jsx)(f1, { children: i10(`objectScopes`, `Object scopes`) }), n10?.map((e11) => (0, import_jsx_runtime.jsx)(l1, { scopeGroup: e11 }, e11.join(`,`)))] }), a10 && (0, import_jsx_runtime.jsx)(u1, { label: `and` }), (0, import_jsx_runtime.jsxs)(d1, { children: [a10 && (0, import_jsx_runtime.jsx)(f1, { children: i10(`fieldScopes`, `Field scopes`) }), e10.map((t11, n11) => (0, import_jsx_runtime.jsxs)(import_react3.Fragment, { children: [(0, import_jsx_runtime.jsx)(l1, { scopeGroup: t11 }), n11 < e10.length - 1 && (0, import_jsx_runtime.jsx)(u1, { label: `or` })] }, t11.join(`,`)))] })] }) });
     return Xf ? (0, import_react_dom.createPortal)(o10, document.body) : o10;
   }
-  var _he = (0, import_react2.memo)(ghe), vhe = Tt.div`
+  var _he = (0, import_react3.memo)(ghe), vhe = Tt.div`
   background: var(--bg-color-modal-overlay, rgba(0, 0, 0, 0.4));
   position: fixed;
   width: 100vw;
@@ -55496,7 +54694,7 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
   white-space: nowrap;
 `;
   function p1(e10) {
-    (0, import_react2.useEffect)(() => {
+    (0, import_react3.useEffect)(() => {
       if (!e10) return;
       let { body: t10 } = document, n10 = window.innerWidth - document.documentElement.clientWidth, r10 = t10.style.overflow, i10 = t10.style.paddingRight;
       return t10.style.overflow = `hidden`, n10 > 0 && (t10.style.paddingRight = `${n10}px`), () => {
@@ -55506,17 +54704,17 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
   }
   na();
   function Dhe({ directive: e10, isItem: t10 = false }) {
-    let [n10, r10] = (0, import_react2.useState)(false), i10 = fb(), a10 = jE();
+    let [n10, r10] = (0, import_react3.useState)(false), i10 = fb(), a10 = jE();
     p1(n10);
     let o10 = () => {
       let n11 = e10?.scopes ?? [];
       a10.sendRequiredScopesModalOpenedMessage([{ ...VE.requiredScopesButton, level: t10 ? `item` : `field`, alternativesCount: n11.length, scopesCount: n11.reduce((e11, t11) => e11 + t11.length, 0), isCombined: n11.some((e11) => e11.length > 1) }]), r10(true);
     }, s10 = e10 ?? null;
-    if (!(0, import_react2.useMemo)(() => s10 ? !(s10.scopes.length === 0 && (s10.parentScopes ?? []).length > 0) : false, [s10])) return null;
+    if (!(0, import_react3.useMemo)(() => s10 ? !(s10.scopes.length === 0 && (s10.parentScopes ?? []).length > 0) : false, [s10])) return null;
     let c10 = t10 ? (0, import_jsx_runtime.jsx)(Ohe, { children: (0, import_jsx_runtime.jsxs)(khe, { children: [(0, import_jsx_runtime.jsx)(c1, {}), (0, import_jsx_runtime.jsx)(Ahe, { children: i10(`requiredScopes`, `Required scopes`) }), (0, import_jsx_runtime.jsx)(jhe, { onClick: o10, variant: `link`, children: i10(`viewSecurityDetails`, `View details`) })] }) }) : (0, import_jsx_runtime.jsx)(Mhe, { variant: `outlined`, fullWidth: false, icon: (0, import_jsx_runtime.jsx)(c1, {}), onClick: o10, children: (0, import_jsx_runtime.jsx)(Nhe, { children: i10(`requiredScopes`, `Required scopes`) }) });
     return (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [c10, n10 && s10 && (0, import_jsx_runtime.jsx)(_he, { scopes: s10.scopes, parentScopes: s10.parentScopes, onClose: () => r10(false) })] });
   }
-  var m1 = (0, import_react2.memo)(Dhe), Ohe = Tt.div`
+  var m1 = (0, import_react3.memo)(Dhe), Ohe = Tt.div`
   background-color: var(--layer-color, var(--bg-color));
   padding: var(--spacing-xs) var(--spacing-sm);
   border-radius: var(--border-radius);
@@ -55576,22 +54774,22 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
   _c();
   var y1 = 72;
   function Ihe({ field: e10, contrast: t10, isArgument: n10, fieldExpandLevel: r10, parentTypeName: i10, parentRequiresScopes: a10, expanded: o10 }) {
-    let { fieldExpandLevel: s10, schemasExpansionLevel: c10 } = I(ds), l10 = I(XN), u10 = fv(), d10 = fb(), f10 = hD(), p10 = r10 + 1, m10 = i10 ? `${i10}.${e10.name}` : e10.name, h10 = Jh(), g10 = (0, import_react2.useRef)(h10);
+    let { fieldExpandLevel: s10, schemasExpansionLevel: c10 } = I(ds), l10 = I(XN), u10 = fv(), d10 = fb(), f10 = hD(), p10 = r10 + 1, m10 = i10 ? `${i10}.${e10.name}` : e10.name, h10 = Jh(), g10 = (0, import_react3.useRef)(h10);
     h10 && (g10.current = h10);
-    let _10 = Qs(g10.current, m10), v10 = uv(r10, c10, 0), [y10, b10] = (0, import_react2.useState)(void 0), [x10, S10] = (0, import_react2.useState)(void 0);
-    (0, import_react2.useEffect)(() => {
+    let _10 = Qs(g10.current, m10), v10 = uv(r10, c10, 0), [y10, b10] = (0, import_react3.useState)(void 0), [x10, S10] = (0, import_react3.useState)(void 0);
+    (0, import_react3.useEffect)(() => {
       b10(void 0), S10(void 0);
     }, [o10]);
-    let C10 = y10 ?? o10 ?? (_10 || v10), w10 = x10 ?? o10 ?? (_10 || v10), T10 = !!e10.deprecationReason, E10 = (0, import_react2.useMemo)(() => e10.deprecationReason ? u10.parse(e10.deprecationReason) ?? null : null, [e10.deprecationReason, u10]), D10 = !!n10 && !!e10.required, O10 = e10.args ?? [], k10 = O10.length > 0, ee3 = Fhe(e10.type.name, l10), te3 = ee3 * y1, ne3 = O10.length * y1, re3 = () => {
+    let C10 = y10 ?? o10 ?? (_10 || v10), w10 = x10 ?? o10 ?? (_10 || v10), T10 = !!e10.deprecationReason, E10 = (0, import_react3.useMemo)(() => e10.deprecationReason ? u10.parse(e10.deprecationReason) ?? null : null, [e10.deprecationReason, u10]), D10 = !!n10 && !!e10.required, O10 = e10.args ?? [], k10 = O10.length > 0, ee3 = Fhe(e10.type.name, l10), te3 = ee3 * y1, ne3 = O10.length * y1, re3 = () => {
       let e11 = !w10;
       f10({ depth: r10, expanded: e11, childCount: O10.length, kind: `arguments` }), S10(e11);
     }, ie3 = () => {
       let e11 = !C10;
       f10({ depth: r10, expanded: e11, childCount: ee3, kind: `returnType` }), b10(e11);
-    }, ae3 = _1(e10, r10, s10, l10), oe3 = !ae3 || !C10, se3 = n10 ? i10 ? `arg-${i10}-${e10.name}` : `arg-${e10.name}` : i10 ? `${i10}-${e10.name}` : e10.name, ce3 = O10.map((e11) => ({ name: e11.name, required: !!e11.required })), le3 = (0, import_react2.useMemo)(() => a10 === void 0 ? null : h1(e10.requiresScopes, a10), [e10.requiresScopes, a10]), ue3 = Ec((0, import_react2.useMemo)(() => Zs({ t: n10 ? `argument` : `field`, path: m10, arg: n10 ? e10.name : void 0 }), [m10, n10, e10.name]));
+    }, ae3 = _1(e10, r10, s10, l10), oe3 = !ae3 || !C10, se3 = n10 ? i10 ? `arg-${i10}-${e10.name}` : `arg-${e10.name}` : i10 ? `${i10}-${e10.name}` : e10.name, ce3 = O10.map((e11) => ({ name: e11.name, required: !!e11.required })), le3 = (0, import_react3.useMemo)(() => a10 === void 0 ? null : h1(e10.requiresScopes, a10), [e10.requiresScopes, a10]), ue3 = Ec((0, import_react3.useMemo)(() => Zs({ t: n10 ? `argument` : `field`, path: m10, arg: n10 ? e10.name : void 0 }), [m10, n10, e10.name]));
     return (0, import_jsx_runtime.jsx)(`div`, { id: $s(ue3) ?? se3, children: (0, import_jsx_runtime.jsxs)(vV, { $showBorder: oe3, children: [(0, import_jsx_runtime.jsxs)(yV, { children: [ue3 && (0, import_jsx_runtime.jsx)(vb, { to: ue3, label: `link to ${e10.name}`, variant: `field` }), (0, import_jsx_runtime.jsx)(bV, { $isDeprecated: T10, children: e10.name }), (0, import_jsx_runtime.jsx)(AV, { typeRef: e10.type, inline: !k10, deprecated: T10, required: D10 })] }), e10.defaultValue !== void 0 && (0, import_jsx_runtime.jsxs)(_V, { children: [d10(`defaultValue`, `Default`), `:`, ` `, (0, import_jsx_runtime.jsx)(CV, { children: JSON.stringify(e10.defaultValue) })] }), e10.description && (0, import_jsx_runtime.jsx)(_V, { children: e1(e10.description) }), E10 && (0, import_jsx_runtime.jsx)(J$, { type: `warning`, name: d10(`deprecationReason`, `Deprecation reason`), children: (0, import_jsx_runtime.jsx)(pv, { source: E10 }) }), ae3 && (0, import_jsx_runtime.jsxs)(SV, { $contrast: !t10, children: [k10 && (0, import_jsx_runtime.jsx)(a1, { expanded: w10, level: r10, expandText: d10(`arguments.show`, `Show arguments`), collapseText: d10(`arguments.hide`, `Hide arguments`), collapsedArgs: ce3, onClick: re3, children: (0, import_jsx_runtime.jsx)(UD, { forceMount: _10 || v10, estimatedHeight: ne3, children: (0, import_jsx_runtime.jsx)(hhe, { args: O10, fieldExpandLevel: p10, parentName: m10, expanded: o10 }) }) }), (0, import_jsx_runtime.jsx)(a1, { expanded: C10, level: r10, expandText: d10(`returnTypes.show`, `Show return type`), collapseText: d10(`returnTypes.hide`, `Hide return type`), onClick: ie3, children: (0, import_jsx_runtime.jsx)(UD, { forceMount: _10 || v10, estimatedHeight: te3, children: (0, import_jsx_runtime.jsx)(s1, { typeName: e10.type.name, contrast: !t10, fieldExpandLevel: p10, expanded: o10, parentPath: m10 }) }) })] }), (0, import_jsx_runtime.jsx)(m1, { directive: le3 })] }) });
   }
-  var b1 = (0, import_react2.memo)(Ihe);
+  var b1 = (0, import_react3.memo)(Ihe);
   function Lhe({ node: e10 }) {
     let { fieldExpandLevel: t10 } = I(ds), n10 = I(XN), r10 = e10.graphqlTypeName, i10 = I(ZN(r10 ?? ``)), a10 = i10?.fields ?? [], o10 = v1(i10, 0, t10, n10), s10 = LD(e10.variant, o10);
     return zD(RD(o10 ? e10.variant : void 0), !!s10), a10.length === 0 ? (0, import_jsx_runtime.jsx)(import_jsx_runtime.Fragment, {}) : (0, import_jsx_runtime.jsx)(import_jsx_runtime.Fragment, { children: a10.map((e11) => (0, import_jsx_runtime.jsx)(b1, { field: e11, fieldExpandLevel: 0, parentTypeName: r10, parentRequiresScopes: i10?.requiresScopes ?? null, expanded: s10 }, e11.name)) });
@@ -55636,7 +54834,7 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
   }
   _c();
   function Whe({ label: e10, deepLink: t10, suffix: n10 }) {
-    let r10 = (0, import_react2.useContext)(bc), i10 = U$(n10), a10 = W$(n10);
+    let r10 = (0, import_react3.useContext)(bc), i10 = U$(n10), a10 = W$(n10);
     return (0, import_jsx_runtime.jsxs)(Ghe, { id: $s(t10), children: [t10 && (0, import_jsx_runtime.jsx)(vb, { to: t10, label: `link to ${e10}` }), (0, import_jsx_runtime.jsx)(Khe, { children: e10 }), i10.length > 0 && a10 && r10 && (0, import_jsx_runtime.jsx)(V$, { itemId: r10, deepLinkKeys: i10 })] });
   }
   var Ghe = Tt.div`
@@ -55655,7 +54853,7 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
 `;
   _c();
   function qhe({ node: e10 }) {
-    let t10 = fb(), n10 = (0, import_react2.useMemo)(() => Zhe(e10.variant), [e10.variant]), r10 = (0, import_react2.useMemo)(() => [`return-type`, `possible-types`, `graphql-fields`, `values`].includes(e10.variant), [e10.variant]), i10 = Ec(n10);
+    let t10 = fb(), n10 = (0, import_react3.useMemo)(() => Zhe(e10.variant), [e10.variant]), r10 = (0, import_react3.useMemo)(() => [`return-type`, `possible-types`, `graphql-fields`, `values`].includes(e10.variant), [e10.variant]), i10 = Ec(n10);
     if (e10.variant === `requires-scopes`) return (0, import_jsx_runtime.jsx)(Uhe, { node: e10 });
     let a10 = Tj(t10, e10.labelTranslationKey, e10.label);
     return (0, import_jsx_runtime.jsxs)(Yhe, { $hasMarginTop: r10, children: [e10.label && e10.variant !== `body` && e10.variant !== `responses` && (0, import_jsx_runtime.jsx)(Whe, { label: a10, deepLink: i10, suffix: n10 }), (0, import_jsx_runtime.jsx)(Jhe, { itemNode: e10 })] });
@@ -55711,16 +54909,16 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
   ${({ $hasMarginTop: e10 }) => e10 && Rt`
       margin-top: var(--spacing-lg);
     `}
-`, S1 = (0, import_react2.memo)(qhe), Xhe = { path: `path`, query: `query`, querystring: `querystring`, "querystring-body": `querystring`, headers: `header`, cookies: `cookie` };
+`, S1 = (0, import_react3.memo)(qhe), Xhe = { path: `path`, query: `query`, querystring: `querystring`, "querystring-body": `querystring`, headers: `header`, cookies: `cookie` };
   function Zhe(e10) {
     let t10 = Xhe[e10];
     return t10 ? Ys(`request`, t10) : e10;
   }
   zi();
   function Qhe({ requirements: e10, onClose: t10 }) {
-    let [n10, r10] = (0, import_react2.useState)(0), i10 = (0, import_react2.useRef)(null), a10 = fb();
+    let [n10, r10] = (0, import_react3.useState)(0), i10 = (0, import_react3.useRef)(null), a10 = fb();
     Zj(i10, t10);
-    let o10 = e10[n10] || e10[0], s10 = (0, import_jsx_runtime.jsx)(Noe, { children: (0, import_jsx_runtime.jsxs)(Poe, { ref: i10, tabIndex: 0, children: [(0, import_jsx_runtime.jsx)(Foe, { onClick: t10, variant: `ghost`, icon: (0, import_jsx_runtime.jsx)(Ri, {}) }), (0, import_jsx_runtime.jsxs)(Ioe, { children: [(0, import_jsx_runtime.jsx)(c1, { size: `24px` }), a10(`security`, `Security`)] }), e10.length > 1 && (0, import_jsx_runtime.jsx)(dO, { value: n10, onChange: ({ value: e11 }) => r10(e11), options: $he(e10).map((e11, t11) => ({ label: e11, value: t11 })) }), o10.schemes.map((e11, t11) => (0, import_jsx_runtime.jsxs)(import_react2.Fragment, { children: [(0, import_jsx_runtime.jsx)(dM, { scheme: e11 }), t11 !== o10.schemes.length - 1 && (0, import_jsx_runtime.jsx)(iM, { label: `and` })] }, e11.name))] }) });
+    let o10 = e10[n10] || e10[0], s10 = (0, import_jsx_runtime.jsx)(Noe, { children: (0, import_jsx_runtime.jsxs)(Poe, { ref: i10, tabIndex: 0, children: [(0, import_jsx_runtime.jsx)(Foe, { onClick: t10, variant: `ghost`, icon: (0, import_jsx_runtime.jsx)(Ri, {}) }), (0, import_jsx_runtime.jsxs)(Ioe, { children: [(0, import_jsx_runtime.jsx)(c1, { size: `24px` }), a10(`security`, `Security`)] }), e10.length > 1 && (0, import_jsx_runtime.jsx)(dO, { value: n10, onChange: ({ value: e11 }) => r10(e11), options: $he(e10).map((e11, t11) => ({ label: e11, value: t11 })) }), o10.schemes.map((e11, t11) => (0, import_jsx_runtime.jsxs)(import_react3.Fragment, { children: [(0, import_jsx_runtime.jsx)(dM, { scheme: e11 }), t11 !== o10.schemes.length - 1 && (0, import_jsx_runtime.jsx)(iM, { label: `and` })] }, e11.name))] }) });
     return Xf ? (0, import_react_dom.createPortal)(s10, document.body) : s10;
   }
   function $he(e10) {
@@ -55744,18 +54942,18 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
 `;
   qi();
   function rge({ requirements: e10 }) {
-    let [t10, n10] = (0, import_react2.useState)(false), r10 = fb(), i10 = jE(), a10 = (0, import_react2.useRef)(null), o10 = e10.reduce((e11, t11) => e11 + t11.schemes.length, 0), s10 = e10.some((e11) => e11.schemes.length > 1), c10 = (0, import_react2.useMemo)(() => {
+    let [t10, n10] = (0, import_react3.useState)(false), r10 = fb(), i10 = jE(), a10 = (0, import_react3.useRef)(null), o10 = e10.reduce((e11, t11) => e11 + t11.schemes.length, 0), s10 = e10.some((e11) => e11.schemes.length > 1), c10 = (0, import_react3.useMemo)(() => {
       let { schemeTypes: t11, oauth2Flows: n11 } = aD(e10.flatMap((e11) => e11.schemes));
       return { schemesCount: o10, isCombined: s10, schemeTypes: t11, ...Object.keys(n11).length ? { oauth2Flows: n11 } : {}, alternativesCount: e10.length };
-    }, [e10, o10, s10]), l10 = (0, import_react2.useCallback)(() => {
+    }, [e10, o10, s10]), l10 = (0, import_react3.useCallback)(() => {
       a10.current = Date.now(), i10.sendViewSecurityDetailsClickedMessage([{ ...VE.redocSecurityButton, ...c10 }]), n10(true);
-    }, [i10, c10]), u10 = (0, import_react2.useCallback)(() => {
+    }, [i10, c10]), u10 = (0, import_react3.useCallback)(() => {
       let e11 = a10.current ? Date.now() - a10.current : 0;
       a10.current = null, i10.sendViewSecurityDetailsClosedMessage([{ ...VE.redocSecurityButtonClose, ...c10, timeInModalMs: e11 }]), n10(false);
     }, [i10, c10]);
     return p1(t10), (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [(0, import_jsx_runtime.jsx)(Eoe, { header: () => (0, import_jsx_runtime.jsxs)(Doe, { children: [(0, import_jsx_runtime.jsx)(c1, {}), (0, import_jsx_runtime.jsx)(koe, { children: r10(`security`, `Security`) }), (0, import_jsx_runtime.jsx)(Ooe, { onClick: l10, variant: `link`, children: r10(`viewSecurityDetails`, `View security details`) })] }), isExpandable: false, children: (0, import_jsx_runtime.jsx)(Aoe, { children: e10.map((t11, n11) => {
-      let i11 = e10.length > 1 && t11.schemes.length > 1, a11 = t11.schemes.map((e11, n12) => (0, import_jsx_runtime.jsxs)(import_react2.Fragment, { children: [(0, import_jsx_runtime.jsxs)(joe, { $deprecated: e11.deprecated, children: [e11.name, e11.deprecated && (0, import_jsx_runtime.jsx)(zg, { tip: `Deprecated`, children: (0, import_jsx_runtime.jsx)(Ki, { color: `var(--badge-deprecated-bg-color)` }) })] }), e11.scopes && e11.scopes.length > 0 && (0, import_jsx_runtime.jsxs)(Moe, { children: [`(`, r10(`requiredScopes`, `Required scopes`), `:`, ` `, (0, import_jsx_runtime.jsx)(tge, { scopes: e11.scopes }), `)`] }), n12 < t11.schemes.length - 1 && (0, import_jsx_runtime.jsx)($j, { children: ` and ` })] }, e11.name));
-      return (0, import_jsx_runtime.jsxs)(import_react2.Fragment, { children: [i11 && (0, import_jsx_runtime.jsx)(`span`, { children: `(` }), a11, i11 && (0, import_jsx_runtime.jsx)(`span`, { children: `)` }), n11 < e10.length - 1 && (0, import_jsx_runtime.jsx)($j, { children: ` or ` })] }, n11);
+      let i11 = e10.length > 1 && t11.schemes.length > 1, a11 = t11.schemes.map((e11, n12) => (0, import_jsx_runtime.jsxs)(import_react3.Fragment, { children: [(0, import_jsx_runtime.jsxs)(joe, { $deprecated: e11.deprecated, children: [e11.name, e11.deprecated && (0, import_jsx_runtime.jsx)(zg, { tip: `Deprecated`, children: (0, import_jsx_runtime.jsx)(Ki, { color: `var(--badge-deprecated-bg-color)` }) })] }), e11.scopes && e11.scopes.length > 0 && (0, import_jsx_runtime.jsxs)(Moe, { children: [`(`, r10(`requiredScopes`, `Required scopes`), `:`, ` `, (0, import_jsx_runtime.jsx)(tge, { scopes: e11.scopes }), `)`] }), n12 < t11.schemes.length - 1 && (0, import_jsx_runtime.jsx)($j, { children: ` and ` })] }, e11.name));
+      return (0, import_jsx_runtime.jsxs)(import_react3.Fragment, { children: [i11 && (0, import_jsx_runtime.jsx)(`span`, { children: `(` }), a11, i11 && (0, import_jsx_runtime.jsx)(`span`, { children: `)` }), n11 < e10.length - 1 && (0, import_jsx_runtime.jsx)($j, { children: ` or ` })] }, n11);
     }) }) }), t10 && (0, import_jsx_runtime.jsx)(Qhe, { requirements: e10, onClose: u10 })] });
   }
   function ige({ node: e10 }) {
@@ -55765,13 +54963,13 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
   function age({ node: e10 }) {
     return (0, import_jsx_runtime.jsx)(gb, { extensions: e10.extensions });
   }
-  var oge = (0, import_react2.memo)(age);
+  var oge = (0, import_react3.memo)(age);
   lb();
   function sge({ node: e10 }) {
     let t10 = ib(e10.description);
     return (0, import_jsx_runtime.jsx)(Qj, { externalDocs: { url: e10.url, description: t10 || void 0 } });
   }
-  var cge = (0, import_react2.memo)(sge);
+  var cge = (0, import_react3.memo)(sge);
   F2();
   var lge = Tt((e10) => (0, import_jsx_runtime.jsx)(`svg`, { viewBox: `0 0 16 16`, fill: `none`, xmlns: `http://www.w3.org/2000/svg`, ...e10, children: (0, import_jsx_runtime.jsx)(`path`, { d: `M4.74999 4.00001H10.05C10.1739 4.60703 10.5188 5.14642 11.0178 5.5136C11.5168 5.88079 12.1344 6.04962 12.7508 5.98735C13.3672 5.92508 13.9385 5.63615 14.354 5.17658C14.7694 4.71701 14.9995 4.11954 14.9995 3.50001C14.9995 2.88047 14.7694 2.283 14.354 1.82343C13.9385 1.36386 13.3672 1.07493 12.7508 1.01267C12.1344 0.950396 11.5168 1.11922 11.0178 1.48641C10.5188 1.85359 10.1739 2.39298 10.05 3.00001H4.74999C4.02065 3.00001 3.32117 3.28974 2.80545 3.80546C2.28972 4.32119 1.99999 5.02066 1.99999 5.75001C1.99999 6.47935 2.28972 7.17882 2.80545 7.69455C3.32117 8.21027 4.02065 8.50001 4.74999 8.50001H10.25C10.7141 8.50001 11.1592 8.68438 11.4874 9.01257C11.8156 9.34076 12 9.78588 12 10.25C12 10.7141 11.8156 11.1593 11.4874 11.4874C11.1592 11.8156 10.7141 12 10.25 12H5.94999C5.82609 11.393 5.4812 10.8536 4.9822 10.4864C4.4832 10.1192 3.86563 9.9504 3.24923 10.0127C2.63283 10.0749 2.06151 10.3639 1.64603 10.8234C1.23054 11.283 1.0005 11.8805 1.0005 12.5C1.0005 13.1195 1.23054 13.717 1.64603 14.1766C2.06151 14.6362 2.63283 14.9251 3.24923 14.9873C3.86563 15.0496 4.4832 14.8808 4.9822 14.5136C5.4812 14.1464 5.82609 13.607 5.94999 13H10.25C10.9793 13 11.6788 12.7103 12.1945 12.1945C12.7103 11.6788 13 10.9794 13 10.25C13 9.52066 12.7103 8.82119 12.1945 8.30546C11.6788 7.78974 10.9793 7.50001 10.25 7.50001H4.74999C4.28586 7.50001 3.84075 7.31563 3.51256 6.98744C3.18437 6.65925 2.99999 6.21413 2.99999 5.75001C2.99999 5.28588 3.18437 4.84076 3.51256 4.51257C3.84075 4.18438 4.28586 4.00001 4.74999 4.00001ZM12.5 2.00001C12.7967 2.00001 13.0867 2.08798 13.3333 2.2528C13.58 2.41762 13.7723 2.65189 13.8858 2.92598C13.9993 3.20007 14.029 3.50167 13.9712 3.79264C13.9133 4.08361 13.7704 4.35089 13.5607 4.56067C13.3509 4.77044 13.0836 4.91331 12.7926 4.97118C12.5017 5.02906 12.2001 4.99936 11.926 4.88582C11.6519 4.77229 11.4176 4.58003 11.2528 4.33336C11.088 4.08669 11 3.79668 11 3.50001C11 3.10218 11.158 2.72065 11.4393 2.43935C11.7206 2.15804 12.1022 2.00001 12.5 2.00001ZM3.49999 14C3.20332 14 2.91331 13.912 2.66664 13.7472C2.41996 13.5824 2.22771 13.3481 2.11417 13.074C2.00064 12.7999 1.97094 12.4983 2.02882 12.2074C2.08669 11.9164 2.22955 11.6491 2.43933 11.4393C2.64911 11.2296 2.91639 11.0867 3.20736 11.0288C3.49833 10.971 3.79993 11.0007 4.07402 11.1142C4.34811 11.2277 4.58238 11.42 4.7472 11.6667C4.91202 11.9133 4.99999 12.2033 4.99999 12.5C4.99999 12.8978 4.84196 13.2794 4.56065 13.5607C4.27935 13.842 3.89782 14 3.49999 14Z`, fill: `#1A1C21` }) })).attrs({ "data-component-name": `icons/CurveAutoColonIcon/CurveAutoColonIcon` })`
   path {
@@ -55784,7 +54982,7 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
   function uge({ node: e10 }) {
     return (0, import_jsx_runtime.jsxs)(fge, { "data-component-name": `ChannelAddress/ChannelAddressItem`, "data-testid": `channel-address`, children: [(0, import_jsx_runtime.jsx)(pge, { children: (0, import_jsx_runtime.jsx)(lge, { size: `14px` }) }), (0, import_jsx_runtime.jsxs)(mge, { borderless: true, children: [`name: `, (0, import_jsx_runtime.jsx)(`span`, { children: e10.address })] })] });
   }
-  var dge = (0, import_react2.memo)(uge), fge = Tt.div`
+  var dge = (0, import_react3.memo)(uge), fge = Tt.div`
   display: flex;
   gap: var(--spacing-xxs);
   align-items: flex-start;
@@ -55822,7 +55020,7 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
     }, a10 = (r11) => n10(Gs(t10, As(e10.channelLink), Xs({ section: `messages`, messageKey: r11 })));
     return e10.messages.length ? (0, import_jsx_runtime.jsxs)(_ge, { "data-component-name": `Operation/MessageLinks`, children: [(0, import_jsx_runtime.jsx)(vge, { children: `Messages` }), (0, import_jsx_runtime.jsx)(yge, { children: e10.messages.map((e11, t11) => (0, import_jsx_runtime.jsx)(bge, { to: a10(e11.name), onClick: () => i10(t11), children: (0, import_jsx_runtime.jsxs)(xge, { borderless: true, textTransform: `none`, children: [e11.label, (0, import_jsx_runtime.jsx)(Ej, { size: `12px` })] }) }, e11.name)) })] }) : null;
   }
-  var gge = (0, import_react2.memo)(hge), _ge = Tt.div`
+  var gge = (0, import_react3.memo)(hge), _ge = Tt.div`
   margin-top: var(--spacing-sm);
 `, vge = Tt.div`
   font-size: var(--font-size-base);
@@ -55853,7 +55051,7 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
   gap: var(--spacing-xxs);
 `;
   eu(), Ns(), B2();
-  var Sge = { [ts.OVERVIEW]: FB, [ts.GROUP]: sV, [ts.ITEM]: RB }, w1 = (0, import_react2.memo)(function({ node: e10, itemPath: t10 }) {
+  var Sge = { [ts.OVERVIEW]: FB, [ts.GROUP]: sV, [ts.ITEM]: RB }, w1 = (0, import_react3.memo)(function({ node: e10, itemPath: t10 }) {
     let { children: n10, sectionId: r10 } = e10, i10 = I(ps), a10 = n10?.map((n11, r11) => (0, import_jsx_runtime.jsx)(E1, { type: n11.nodeType, node: n11, parentNode: e10, itemPath: t10 }, `${e10.nodeType}_${n11.nodeType}_${r11}`)), o10 = r10 ? { [Xl]: ks(Os(i10, r10)) } : {};
     return (0, import_jsx_runtime.jsx)(`div`, { id: t10, ...o10, children: a10 });
   }), Cge = { [R2.CONTAINER]: X$, [R2.OVERVIEW_SECTION_WRAPPER]: w1, [R2.HEADER]: K$, [R2.EMPTY_MESSAGE]: jpe, [R2.ITEM]: S1, [R2.SECURITY]: ige, [R2.MARKDOC]: Npe, [R2.ADMONITION]: Bpe, [R2.EXTERNAL_DOCS]: cge, [R2.CHANNEL_ADDRESS]: dge, [R2.MESSAGE_LINKS]: gge, [R2.INFO_METADATA]: Hpe, [R2.EXTENSIONS]: oge }, T1 = { ...Sge, ...Cge };
@@ -55877,27 +55075,27 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
     }
     let { itemPath: r10, sectionId: i10, ...a10 } = n10;
     if (t10 === R2.ITEM) return (0, import_jsx_runtime.jsx)(S1, { node: a10.node });
-    let o10 = { ...a10, itemPath: r10 }, Component5 = T1[t10];
-    return (0, import_jsx_runtime.jsx)(Component5, { ...o10 });
+    let o10 = { ...a10, itemPath: r10 }, Component4 = T1[t10];
+    return (0, import_jsx_runtime.jsx)(Component4, { ...o10 });
   }
   B2();
   function wge(e10, t10) {
     return t10 ? t10 === e10 || t10.startsWith(e10 + `/`) : false;
   }
-  var Tge = (0, import_react2.memo)(function({ entry: e10, activePath: t10, entryEager: n10, eagerOpSlug: r10, shouldRenderOps: i10, opsStartIndex: a10 = 0, renderEntrySection: o10 = true }) {
+  var Tge = (0, import_react3.memo)(function({ entry: e10, activePath: t10, entryEager: n10, eagerOpSlug: r10, shouldRenderOps: i10, opsStartIndex: a10 = 0, renderEntrySection: o10 = true }) {
     let s10 = e10.content.contentType === ts.GROUP;
     return (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [o10 && (0, import_jsx_runtime.jsx)(yB, { sectionId: e10.sectionId, eager: n10, children: (0, import_jsx_runtime.jsx)(E1, { sectionId: e10.sectionId, type: e10.content.contentType ?? ts.OVERVIEW, content: e10.content, itemPath: e10.path }) }), i10 && e10.children.slice(a10).map((e11) => e11.content === null || s10 && !wge(e11.gatePath, t10) ? null : (0, import_jsx_runtime.jsx)(yB, { sectionId: e11.path, eager: e11.path === r10, children: (0, import_jsx_runtime.jsx)(E1, { sectionId: e11.path, type: e11.content.contentType, content: e11.content, itemPath: e11.path }) }, e11.path))] });
   });
   qf(), eu(), _c(), Ns();
   function Ege({ activeRoute: e10, routeIndex: t10, basePath: n10, isHydrated: r10 }) {
     let i10 = useLocation(), a10 = useNavigate(), o10 = useNavigationType(), s10 = e10?.path;
-    (0, import_react2.useEffect)(() => {
+    (0, import_react3.useEffect)(() => {
       if (!Ie2 || !(`scrollRestoration` in window.history)) return;
       let e11 = window.history.scrollRestoration;
       return window.history.scrollRestoration = `manual`, () => {
         window.history.scrollRestoration = e11;
       };
-    }, []), (0, import_react2.useLayoutEffect)(() => {
+    }, []), (0, import_react3.useLayoutEffect)(() => {
       if (!Ie2) return;
       let { hash: e11, pathname: r11 } = i10, c10 = e11 ? Ks(e11) : ``, l10 = c10 || s10 ? e11 : `#${js(r11, n10) ?? ``}`;
       if (l10 && !(c10 && D1(c10))) {
@@ -55999,7 +55197,7 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
   _c();
   function Pge(e10, t10) {
     let n10 = useNavigate();
-    return (0, import_react2.useCallback)((r10) => {
+    return (0, import_react3.useCallback)((r10) => {
       if (r10.button !== 0 || r10.metaKey || r10.ctrlKey || r10.shiftKey || r10.altKey) return;
       let i10 = r10.target.closest(`a`);
       if (!i10 || i10.origin !== window.location.origin) return;
@@ -56008,18 +55206,18 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
     }, [e10, t10, n10]);
   }
   function Fge() {
-    let [e10, t10] = (0, import_react2.useState)(false);
-    return (0, import_react2.useEffect)(() => {
+    let [e10, t10] = (0, import_react3.useState)(false);
+    return (0, import_react3.useEffect)(() => {
       t10(true);
     }, []), e10;
   }
   B2(), Hs();
   function Ige({ routeIndex: e10, basePath: t10 }) {
-    let n10 = I(Ch), r10 = I(kh), i10 = useLocation(), a10 = Fge(), o10 = (0, import_react2.useMemo)(() => Fs(e10, i10.pathname), [e10, i10.pathname]), s10 = (0, import_react2.useMemo)(() => Rs(e10), [e10]), c10 = (0, import_react2.useMemo)(() => Bs(o10, e10), [o10, e10]);
-    (0, import_react2.useEffect)(() => {
+    let n10 = I(Ch), r10 = I(kh), i10 = useLocation(), a10 = Fge(), o10 = (0, import_react3.useMemo)(() => Fs(e10, i10.pathname), [e10, i10.pathname]), s10 = (0, import_react3.useMemo)(() => Rs(e10), [e10]), c10 = (0, import_react3.useMemo)(() => Bs(o10, e10), [o10, e10]);
+    (0, import_react3.useEffect)(() => {
       c10.forEach((e11) => hB(e11));
     }, [c10]), Ege({ activeRoute: o10, routeIndex: e10, basePath: t10, isHydrated: a10 });
-    let l10 = Pge(t10, e10), u10 = o10?.path, d10 = (0, import_react2.useMemo)(() => {
+    let l10 = Pge(t10, e10), u10 = o10?.path, d10 = (0, import_react3.useMemo)(() => {
       if (a10 || !u10) return s10;
       let e11 = s10.findIndex((e12) => e12.sectionId === u10 || e12.children.some((e13) => e13.path === u10));
       return e11 > 0 ? s10.slice(e11) : s10;
@@ -56029,10 +55227,10 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
       return (0, import_jsx_runtime.jsx)(Tge, { entry: e11, activePath: u10, entryEager: c10.has(e11.sectionId), eagerOpSlug: e11.children.find((e12) => c10.has(e12.path))?.path ?? null, opsStartIndex: n11, renderEntrySection: r11, shouldRenderOps: e11.sectionId === u10 || e11.children.some((e12) => e12.path === u10) || e11.children.length > 0 && e11.content.contentType !== ts.GROUP }, e11.sectionId);
     }) });
   }
-  var Lge = (0, import_react2.memo)(Ige);
+  var Lge = (0, import_react3.memo)(Ige);
   Bt2(), Ea();
   function Rge({ title: e10, expanded: t10 = false, className: n10, children: r10, "data-source": i10, "data-hash": a10 }) {
-    let o10 = (0, import_react2.useContext)(Si);
+    let o10 = (0, import_react3.useContext)(Si);
     return (0, import_jsx_runtime.jsxs)(zge, { className: n10, open: t10, name: o10 ?? void 0, "data-component-name": pt2, "data-source": i10, "data-hash": a10, children: [(0, import_jsx_runtime.jsxs)(Bge, { children: [(0, import_jsx_runtime.jsx)(bg, { color: `--md-accordion-chevron-icon-color`, size: `var(--md-accordion-chevron-icon-size)` }), e10] }), (0, import_jsx_runtime.jsx)(Hge, { children: (0, import_jsx_runtime.jsx)(Si.Provider, { value: null, children: r10 }) })] });
   }
   var zge = Tt.details`
@@ -56114,7 +55312,7 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
   }
 `;
   qf();
-  var Uge = class extends import_react2.Component {
+  var Uge = class extends import_react3.Component {
     static contextType = kE;
     constructor(e10) {
       super(e10), this.state = { hasError: false, error: null };
@@ -56275,7 +55473,7 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
   }
   var o_e = typeof window < `u` ? BrowserRouter : MemoryRouter;
   function F1(e10) {
-    let t10 = (0, import_react2.memo)((t11) => useInRouterContext() ? (0, import_jsx_runtime.jsx)(e10, { ...t11 }) : (0, import_jsx_runtime.jsx)(o_e, { children: (0, import_jsx_runtime.jsx)(e10, { ...t11 }) }));
+    let t10 = (0, import_react3.memo)((t11) => useInRouterContext() ? (0, import_jsx_runtime.jsx)(e10, { ...t11 }) : (0, import_jsx_runtime.jsx)(o_e, { children: (0, import_jsx_runtime.jsx)(e10, { ...t11 }) }));
     return t10.displayName = `WithRouter(${s_e(e10)})`, t10;
   }
   function s_e(e10) {
@@ -56382,15 +55580,15 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
     Object.keys(i10).length !== 0 && e10.set(vh, { environments: i10 });
   }
   function J1(e10) {
-    let t10 = (0, import_react2.memo)((t11) => {
-      let { items: n10, options: r10, store: i10, layout: a10, basePath: o10 = ``, spec: s10, specUrl: c10 } = t11, l10 = Go(), u10 = l10 === Uo() ? void 0 : l10, d10 = (0, import_react2.useMemo)(() => W1(r10, o10), [r10, o10]), f10 = a10 ?? d10.layout;
-      (0, import_react2.useLayoutEffect)(() => {
+    let t10 = (0, import_react3.memo)((t11) => {
+      let { items: n10, options: r10, store: i10, layout: a10, basePath: o10 = ``, spec: s10, specUrl: c10 } = t11, l10 = Go(), u10 = l10 === Uo() ? void 0 : l10, d10 = (0, import_react3.useMemo)(() => W1(r10, o10), [r10, o10]), f10 = a10 ?? d10.layout;
+      (0, import_react3.useLayoutEffect)(() => {
         if (u10) {
           let e11 = u10.get(cs);
           q1(u10, i10 ?? e11.store), u10.set(Ch, f10), u10.set(cs, { items: n10, store: i10 ?? e11.store, options: d10, definition: s10 ?? e11.definition, definitionUrl: c10 ?? e11.definitionUrl });
         }
       }, [f10, d10, u10, n10, i10, s10, c10]);
-      let p10 = (0, import_react2.useMemo)(() => {
+      let p10 = (0, import_react3.useMemo)(() => {
         if (u10) return null;
         let e11 = { items: n10, store: i10, options: d10, definition: s10, definitionUrl: c10 }, t12 = Vo();
         return t12.set(cs, e11), K1(t12), t12.set(Ch, f10), q1(t12, i10), t12;
@@ -56406,8 +55604,8 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
     let n10 = UR(WR(e10));
     return V1(e10, n10, t10), { schemaStore: n10.schemaStore, exampleStore: n10.exampleStore, securitySchemeStore: n10.securitySchemeStore, mcp: n10.document[`x-mcp`] };
   }
-  (0, import_react2.memo)(function({ children: e10, definition: t10, apiStore: n10, options: r10 }) {
-    let i10 = (0, import_react2.useMemo)(() => {
+  (0, import_react3.memo)(function({ children: e10, definition: t10, apiStore: n10, options: r10 }) {
+    let i10 = (0, import_react3.useMemo)(() => {
       let e11 = W1({ specType: `openapi`, ...r10 }, r10?.basePath ?? ``), i11;
       if (n10) i11 = n10;
       else if (t10) i11 = p_e(t10, e11);
@@ -56424,7 +55622,7 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
   function m_e({ routeIndex: e10, initialTelemetry: t10 }) {
     return tz(), Hh(), lz(), lB(e10, t10), null;
   }
-  var h_e = ({ routeIndex: e10, basePath: t10 }) => (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [(0, import_jsx_runtime.jsx)(Gf, {}), (0, import_jsx_runtime.jsx)(lie, {}), (0, import_jsx_runtime.jsx)(Uge, { children: (0, import_jsx_runtime.jsx)(Lge, { routeIndex: e10, basePath: t10 }) })] }), RedoclyApiDocs2 = jB(J1, F1, import_react2.memo)(Y1);
+  var h_e = ({ routeIndex: e10, basePath: t10 }) => (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [(0, import_jsx_runtime.jsx)(Gf, {}), (0, import_jsx_runtime.jsx)(lie, {}), (0, import_jsx_runtime.jsx)(Uge, { children: (0, import_jsx_runtime.jsx)(Lge, { routeIndex: e10, basePath: t10 }) })] }), RedoclyApiDocs2 = jB(J1, F1, import_react3.memo)(Y1);
   typeof crypto < `u` && typeof crypto.randomUUID != `function` && (crypto.randomUUID = function() {
     let e10 = crypto.getRandomValues(new Uint8Array(16));
     e10[6] = e10[6] & 15 | 64, e10[8] = e10[8] & 63 | 128;
@@ -56495,16 +55693,16 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
 `;
   F2(), jo(), zi(), na();
   function Z1(e10) {
-    let { src: t10, srcSet: n10, images: r10, alt: i10, className: a10, width: o10, height: s10, border: c10, caption: l10, framed: u10, style: d10, withLightbox: f10, lightboxStyle: p10 } = e10, m10 = (0, import_react2.useRef)(null), h10 = (0, import_react2.useRef)(null), [g10, _10] = (0, import_react2.useState)(void 0), v10 = (0, import_react2.useMemo)(() => n10 ? Me2(n10) : /* @__PURE__ */ new Map(), [n10]), y10 = (0, import_react2.useCallback)((e11) => {
+    let { src: t10, srcSet: n10, images: r10, alt: i10, className: a10, width: o10, height: s10, border: c10, caption: l10, framed: u10, style: d10, withLightbox: f10, lightboxStyle: p10 } = e10, m10 = (0, import_react3.useRef)(null), h10 = (0, import_react3.useRef)(null), [g10, _10] = (0, import_react3.useState)(void 0), v10 = (0, import_react3.useMemo)(() => n10 ? Me2(n10) : /* @__PURE__ */ new Map(), [n10]), y10 = (0, import_react3.useCallback)((e11) => {
       e11.stopPropagation(), e11.key === `Escape` && _10(void 0);
-    }, []), b10 = (0, import_react2.useCallback)((e11, t11) => {
+    }, []), b10 = (0, import_react3.useCallback)((e11, t11) => {
       f10 && !g10 && (h10.current = t11, _10(e11));
     }, [f10, g10]), x10 = (e11) => f10 ? { role: `button`, tabIndex: 0, "aria-label": i10 ? void 0 : `Open image`, onClick: (t11) => b10(e11, t11.currentTarget), onKeyDown: (t11) => {
       (t11.key === `Enter` || t11.key === ` `) && (t11.preventDefault(), b10(e11, t11.currentTarget));
-    } } : {}, S10 = (0, import_react2.useCallback)(() => {
+    } } : {}, S10 = (0, import_react3.useCallback)(() => {
       _10(void 0);
     }, []);
-    lr(!!g10), (0, import_react2.useEffect)(() => {
+    lr(!!g10), (0, import_react3.useEffect)(() => {
       g10 ? m10.current?.focus() : (h10.current?.focus(), h10.current = null);
     }, [g10]);
     let C10 = { ...f10 && { cursor: `pointer` }, ...c10 && { border: c10 }, ...typeof d10 == `string` ? Zt(d10) : d10 }, w10 = typeof p10 == `string` ? Zt(p10) : p10, T10 = t10 ? (0, import_jsx_runtime.jsx)(`img`, { src: t10, alt: i10, className: a10, width: o10, height: s10, style: C10, ...x10(t10) }) : Array.from(v10).map(([e11, t11]) => (0, import_jsx_runtime.jsx)(w_e, { $colorMode: e11, src: t11, alt: i10, className: a10, width: o10, height: s10, $withLightbox: f10, style: C10, ...x10(t11) }, e11)), E10 = Array.isArray(r10) && r10.length > 0, D10 = E10 ? r10.slice(0, 3) : [], O10 = E10 ? (0, import_jsx_runtime.jsx)(S_e, { children: D10.map((e11, t11) => (0, import_jsx_runtime.jsx)(`img`, { src: e11, alt: i10, style: f10 ? { cursor: `pointer` } : void 0, ...x10(e11) }, `${e11}-${t11}`)) }) : null, k10 = !!l10;
@@ -56705,8 +55903,8 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
 `;
   Yi(), F2(), jo();
   function L_e({ onClick: e10, item: t10, className: n10, product: r10, innerRef: i10 }) {
-    let a10 = (0, import_react2.useRef)(null), { useTranslate: o10 } = sr(), { translate: s10 } = o10();
-    (0, import_react2.useEffect)(() => {
+    let a10 = (0, import_react3.useRef)(null), { useTranslate: o10 } = sr(), { translate: s10 } = o10();
+    (0, import_react3.useEffect)(() => {
       t10.active && a10.current?.focus();
     }, [t10.active]);
     let { document: c10, highlight: l10 } = t10, u10 = l10.parameters && l10.parameters.length ? l10.parameters[0] : null, d10 = c10.path && c10.path?.length > 1, f10 = cn({ isAdditionalOperation: c10.isAdditionalOperation, httpVerb: c10.httpMethod || `` });
@@ -56841,8 +56039,8 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
     return t10 ? t10.split(/\s+/).length : 0;
   }
   function Z_e({ onClose: e10, search: t10, isReady: n10 }) {
-    let r10 = jE(), i10 = Qo(RE), a10 = (0, import_react2.useContext)(Di)?.searchSessionId, o10 = (0, import_react2.useRef)(null), s10 = (0, import_react2.useRef)(null), c10 = (0, import_react2.useRef)(null), l10 = (0, import_react2.useRef)(null), [u10, d10] = (0, import_react2.useState)(``), [f10, p10] = (0, import_react2.useState)(``);
-    (0, import_react2.useEffect)(() => {
+    let r10 = jE(), i10 = Qo(RE), a10 = (0, import_react3.useContext)(Di)?.searchSessionId, o10 = (0, import_react3.useRef)(null), s10 = (0, import_react3.useRef)(null), c10 = (0, import_react3.useRef)(null), l10 = (0, import_react3.useRef)(null), [u10, d10] = (0, import_react3.useState)(``), [f10, p10] = (0, import_react3.useState)(``);
+    (0, import_react3.useEffect)(() => {
       if (!u10) {
         p10(``);
         return;
@@ -56850,8 +56048,8 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
       let e11 = setTimeout(() => p10(u10), 500);
       return () => clearTimeout(e11);
     }, [u10]);
-    let [m10, h10] = (0, import_react2.useState)({ query: ``, items: [] }), g10 = !!u10 && m10.query !== u10, _10 = g10 ? [] : m10.items;
-    (0, import_react2.useEffect)(() => {
+    let [m10, h10] = (0, import_react3.useState)({ query: ``, items: [] }), g10 = !!u10 && m10.query !== u10, _10 = g10 ? [] : m10.items;
+    (0, import_react3.useEffect)(() => {
       if (!f10) {
         h10({ query: ``, items: [] }), o10.current = null;
         return;
@@ -56863,26 +56061,26 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
         e11 = true;
       };
     }, [f10, t10, n10, r10, a10]);
-    let [v10, y10] = (0, import_react2.useState)(-1);
-    (0, import_react2.useEffect)(() => {
+    let [v10, y10] = (0, import_react3.useState)(-1);
+    (0, import_react3.useEffect)(() => {
       if (v10 < 0) {
         s10.current?.focus();
         return;
       }
       l10.current?.querySelectorAll(`:scope > a`)?.[v10]?.focus();
     }, [v10]);
-    let b10 = (0, import_react2.useCallback)((e11) => {
+    let b10 = (0, import_react3.useCallback)((e11) => {
       (e11.key === `ArrowDown` || e11.key === `ArrowUp`) && _10.length && (e11.preventDefault(), y10((t11) => {
         let n11 = t11 + (e11.key === `ArrowDown` ? 1 : -1);
         return Math.max(-1, Math.min(n11, _10.length - 1));
       }));
     }, [_10.length]);
-    (0, import_react2.useEffect)(() => {
+    (0, import_react3.useEffect)(() => {
       requestAnimationFrame(() => {
         s10.current?.focus();
       });
     }, []), lr(true), $n(c10, e10);
-    let x10 = (0, import_react2.useCallback)((t11) => {
+    let x10 = (0, import_react3.useCallback)((t11) => {
       let n11 = t11.target;
       typeof n11.className == `string` && n11.className?.includes(` overlay`) && e10();
     }, [e10]), S10 = (0, import_jsx_runtime.jsx)(Q_e, { onClick: x10, onKeyDown: b10, className: `overlay`, ref: c10, "data-testid": `search-dialog`, children: (0, import_jsx_runtime.jsxs)($_e, { children: [(0, import_jsx_runtime.jsx)(eve, { children: (0, import_jsx_runtime.jsx)(__e, { value: u10, onChange: (e11) => {
@@ -56984,8 +56182,8 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
 `;
   na();
   function ave({ onClick: e10, onIntent: t10, isReady: n10, className: r10, variant: i10 = `input` }) {
-    let a10 = db(), [o10, s10] = (0, import_react2.useState)(false);
-    return (0, import_react2.useEffect)(() => {
+    let a10 = db(), [o10, s10] = (0, import_react3.useState)(false);
+    return (0, import_react3.useEffect)(() => {
       s10(typeof navigator < `u` && navigator.userAgent.includes(`Mac`));
     }, []), (0, import_jsx_runtime.jsx)(ove, { onClick: e10, onPointerEnter: t10, className: r10, "data-testid": `search-trigger`, children: i10 === `button` ? (0, import_jsx_runtime.jsx)(sve, { variant: `text`, size: `medium`, icon: (0, import_jsx_runtime.jsx)(bO, {}), "aria-label": `Search trigger button` }) : (0, import_jsx_runtime.jsxs)(cve, { children: [(0, import_jsx_runtime.jsx)(bO, {}), n10 ? (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [a10(`search.navbar.label`, `Search `), o10 ? `\u2318K` : `Ctrl+K`] }) : (0, import_jsx_runtime.jsx)(`span`, { children: a10(`loading`, `Loading...`) })] }) });
   }
@@ -59834,8 +59032,8 @@ function Z(a,c){return new Promise((b,e)=>{a.onsuccess=a.oncomplete=function(){c
     return () => window.cancelIdleCallback(t10);
   }
   function ybe(e10, t10, n10, r10) {
-    let [i10, a10] = (0, import_react2.useState)(null), [o10, s10] = (0, import_react2.useState)(false), c10 = (0, import_react2.useRef)(null);
-    (0, import_react2.useEffect)(() => {
+    let [i10, a10] = (0, import_react3.useState)(null), [o10, s10] = (0, import_react3.useState)(false), c10 = (0, import_react3.useRef)(null);
+    (0, import_react3.useEffect)(() => {
       let i11 = false, o11 = false;
       s10(false), a10(null);
       let l11 = () => {
@@ -59851,17 +59049,17 @@ function Z(a,c){return new Promise((b,e)=>{a.onsuccess=a.oncomplete=function(){c
         i11 = true, c10.current = null, u10();
       };
     }, [e10, t10, n10, r10]);
-    let l10 = (0, import_react2.useCallback)(() => {
+    let l10 = (0, import_react3.useCallback)(() => {
       c10.current?.();
     }, []);
-    return { search: (0, import_react2.useCallback)((e11) => i10 ? i10.search(e11) : Promise.resolve([]), [i10]), isReady: o10, ensureIndex: l10 };
+    return { search: (0, import_react3.useCallback)((e11) => i10 ? i10.search(e11) : Promise.resolve([]), [i10]), isReady: o10, ensureIndex: l10 };
   }
   qf();
   function bbe({ items: e10, store: t10, basePath: n10, document: r10 }) {
-    let i10 = jE(), { isOpen: a10, onOpen: o10, onClose: s10 } = bee(), { search: c10, isReady: l10, ensureIndex: u10 } = ybe(e10, t10, n10, r10), d10 = (0, import_react2.useRef)(false), f10 = (0, import_react2.useRef)(false);
-    return (0, import_react2.useEffect)(() => {
+    let i10 = jE(), { isOpen: a10, onOpen: o10, onClose: s10 } = bee(), { search: c10, isReady: l10, ensureIndex: u10 } = ybe(e10, t10, n10, r10), d10 = (0, import_react3.useRef)(false), f10 = (0, import_react3.useRef)(false);
+    return (0, import_react3.useEffect)(() => {
       a10 && u10();
-    }, [a10, u10]), (0, import_react2.useEffect)(() => {
+    }, [a10, u10]), (0, import_react3.useEffect)(() => {
       a10 && !f10.current && !d10.current && i10.sendSearchOpenedMessage([{ ...VE.searchDialog, method: `shortcut` }]), f10.current = a10, a10 || (d10.current = false);
     }, [a10, i10]), (0, import_jsx_runtime.jsxs)(Sbe, { children: [(0, import_jsx_runtime.jsx)(ave, { isReady: l10, onIntent: u10, onClick: () => {
       d10.current = true, u10(), o10(), i10.sendSearchOpenedMessage([{ ...VE.searchDialog, method: `click` }]);
@@ -59894,8 +59092,8 @@ function Z(a,c){return new Promise((b,e)=>{a.onsuccess=a.oncomplete=function(){c
     return null;
   }
   function Tbe(e10) {
-    let { item: t10, depth: n10, className: r10, onClick: i10 } = e10, { useTranslate: a10, useTelemetry: o10 } = sr(), { translate: s10 } = a10(), c10 = We2(t10), l10 = (0, import_react2.useRef)(null), u10 = (0, import_react2.useRef)(null), { isExpanded: d10, canUnmount: f10, style: p10, handleExpand: m10 } = eee({ ...e10, type: c10, labelRef: u10, nestedMenuRef: l10 }), h10 = o10(), g10 = c10 === ge2.DrillDown, _10 = c10 === ge2.Separator, v10 = c10 === ge2.Group, y10 = v10 && !g10, b10 = !!t10.httpVerb || c10 === ge2.Operation;
-    (0, import_react2.useEffect)(() => {
+    let { item: t10, depth: n10, className: r10, onClick: i10 } = e10, { useTranslate: a10, useTelemetry: o10 } = sr(), { translate: s10 } = a10(), c10 = We2(t10), l10 = (0, import_react3.useRef)(null), u10 = (0, import_react3.useRef)(null), { isExpanded: d10, canUnmount: f10, style: p10, handleExpand: m10 } = eee({ ...e10, type: c10, labelRef: u10, nestedMenuRef: l10 }), h10 = o10(), g10 = c10 === ge2.DrillDown, _10 = c10 === ge2.Separator, v10 = c10 === ge2.Group, y10 = v10 && !g10, b10 = !!t10.httpVerb || c10 === ge2.Operation;
+    (0, import_react3.useEffect)(() => {
       let e11 = u10.current;
       if (!t10.active || !e11) return;
       let n11 = wbe(e11);
@@ -60098,7 +59296,7 @@ function Z(a,c){return new Promise((b,e)=>{a.onsuccess=a.oncomplete=function(){c
   --icon-height: var(--font-size-sm);
   margin-right: var(--spacing-xxs);
   flex-shrink: 0;
-`, Rbe = import_react2.default.memo(Tbe, (e10, t10) => e10.item === t10.item && e10.depth === t10.depth && e10.isMobile === t10.isMobile && e10.className === t10.className);
+`, Rbe = import_react3.default.memo(Tbe, (e10, t10) => e10.item === t10.item && e10.depth === t10.depth && e10.isMobile === t10.isMobile && e10.className === t10.className);
   F2(), jo();
   function zbe({ item: e10, className: t10 }) {
     let { useTranslate: n10, useTelemetry: r10 } = sr(), { translate: i10 } = n10(), a10 = r10();
@@ -60217,13 +59415,13 @@ function Z(a,c){return new Promise((b,e)=>{a.onsuccess=a.oncomplete=function(){c
   }
   Ds(), Hs();
   function $be({ items: e10 }) {
-    let { pathname: t10 } = useLocation(), n10 = I(jh), r10 = I($R), i10 = fb(), a10 = (0, import_react2.useRef)(/* @__PURE__ */ new WeakMap());
-    return (0, import_react2.useMemo)(() => {
+    let { pathname: t10 } = useLocation(), n10 = I(jh), r10 = I($R), i10 = fb(), a10 = (0, import_react3.useRef)(/* @__PURE__ */ new WeakMap());
+    return (0, import_react3.useMemo)(() => {
       let o10 = r10 && Fs(r10, t10)?.path;
       return D4(e10, xs(n10 ?? o10 ?? t10).toLowerCase(), i10, a10.current);
     }, [e10, t10, n10, r10, i10]);
   }
-  var exe = (0, import_react2.memo)(({ items: e10, className: t10 }) => {
+  var exe = (0, import_react3.memo)(({ items: e10, className: t10 }) => {
     let n10 = $be({ items: e10 }), r10 = yD();
     return (0, import_jsx_runtime.jsx)(txe, { className: t10, onClick: r10, children: (0, import_jsx_runtime.jsx)(E4, { items: n10 }) });
   }), txe = Tt.div`
@@ -60378,8 +59576,8 @@ function Z(a,c){return new Promise((b,e)=>{a.onsuccess=a.oncomplete=function(){c
     } }) }), !n10 && o10] });
   };
   function k4({ full: e10 = false }) {
-    let [t10, n10] = (0, import_react2.useState)(false);
-    return (0, import_react2.useEffect)(() => {
+    let [t10, n10] = (0, import_react3.useState)(false);
+    return (0, import_react3.useEffect)(() => {
       n10(true);
     }, []), t10 ? (0, import_jsx_runtime.jsx)(`img`, { alt: `redocly logo`, onError: () => n10(false), src: e10 ? `https://cdn.redoc.ly/redoc/logo-mini-full.svg` : `https://cdn.redoc.ly/redoc/logo-mini.svg` }) : null;
   }
@@ -60465,7 +59663,7 @@ function Z(a,c){return new Promise((b,e)=>{a.onsuccess=a.oncomplete=function(){c
 `;
   qf(), zi();
   var Cxe = () => {
-    let [e10, t10] = $o(Th), n10 = (0, import_react2.useCallback)(() => {
+    let [e10, t10] = $o(Th), n10 = (0, import_react3.useCallback)(() => {
       t10(!e10);
     }, [e10, t10]);
     return (0, import_jsx_runtime.jsx)(wxe, { type: `button`, onClick: n10, "aria-label": e10 ? `Close navigation menu` : `Open navigation menu`, "aria-expanded": e10, "data-testid": `floating-button`, children: (0, import_jsx_runtime.jsx)(e10 ? Ri : Sxe, { size: `24px` }) });
@@ -60505,14 +59703,14 @@ function Z(a,c){return new Promise((b,e)=>{a.onsuccess=a.oncomplete=function(){c
   var Txe = [`menu-item-type-group`, `menu-item-type-drilldown`];
   function Exe({ className: e10, children: t10, collapsedSidebar: n10 = false }) {
     let [r10, i10] = $o(Th);
-    (0, import_react2.useEffect)(() => {
+    (0, import_react3.useEffect)(() => {
       if (!r10) return;
       let e11 = window.matchMedia(`(min-width: ${k2.small})`), t11 = () => {
         e11.matches && i10(false);
       };
       return t11(), e11.addEventListener(`change`, t11), () => e11.removeEventListener(`change`, t11);
     }, [r10, i10]), p1(r10);
-    let a10 = (0, import_react2.useCallback)((e11) => {
+    let a10 = (0, import_react3.useCallback)((e11) => {
       if (!r10) return;
       let t11 = e11.target.closest(`a`);
       if (!t11) return;
@@ -60521,7 +59719,7 @@ function Z(a,c){return new Promise((b,e)=>{a.onsuccess=a.oncomplete=function(){c
     }, [r10, i10]);
     return (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [(0, import_jsx_runtime.jsxs)(Oxe, { className: e10, $collapsedSidebar: n10, $open: r10, onClick: a10, children: [n10 && !r10 ? null : t10, (0, import_jsx_runtime.jsx)(_xe, {})] }), (0, import_jsx_runtime.jsx)(Cxe, {})] });
   }
-  var Dxe = (0, import_react2.memo)(Exe), Oxe = Tt.div`
+  var Dxe = (0, import_react3.memo)(Exe), Oxe = Tt.div`
   flex-shrink: 0;
   overflow-y: auto;
   overflow-x: hidden;
@@ -61403,19 +60601,19 @@ ${JSON.stringify(s10, null, 2)}`);
   }
   function fCe(e10) {
     let t10 = I(ms), n10 = I(fs), r10 = I(hs);
-    (0, import_react2.useEffect)(() => {
+    (0, import_react3.useEffect)(() => {
       let i10 = new AbortController();
       return iCe(dCe({ items: e10, store: t10, getOperationDetail: r10 ? cCe({ items: e10, specType: n10, definition: r10 }) : void 0 }), i10.signal), () => i10.abort();
     }, [e10, t10, n10, r10]);
   }
   qf(), QR(), Ns();
   var pCe = ({ children: e10 }) => {
-    let t10 = (0, import_react2.useMemo)(() => ({ hooks: { useCodeHighlight: JSe, ...M4 ? { useCurrentProduct: () => void 0 } : {} }, ...M4 ? { config: M4 } : {} }), []);
+    let t10 = (0, import_react3.useMemo)(() => ({ hooks: { useCodeHighlight: JSe, ...M4 ? { useCurrentProduct: () => void 0 } : {} }, ...M4 ? { config: M4 } : {} }), []);
     return (0, import_jsx_runtime.jsx)(In.Provider, { value: t10, children: e10 });
-  }, RedoclyApiDocsStandalone2 = jB(J1, F1, import_react2.memo)(({ items: e10, store: t10, basePath: n10 = `/`, options: r10, logo: i10, telemetryConfig: a10, markdownAdapter: o10, spec: s10, buildTimings: c10 }) => {
-    let l10 = ks(n10), u10 = I(ds), d10 = I(ms), f10 = A1(r10?.disableTelemetry), p10 = zE({ ...a10, ...f10 ? { disabled: true } : {} }), m10 = (0, import_react2.useMemo)(() => ({ buildTimings: c10, options: FD(r10) }), [c10, r10]), h10 = (0, import_react2.useMemo)(() => o10 ?? ER(void 0, u10), [o10, u10]), g10 = I(kh);
+  }, RedoclyApiDocsStandalone2 = jB(J1, F1, import_react3.memo)(({ items: e10, store: t10, basePath: n10 = `/`, options: r10, logo: i10, telemetryConfig: a10, markdownAdapter: o10, spec: s10, buildTimings: c10 }) => {
+    let l10 = ks(n10), u10 = I(ds), d10 = I(ms), f10 = A1(r10?.disableTelemetry), p10 = zE({ ...a10, ...f10 ? { disabled: true } : {} }), m10 = (0, import_react3.useMemo)(() => ({ buildTimings: c10, options: FD(r10) }), [c10, r10]), h10 = (0, import_react3.useMemo)(() => o10 ?? ER(void 0, u10), [o10, u10]), g10 = I(kh);
     I(Oh), fCe(e10);
-    let _10 = A4(i10) ?? u10.apiLogo ?? d10.logo, v10 = (0, import_react2.useMemo)(() => kxe(u10), [u10]);
+    let _10 = A4(i10) ?? u10.apiLogo ?? d10.logo, v10 = (0, import_react3.useMemo)(() => kxe(u10), [u10]);
     return (0, import_jsx_runtime.jsxs)(pCe, { children: [(0, import_jsx_runtime.jsx)(jxe, {}), (0, import_jsx_runtime.jsx)(kE.Provider, { value: p10, children: (0, import_jsx_runtime.jsxs)(mCe, { style: v10, children: [(0, import_jsx_runtime.jsxs)(Dxe, { className: `menu-content`, collapsedSidebar: g10, children: [(0, import_jsx_runtime.jsx)(DR, { dataTestId: `logo`, ..._10 }), (0, import_jsx_runtime.jsx)(xbe, { items: e10, store: t10, basePath: l10, document: V2(s10) ? s10 : void 0 }), (0, import_jsx_runtime.jsx)(exe, { items: e10 })] }), (0, import_jsx_runtime.jsx)(hCe, { children: (0, import_jsx_runtime.jsx)(Y1, { items: e10, basePath: l10, markdownAdapter: h10, telemetryConfig: a10, initialTelemetry: m10 }) })] }) })] });
   }), mCe = Tt.div`
   display: flex;
@@ -63491,7 +62689,7 @@ ${JSON.stringify(s10, null, 2)}`);
   function XEe(e10) {
     return e10.type === `graphql`;
   }
-  var ZEe = (0, import_react2.createContext)(void 0), QEe = s(((e10, t10) => {
+  var ZEe = (0, import_react3.createContext)(void 0), QEe = s(((e10, t10) => {
     function n10(e11) {
       if (typeof e11 != `string`) throw TypeError(`Path must be a string. Received ` + JSON.stringify(e11));
     }
@@ -67257,8 +66455,8 @@ ${JSON.stringify(s10, null, 2)}`);
     for (let t10 of e10) URL.revokeObjectURL(t10);
   }
   return { RedoclyApiDocs: RedoclyApiDocs2, RedocStandalone: ({ spec: e10, specUrl: t10, options: n10, basePath: r10 = `/`, logo: i10, markdownAdapter: a10, onLoaded: o10, children: s10 }) => {
-    let [c10, l10] = (0, import_react2.useState)(null), [u10, d10] = (0, import_react2.useState)(null), f10 = (0, import_react2.useContext)(ZEe), p10 = A1(n10?.disableTelemetry), m10 = (0, import_react2.useMemo)(() => ({ ...f10 ? { typeOfUsage: f10 } : {}, ...p10 ? { disabled: true } : {} }), [f10, p10]);
-    return (0, import_react2.useEffect)(() => {
+    let [c10, l10] = (0, import_react3.useState)(null), [u10, d10] = (0, import_react3.useState)(null), f10 = (0, import_react3.useContext)(ZEe), p10 = A1(n10?.disableTelemetry), m10 = (0, import_react3.useMemo)(() => ({ ...f10 ? { typeOfUsage: f10 } : {}, ...p10 ? { disabled: true } : {} }), [f10, p10]);
+    return (0, import_react3.useEffect)(() => {
       let i11 = false, a11 = [], s11 = performance.now();
       return l10(null), d10(null), prepareApiDocs2({ spec: e10, specUrl: t10, options: { ...n10, disableTelemetry: void 0 }, basePath: r10 }).then((e11) => {
         if (a11 = wPe(e11.options), i11) {
@@ -67300,11 +66498,11 @@ var REDOCLY_LOGO = new RegExp(
   String.raw`${JSX}\([\w$]+,\{\$collapsedSidebar:[\w$]+,children:${JSX}\(` + "`a`,\\{target:`_blank`,rel:`noopener noreferrer`,href:`https://redocly\\.com/redoc/`" + String.raw`[\s\S]*?\{full:!0\}\)\]\}\)\}\)\}\)`,
   "g"
 );
-function replaceRedoclyLogo(source, replace3, file = "the Redoc bundle") {
+function replaceRedoclyLogo(source, replace2, file = "the Redoc bundle") {
   let found = 0;
   const replaced = source.replace(REDOCLY_LOGO, (element) => {
     found++;
-    return replace3(element);
+    return replace2(element);
   });
   if (found !== 1) throw new Error(`Expected the Redocly logo link once in ${file}, found it ${found} times`);
   return replaced;
@@ -67360,7 +66558,7 @@ var DEFAULT_TEMPLATE_SOURCE = `<!DOCTYPE html>
 async function renderPage({ definition, title, templateFile, templateOptions, redocOptions, configPath, disableTelemetry, inlineBundle, removeRedoclyLogo: removeRedoclyLogo2 }) {
   const pageOptions = { ...redocOptions, skipBundle: true };
   const prepared = await prepareApiDocs({ spec: definition, options: pageOptions });
-  const app = (0, import_react3.createElement)(RedoclyApiDocsStandalone, {
+  const app = (0, import_react4.createElement)(RedoclyApiDocsStandalone, {
     items: prepared.items,
     store: prepared.store,
     basePath: "/",

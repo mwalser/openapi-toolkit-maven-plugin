@@ -41,8 +41,6 @@ const docs = await build({
   alias: {
     // the server build; the browser build inserts its styles into a document
     'styled-components': path.resolve('node_modules/styled-components/dist/styled-components.esm.js'),
-    // its package exports only name the development build
-    'react-router': path.resolve('node_modules/react-router/dist/production/index.mjs'),
     stream: './src/shims/stream.js', // styled-components' server build requires it
   },
   define: { __REDOC_VERSION__: JSON.stringify(redocVersion), __REDOC_STANDALONE_SRI__: JSON.stringify(redocStandaloneSri) },
