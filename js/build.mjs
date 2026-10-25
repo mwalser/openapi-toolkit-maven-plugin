@@ -1,7 +1,8 @@
 // Bundles the plugin's JavaScript into two ES modules that GraalJS can evaluate, plus the license notices of
 // everything they contain:
-//   redocly-core.mjs  @redocly/openapi-core, the vendored CLI commands and the command layer of every goal
-//   redocly-docs.mjs  Redoc with React for build-docs, evaluated into the same context when that goal first runs
+//   redocly-core.mjs     @redocly/openapi-core, the vendored CLI commands and the command layer of every goal
+//   redocly-docs.mjs     Redoc with React for build-docs, evaluated into the same context when that goal first runs
+//   redoc-standalone.js  Redoc's page script, copied next to the docs bundle for build-docs' inlineBundle
 //
 //   node build.mjs [core bundle] [docs bundle] [notices file]
 //   (defaults: dist/redocly-core.mjs, dist/redocly-docs.mjs, dist/THIRD-PARTY-NOTICES.txt)
@@ -18,17 +19,21 @@ if (pomVersion !== coreVersion) {
 }
 const redocVersion = packageVersion('redoc');
 // The page loads redoc.standalone.js from Redocly's CDN with this subresource integrity hash, as the CLI does.
-const redocStandaloneSri = 'sha384-' + createHash('sha384').update(readFileSync('node_modules/redoc/bundles/redoc.standalone.js')).digest('base64');
+const redocStandalone = readFileSync('node_modules/redoc/bundles/redoc.standalone.js');
+const redocStandaloneSri = 'sha384-' + createHash('sha384').update(redocStandalone).digest('base64');
 // renderPage removes the Redocly logo link from the inlined script at run time; fail here if it cannot
-removeRedoclyLogo(readFileSync('node_modules/redoc/bundles/redoc.standalone.js', 'utf8'), 'redoc.standalone.js');
+removeRedoclyLogo(redocStandalone.toString('utf8'), 'redoc.standalone.js');
 
 const [coreFile = 'dist/redocly-core.mjs', docsFile = 'dist/redocly-docs.mjs', noticesFile = 'dist/THIRD-PARTY-NOTICES.txt'] = process.argv.slice(2);
 for (const file of [coreFile, docsFile, noticesFile]) mkdirSync(path.dirname(file), { recursive: true });
+// the page script that `inlineBundle` embeds, read by the docs bundle through the host only when needed
+const standaloneFile = path.join(path.dirname(docsFile), 'redoc-standalone.js');
 
 const core = await build({
   entry: 'src/index.js',
   outfile: coreFile,
   define: { __REDOCLY_VERSION__: JSON.stringify(coreVersion) },
+  plugins: [splitProblemsCollected()],
 });
 const docs = await build({
   entry: 'src/docs.js',
@@ -38,20 +43,15 @@ const docs = await build({
     'styled-components': path.resolve('node_modules/styled-components/dist/styled-components.esm.js'),
     // its package exports only name the development build
     'react-router': path.resolve('node_modules/react-router/dist/production/index.mjs'),
-    http: './src/shims/empty.js',
-    https: './src/shims/empty.js',
-    os: './src/shims/empty.js',
-    stream: './src/shims/stream.js',
-    'node:stream': './src/shims/stream.js',
+    stream: './src/shims/stream.js', // styled-components' server build requires it
   },
   define: { __REDOC_VERSION__: JSON.stringify(redocVersion), __REDOC_STANDALONE_SRI__: JSON.stringify(redocStandaloneSri) },
-  // the page script that `inlineBundle` embeds instead of loading it from the CDN
-  loader: { '.standalone.js': 'text' },
   plugins: [redocWithOptionalLogo()],
 });
+writeFileSync(standaloneFile, redocStandalone);
 writeFileSync(noticesFile, thirdPartyNotices([core.metafile, docs.metafile]));
 
-async function build({ entry, outfile, alias = {}, define = {}, loader = {}, plugins = [] }) {
+async function build({ entry, outfile, alias = {}, define = {}, plugins = [] }) {
   const result = await esbuild.build({
     entryPoints: [entry],
     bundle: true,
@@ -63,7 +63,6 @@ async function build({ entry, outfile, alias = {}, define = {}, loader = {}, plu
     logLevel: 'info',
     metafile: true,
     legalComments: 'none', // every license is reproduced in THIRD-PARTY-NOTICES.txt instead
-    loader,
     plugins: [browserEnvWithHostVariables(), ...plugins],
     alias: {
       'node:fs': './src/shims/fs.js',
@@ -103,6 +102,18 @@ function browserEnvWithHostVariables() {
         contents: 'export const isBrowser = true; export const env = globalThis.process.env;',
         loader: 'js',
       }));
+    },
+  };
+}
+
+/** The vendored split command reports file name conflicts through src/shims/split-problems.js, which runSplit collects. */
+function splitProblemsCollected() {
+  return {
+    name: 'split-problems-collected',
+    setup(build) {
+      build.onResolve({ filter: /^@redocly\/openapi-core$/ }, (args) =>
+        /report-file-name-conflicts\.ts$/.test(args.importer) ? { path: path.resolve('src/shims/split-problems.js') } : undefined,
+      );
     },
   };
 }

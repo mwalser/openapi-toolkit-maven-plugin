@@ -32,6 +32,7 @@ jobs:
         working-directory: js
       - run: cmp target/redocly-core.mjs src/main/resources/net/mwalser/openapi/toolkit/redocly/redocly-core.mjs
       - run: cmp target/redocly-docs.mjs src/main/resources/net/mwalser/openapi/toolkit/redocly/redocly-docs.mjs
+      - run: cmp target/redoc-standalone.js src/main/resources/net/mwalser/openapi/toolkit/redocly/redoc-standalone.js
       - run: cmp target/THIRD-PARTY-NOTICES.txt src/main/resources/META-INF/THIRD-PARTY-NOTICES.txt
   isolate:
     runs-on: ubuntu-latest

@@ -126,7 +126,7 @@ class BuildDocsCommandTest {
         assertContains(without, "List pets")
 
         val cdn = assertFailsWith<RedoclyException> { redocly().buildDocs(options(project) { copy(removeRedoclyLogo = true) }) }
-        assertContains(cdn.message!!, "removeRedoclyLogo requires inlineBundle")
+        assertContains(cdn.message!!, "removeRedoclyLogo requires openapi.toolkit.buildDocs.inlineBundle")
     }
 
     @Test
@@ -202,7 +202,7 @@ class BuildDocsCommandTest {
             "arazzo: 1.0.1\ninfo: {title: Flows, version: '1'}\nsourceDescriptions: [{name: api, url: openapi.yaml, type: openapi}]\nworkflows: []\n",
         )
         val arazzo = assertFailsWith<RedoclyException> { redocly().buildDocs(BuildDocsOptions(cwd = dir.js, apis = listOf("workflow.yaml"), outputDirectory = "docs")) }
-        assertContains(arazzo.message!!, "build-docs renders OpenAPI, AsyncAPI, and GraphQL. This file is Arazzo.")
+        assertContains(arazzo.message!!, "Could not build the documentation for workflow.yaml: build-docs renders OpenAPI, AsyncAPI, and GraphQL. This file is Arazzo.")
         assertFalse(Files.exists(dir.resolve("docs")))
     }
 

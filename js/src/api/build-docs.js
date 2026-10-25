@@ -36,7 +36,7 @@ export async function runBuildDocs(opts) {
   const targets = apis.map((api) => ({ ...api, outputFile: outputFileFor(api, opts, 'html', 'documentation') }));
   rejectCollidingOutputs(targets, 'documented');
   if (opts.removeRedoclyLogo && !opts.inlineBundle) {
-    throw new CommandError('openapi.toolkit.buildDocs.removeRedoclyLogo requires inlineBundle: the Redoc script from the CDN adds the logo back.');
+    throw new CommandError('openapi.toolkit.buildDocs.removeRedoclyLogo requires openapi.toolkit.buildDocs.inlineBundle: the Redoc script from the CDN adds the logo back');
   }
   const overrides = parseRedocOptions(opts.redocOptions || {});
   // unlike the CLI, the pages send Redoc telemetry only when asked to; the CLI's off switches still apply
@@ -66,7 +66,6 @@ export async function runBuildDocs(opts) {
         removeRedoclyLogo: !!opts.removeRedoclyLogo,
       });
     } catch (e) {
-      if (e instanceof CommandError) throw e;
       const shown = isAbsoluteUrl(ref) ? ref : path.relative(cwd, ref);
       throw new CommandError(`Could not build the documentation for ${shown}: ${e?.message || e}`, { cause: e });
     }

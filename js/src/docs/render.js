@@ -6,7 +6,7 @@ import handlebars from 'handlebars';
 import { createElement } from 'react';
 import { renderToString } from 'react-dom/server';
 import { convertSwagger2OpenAPI, logoFromSpec, prepareApiDocs, RedoclyApiDocsStandalone, ServerStyleSheet } from 'redoc';
-import redocStandalone from 'redoc/bundles/redoc.standalone.js';
+import { host } from '../host.js';
 import { removeRedoclyLogo as withoutRedoclyLogo } from './redocly-logo.js';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -80,8 +80,7 @@ export async function renderPage({ definition, title, templateFile, templateOpti
   const template = handlebars.compile(templateSource);
 
   const redocBundleUrl = `https://cdn.redocly.com/redoc/v${__REDOC_VERSION__}/bundles/redoc.standalone.js`;
-  const inlinedScript = () => (removeRedoclyLogo ? withoutRedoclyLogo(redocStandalone, 'redoc.standalone.js') : redocStandalone);
-  const redocScript = inlineBundle ? escapeClosingScriptTag(inlinedScript()) : `import { hydrate } from "${redocBundleUrl}";`;
+  const redocScript = inlineBundle ? inlinedScript(removeRedoclyLogo) : `import { hydrate } from "${redocBundleUrl}";`;
   const redocHead = inlineBundle
     ? css
     : `<link rel="modulepreload" href="${redocBundleUrl}" integrity="${__REDOC_STANDALONE_SRI__}" crossorigin="anonymous" />` + css;
@@ -105,11 +104,24 @@ export async function renderPage({ definition, title, templateFile, templateOpti
   return { page, title: pageTitle };
 }
 
+// Redoc's page script for `inlineBundle`, a resource next to this bundle (see build.mjs) that is read on first use
+// and kept, with and without the Redocly logo link, ready to be embedded.
+const inlinedScripts = new Map();
+
+function inlinedScript(removeRedoclyLogo) {
+  let script = inlinedScripts.get(removeRedoclyLogo);
+  if (script === undefined) {
+    script = escapeClosingScriptTag(host.resource('redoc-standalone.js'));
+    if (removeRedoclyLogo) script = withoutRedoclyLogo(script, 'redoc-standalone.js');
+    inlinedScripts.set(removeRedoclyLogo, script);
+  }
+  return script;
+}
+
 function sanitizeJSONString(str) {
   return escapeUnicode(str).replace(/</g, '\\u003c');
 }
 
-// see http://www.thespanner.co.uk/2011/07/25/the-json-specification-is-now-wrong/
 function escapeClosingScriptTag(str) {
   return str.replace(/<\/(script)/gi, '<\\/$1');
 }

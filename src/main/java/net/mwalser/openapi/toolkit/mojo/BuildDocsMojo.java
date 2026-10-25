@@ -30,8 +30,9 @@ public final class BuildDocsMojo extends AbstractApiMojo {
 
     /**
      * Handlebars template of the page instead of the built-in one (or instead of {@code htmlTemplate} from the
-     * {@code openapi} section of the configuration file). It receives {@code title}, {@code redocHead} and
-     * {@code redocHTML} (both to be inserted unescaped, with triple braces), and {@code templateOptions}.
+     * configuration file section of the description's type: {@code openapi}, {@code asyncapi} or {@code graphql}).
+     * It receives {@code title}, {@code redocHead} and {@code redocHTML} (both to be inserted unescaped, with triple
+     * braces), and {@code templateOptions}.
      */
     @Parameter(property = "openapi.toolkit.buildDocs.template")
     File template;

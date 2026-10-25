@@ -69,7 +69,7 @@ Which engine runs is decided once per build:
 
 The engine and the embedded Redocly code are initialized once per Maven JVM and reused by every goal and module,
 so the warm-up (about 4 s for the interpreter, 1.4 s for the isolate) is paid once per build. build-docs loads
-Redoc and React in addition when it first runs (about 4 s for the interpreter, 3.3 s for the isolate).
+Redoc and React in addition when it first runs (about 3.3 s for the interpreter, 2.4 s for the isolate).
 
 Isolate troubleshooting
 -----------------------

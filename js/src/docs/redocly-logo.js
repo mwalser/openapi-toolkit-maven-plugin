@@ -20,9 +20,13 @@ const REDOCLY_LOGO = new RegExp(
  * @throws when the element is not found exactly once, e.g. after a Redoc upgrade changed it
  */
 export function replaceRedoclyLogo(source, replace, file = 'the Redoc bundle') {
-  const found = source.match(REDOCLY_LOGO)?.length ?? 0;
+  let found = 0;
+  const replaced = source.replace(REDOCLY_LOGO, (element) => {
+    found++;
+    return replace(element);
+  });
   if (found !== 1) throw new Error(`Expected the Redocly logo link once in ${file}, found it ${found} times`);
-  return source.replace(REDOCLY_LOGO, (element) => replace(element));
+  return replaced;
 }
 
 /** `source` without the element. */

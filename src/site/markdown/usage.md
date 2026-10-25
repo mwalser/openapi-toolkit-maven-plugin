@@ -282,7 +282,7 @@ from readers' browsers unless `telemetry=true` is set. `telemetry: off` in `redo
 variable `REDOCLY_TELEMETRY=off` keep it off even then.
 
 `template` replaces the built-in [Handlebars](https://handlebarsjs.com/) page template (`htmlTemplate` in the
-`openapi` section of `redocly.yaml` does the same). It receives `title`, `redocHead` and `redocHTML` (insert these
+section of `redocly.yaml` that matches the description's type does the same). It receives `title`, `redocHead` and `redocHTML` (insert these
 two unescaped, with triple braces), and `templateOptions` with the values of the parameter of the same name. The
 viewport meta tag keeps the layout responsive:
 

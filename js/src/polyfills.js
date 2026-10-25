@@ -61,8 +61,8 @@ globalThis.console = {
 
 /**
  * Runs `fn` and returns its value together with what it printed: `output` is the payload channel alone (what the
- * CLI writes to stdout), `transcript` is everything in order and `entries` the same as one `{ channel, text }` per
- * call. When `fn` throws, the transcript is attached to the error as `details.output` so that the host can still show it.
+ * CLI writes to stdout), `transcript` is everything in order. When `fn` throws, the transcript is attached to the
+ * error as `details.output` so that the host can still show it.
  */
 export async function captureOutput(fn) {
   const outer = captured;
@@ -70,7 +70,7 @@ export async function captureOutput(fn) {
   const text = (channel) => entries.filter((entry) => !channel || entry.channel === channel).map((entry) => entry.text).join('');
   try {
     const value = await fn();
-    return { value, output: text('output'), transcript: text(), entries };
+    return { value, output: text('output'), transcript: text() };
   } catch (error) {
     if (error && typeof error === 'object') error.details = { ...error.details, output: text() };
     throw error;
@@ -101,13 +101,12 @@ globalThis.setInterval = () => { throw new Error('setInterval is not supported')
 globalThis.clearInterval = () => {};
 
 // --- globals of Node and browsers that Redoc's server-side rendering reaches (redocly-docs.mjs) ------
-// prismjs registers its language components on `global`; react-dom/server creates a MessageChannel when it loads.
+// Redoc's search index looks for `global` when there is no `self`; react-dom/server creates a MessageChannel when it
+// loads.
 globalThis.global = globalThis;
 if (typeof globalThis.queueMicrotask !== 'function') {
   globalThis.queueMicrotask = (fn) => { Promise.resolve().then(fn); };
 }
-globalThis.setImmediate = (fn, ...args) => setTimeout(fn, 0, ...args);
-globalThis.clearImmediate = (id) => clearTimeout(id);
 if (typeof globalThis.MessageChannel === 'undefined') {
   class MessagePort {
     constructor() { this.onmessage = null; this.other = null; }
@@ -133,21 +132,14 @@ if (typeof globalThis.TextDecoder === 'undefined') {
 
 // --- crypto ------------------------------------------------------------------------------------
 // Redoc creates ids while it renders (search session, telemetry ulids); the bytes come from the host's SecureRandom.
+// Redoc derives `crypto.randomUUID` from `getRandomValues` itself when it is missing.
 if (typeof globalThis.crypto === 'undefined') {
-  const getRandomValues = (array) => {
-    const bytes = new Uint8Array(array.buffer, array.byteOffset, array.byteLength);
-    const hex = host.randomHex(bytes.length);
-    for (let i = 0; i < bytes.length; i++) bytes[i] = parseInt(hex.substr(i * 2, 2), 16);
-    return array;
+  globalThis.crypto = {
+    getRandomValues(array) {
+      new Uint8Array(array.buffer, array.byteOffset, array.byteLength).set(Buffer.from(host.randomHex(array.byteLength), 'hex'));
+      return array;
+    },
   };
-  const randomUUID = () => {
-    const bytes = getRandomValues(new Uint8Array(16));
-    bytes[6] = (bytes[6] & 0x0f) | 0x40;
-    bytes[8] = (bytes[8] & 0x3f) | 0x80;
-    const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
-    return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
-  };
-  globalThis.crypto = { getRandomValues, randomUUID };
 }
 
 // --- structuredClone ---------------------------------------------------------------------------

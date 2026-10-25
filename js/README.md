@@ -7,20 +7,24 @@ never by plugin users.
 - `redocly-core.mjs` – `@redocly/openapi-core`, the vendored CLI commands and the command layer of every goal.
 - `redocly-docs.mjs` – Redoc with React for `build-docs`; `RedoclyRuntime` evaluates it into the same context when
   that goal first runs, so the other goals do not pay for it.
+- `redoc-standalone.js` – Redoc's page script, written next to the docs bundle; `build-docs` reads it through the
+  host only for `inlineBundle`.
 
 ```
 npm ci --ignore-scripts
 npm run build -- ../src/main/resources/net/mwalser/openapi/toolkit/redocly/redocly-core.mjs ../src/main/resources/net/mwalser/openapi/toolkit/redocly/redocly-docs.mjs ../src/main/resources/META-INF/THIRD-PARTY-NOTICES.txt
 ```
 or from the project root: `mvn generate-resources -Pbuild-js`. The third output collects the license of every
-bundled package; CI rebuilds all three files and fails when they differ from the committed ones.
+bundled package; the build also writes `redoc-standalone.js` next to the docs bundle. CI rebuilds all four files and
+fails when they differ from the committed ones.
 
 - `src/host.js` – access to the host object `globalThis.__jvm` installed by `HostBridge.kt`, and the
   conversion of host failures into Node-style errors (`ENOENT: …`, `error.code`).
 - `src/polyfills.js` – globals GraalJS lacks (`process`, `console`, timers, `structuredClone`, `URL`, `fetch`, and
   the `global`, `MessageChannel`, `TextEncoder` and `crypto` that Redoc's server-side rendering reaches; `crypto`
   takes its bytes from the host's `SecureRandom`).
-- `src/shims/` – replacements for Node built-ins (`fs`, `process`, `perf_hooks`, `stream`) and `colorette`.
+- `src/shims/` – replacements for Node built-ins (`fs`, `process`, `perf_hooks`, `stream`) and `colorette`, and
+  `split-problems.js`, through which the vendored split command reports its file name conflicts to `runSplit`.
 - `src/api/` – the command layer (`lint`, `bundle`, `check-config`, `stats`, `join`, `split`, `score`,
   `build-docs`) mirroring `packages/cli/src/commands` of redocly-cli; every command takes plain options and returns
   JSON-serializable data.
@@ -28,9 +32,9 @@ bundled package; CI rebuilds all three files and fails when they differ from the
   build-docs (`utils.ts`): Redoc 3's `prepareApiDocs`, React's `renderToString` with styled-components, and the
   Handlebars page template. Loading, bundling and the Swagger 2 conversion happen in `src/api/build-docs.js`. It is
   built from styled-components' server build and react-router's production build; the Redoc version, the integrity
-  hash of the CDN script and the script itself (for `inlineBundle`) are embedded at build time.
+  hash of the CDN script are embedded at build time.
   `src/docs/redocly-logo.js` cuts the "API docs by Redocly" link out of Redoc's code for `removeRedoclyLogo`: the
-  build makes it conditional in the library that renders on the server and checks that the inlined script contains
+  build makes it conditional in the library that renders on the server and checks that the page script contains
   it once; a Redoc upgrade that changes the link fails the build.
 - `vendor/redocly-cli/` – command sources from the `@redocly/cli` 2.71.0 release (MIT) for
   stats/join/split/score, compiled by esbuild from TypeScript. `types.ts`, `wrapper.ts` and

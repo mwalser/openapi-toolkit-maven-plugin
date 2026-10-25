@@ -11,6 +11,7 @@ fixture="$root/src/test/resources/fixtures/build-docs"
 version="$(sed -n 's|.*<redocly.version>\(.*\)</redocly.version>.*|\1|p' "$root/pom.xml")"
 pages="${1:-$(mktemp -d)}"
 mkdir -p "$pages"
+pages="$(cd "$pages" && pwd)" # the renders run in the fixture directory
 
 cd "$fixture"
 render() { # <page name> <alias> [CLI options]

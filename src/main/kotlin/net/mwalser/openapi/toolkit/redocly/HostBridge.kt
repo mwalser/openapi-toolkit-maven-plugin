@@ -60,6 +60,7 @@ internal class HostBridge {
             "writeFile" to action { args -> writeFile(path(args[0]), args[1].asString()) },
             "mkdirs" to action { args -> Files.createDirectories(path(args[0])) },
             "randomHex" to function { args -> randomHex(args[0].asInt()) },
+            "resource" to function { args -> resource(args[0].asString()) },
         ),
     )
 
@@ -76,6 +77,11 @@ internal class HostBridge {
     }
 
     private fun path(value: Value): Path = workingDirectory.resolve(JsPaths.toHostPath(value.asString())).normalize()
+
+    /** A text file embedded next to the bundles, such as Redoc's page script for build-docs' `inlineBundle`. */
+    private fun resource(name: String): String =
+        HostBridge::class.java.getResourceAsStream(name)?.use { String(it.readAllBytes(), StandardCharsets.UTF_8) }
+            ?: throw IllegalStateException("Embedded resource $name not found on the classpath")
 
     /** [byteCount] random bytes as hex digits, for `crypto.getRandomValues` (Redoc's search session and telemetry ids). */
     private fun randomHex(byteCount: Int): String = HexFormat.of().formatHex(ByteArray(byteCount).also(random::nextBytes))
