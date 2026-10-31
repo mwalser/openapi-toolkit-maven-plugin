@@ -10,13 +10,13 @@
     "build": "node build.mjs"
   },
   "dependencies": {
-    "@redocly/openapi-core": "2.71.0",
+    "@redocly/openapi-core": "2.71.2",
     "buffer": "^6.0.3",
     "handlebars": "^4.7.10",
     "path-browserify": "^1.0.1",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
-    "react-router": "^8.5.0",
+    "react-router": "^8.5.1",
     "redoc": "3.0.1",
     "styled-components": "6.4.2"
   },
